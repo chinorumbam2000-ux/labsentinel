@@ -1,0 +1,87 @@
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink antialiased;
+    margin: 0;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  .ls-card {
+    @apply rounded-xl border border-hairline bg-white shadow-card;
+  }
+
+  .ls-card-header {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4;
+  }
+
+  .ls-card-title {
+    @apply text-sm font-semibold tracking-tight text-ink;
+  }
+
+  .ls-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-muted;
+  }
+
+  .ls-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-hairline bg-white px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white;
+  }
+
+  .ls-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-brand;
+  }
+
+  .ls-input {
+    @apply w-full rounded-lg border border-hairline bg-white px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-brand;
+  }
+
+  .ls-select {
+    @apply rounded-lg border border-hairline bg-white px-3 py-2 text-sm text-ink focus:border-brand;
+  }
+
+  .ls-th {
+    @apply whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted;
+  }
+
+  .ls-td {
+    @apply whitespace-nowrap px-4 py-3 text-sm text-ink;
+  }
+}
+
+/* Leaflet sits inside rounded cards; keep its canvas clipped and unobtrusive. */
+.leaflet-container {
+  background: #e8eef6;
+  font-family: inherit;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #64748b;
+}
+
+.ls-map-tooltip {
+  @apply rounded-lg border border-hairline bg-white px-3 py-2 text-xs text-ink shadow-panel;
+}
+
+.ls-map-tooltip::before {
+  display: none;
+}
