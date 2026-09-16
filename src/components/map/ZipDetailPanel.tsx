@@ -116,7 +116,7 @@ export default function ZipDetailPanel({ metrics, onClose }: ZipDetailPanelProps
 
         <button
           type="button"
-          onClick={() => navigate('/signals')}
+          onClick={() => navigate('/signals?view=current')}
           className="ls-btn-primary mt-5 w-full"
         >
           Investigate →

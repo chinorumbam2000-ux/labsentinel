@@ -1,35 +1,159 @@
-import type { SignalScoreResult, SimulationScenario } from '../../types';
+import type { OutbreakAlert, SimulationDay } from '../../types';
 import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../../lib/signalScore';
-import { SEVERITY_STYLES } from '../../lib/format';
+import { SEVERITY_STYLES, formatSimulationDate, formatSimulationDateTime } from '../../lib/format';
+import { getScenario } from '../../data/simulation';
+import { getScoreForDay } from '../../lib/selectors';
 import SeverityBadge from './SeverityBadge';
 
+export type InvestigationMode = 'detection' | 'current';
+
 interface SignalInvestigationProps {
-  scenario: SimulationScenario;
-  score: SignalScoreResult;
+  /** The alert being investigated, if the user came from a specific alert. */
+  alert?: OutbreakAlert;
+  /** The globally selected simulation day. Never changed by this component. */
+  currentDay: SimulationDay;
+  mode: InvestigationMode;
+  onModeChange: (mode: InvestigationMode) => void;
   onBack: () => void;
 }
 
 /**
- * Explains the five components that produced the composite score, with the
- * weighted contribution of each. Nothing here is hard-coded — every number is
- * read from the calculated score result.
+ * Explains the five components that produced a composite score.
+ *
+ * Which day is explained depends on the mode:
+ *   - "detection" replays the day the alert actually fired
+ *   - "current"   explains the globally selected simulation day
+ *
+ * Both are computed through the same shared scorer over the same authoritative
+ * dataset, so neither duplicates the formula and no score is hard-coded.
+ * Switching modes changes nothing global — not the simulation day, not
+ * acknowledgements, not the stored alert history.
  */
 export default function SignalInvestigation({
-  scenario,
-  score,
+  alert,
+  currentDay,
+  mode,
+  onModeChange,
   onBack,
 }: SignalInvestigationProps) {
-  const styles = SEVERITY_STYLES[score.severity];
+  // Without an alert there is nothing historical to replay, so the only
+  // meaningful view is current conditions.
+  const effectiveMode: InvestigationMode = alert ? mode : 'current';
+  const day: SimulationDay = effectiveMode === 'detection' && alert
+    ? alert.detectedDay
+    : currentDay;
+
+  const scenario = getScenario(day);
+  // The same shared scorer over the same authoritative dataset in both modes.
+  const score = getScoreForDay(day);
   const totalPoints = score.components.reduce(
     (sum, component) => sum + component.points,
     0,
   );
 
+  const isDetection = effectiveMode === 'detection' && Boolean(alert);
+
+  // In detection mode the headline reports the alert's own recorded severity
+  // and score. For the regional signal these equal the recomputed values (a
+  // unit test pins that); for kind-scoped alerts the recorded severity is the
+  // alert's own classification rather than the composite band.
+  const headlineScore =
+    isDetection && alert ? alert.detection.compositeScore : score.composite;
+  const headlineSeverity =
+    isDetection && alert ? alert.detection.severity : score.severity;
+  const styles = SEVERITY_STYLES[headlineSeverity];
+  const sameDay = alert ? alert.detectedDay === currentDay : true;
+
   return (
     <div className="space-y-5">
-      <button type="button" onClick={onBack} className="ls-btn px-3 py-1.5 text-xs">
-        ← Back to all signals
-      </button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button type="button" onClick={onBack} className="ls-btn px-3 py-1.5 text-xs">
+          ← Back to all signals
+        </button>
+
+        {alert ? (
+          <div
+            role="group"
+            aria-label="Investigation view"
+            className="flex w-full gap-1.5 rounded-lg border border-hairline bg-white p-1 shadow-card sm:w-auto"
+          >
+            <button
+              type="button"
+              onClick={() => onModeChange('detection')}
+              aria-pressed={isDetection}
+              className={`flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
+                isDetection
+                  ? 'bg-brand text-white'
+                  : 'text-muted hover:bg-canvas hover:text-ink'
+              }`}
+            >
+              At detection — Day {alert.detectedDay}
+            </button>
+            <button
+              type="button"
+              onClick={() => onModeChange('current')}
+              aria-pressed={!isDetection}
+              className={`flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
+                !isDetection
+                  ? 'bg-brand text-white'
+                  : 'text-muted hover:bg-canvas hover:text-ink'
+              }`}
+            >
+              Current conditions — Day {currentDay}
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Which day is on screen, and why — stated before any numbers. */}
+      <div
+        className={`rounded-xl border p-4 ${
+          isDetection
+            ? 'border-brand/30 bg-brand-light'
+            : 'border-hairline bg-white shadow-card'
+        }`}
+      >
+        <p className="text-sm font-semibold text-ink">
+          {isDetection
+            ? `At detection — Day ${day} · ${formatSimulationDate(scenario.simulationDate)}`
+            : `Current conditions — Day ${day} · ${formatSimulationDate(scenario.simulationDate)}`}
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-muted">
+          {isDetection && alert ? (
+            <>
+              These are the values recorded when &ldquo;{alert.title}&rdquo; triggered on{' '}
+              {formatSimulationDateTime(alert.detectedAt)}. They are a frozen snapshot of
+              that moment and do not change as the simulation advances.
+              {!sameDay ? (
+                <>
+                  {' '}
+                  The simulation is currently on Day {currentDay}; switch to{' '}
+                  <span className="font-medium text-ink">Current conditions</span> to see
+                  where the signal stands now.
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              These are live values for the globally selected simulation day
+              {alert ? (
+                <>
+                  {' '}
+                  — not the values recorded when &ldquo;{alert.title}&rdquo; triggered on
+                  Day {alert.detectedDay}
+                </>
+              ) : null}
+              . Changing the simulation day changes this view.
+            </>
+          )}
+        </p>
+        {alert && sameDay ? (
+          <p className="mt-2 text-xs text-muted">
+            This alert was detected on the currently selected day, so both views describe
+            the same day.
+          </p>
+        ) : null}
+      </div>
 
       <div className={`ls-card overflow-hidden border ${styles.soft}`}>
         <span aria-hidden="true" className={`block h-1 w-full ${styles.accent}`} />
@@ -37,18 +161,20 @@ export default function SignalInvestigation({
           <div className="min-w-0">
             <p className="ls-label">Signal</p>
             <h2 className="mt-1 text-xl font-semibold text-ink">
-              Respiratory Viral Syndrome
+              {alert ? alert.title : 'Respiratory Viral Syndrome'}
             </h2>
             <p className="mt-1 text-sm text-muted">
               Worcester County, MA · Simulation Day {scenario.day} · {scenario.stage}
             </p>
           </div>
           <div className="text-right">
-            <p className="ls-label">Severity</p>
+            <p className="ls-label">
+              {isDetection ? `Severity at detection` : 'Severity now'}
+            </p>
             <div className="mt-1 flex items-center justify-end gap-2">
-              <SeverityBadge severity={score.severity} size="md" />
+              <SeverityBadge severity={headlineSeverity} size="md" />
               <span className="text-2xl font-semibold tabular-nums text-ink">
-                {score.composite}
+                {headlineScore}
                 <span className="text-base font-medium text-muted">/100</span>
               </span>
             </div>
@@ -59,7 +185,11 @@ export default function SignalInvestigation({
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
         <section className="ls-card xl:col-span-3">
           <header className="ls-card-header">
-            <h3 className="ls-card-title">Why did LabSentinel trigger this?</h3>
+            <h3 className="ls-card-title">
+              {isDetection
+                ? `Why did LabSentinel trigger this on Day ${day}?`
+                : `What is driving the signal on Day ${day}?`}
+            </h3>
           </header>
           <ul className="divide-y divide-hairline">
             {score.components.map((component) => (
@@ -91,13 +221,15 @@ export default function SignalInvestigation({
         <section className="ls-card xl:col-span-2">
           <header className="ls-card-header">
             <h3 className="ls-card-title">Composite score</h3>
-            <span className="ls-label">Weighted contributions</span>
+            <span className="ls-label">
+              {isDetection ? `Day ${day} — at detection` : `Day ${day} — current`}
+            </span>
           </header>
           <div className="p-5">
             <table className="w-full border-collapse font-mono text-sm">
               <caption className="sr-only">
-                Weighted contribution of each component to the composite outbreak
-                signal score
+                Weighted contribution of each component to the composite outbreak signal
+                score on simulation day {day}
               </caption>
               <thead>
                 <tr className="border-b border-hairline">
@@ -142,7 +274,9 @@ export default function SignalInvestigation({
               <p className="mt-1.5 text-sm leading-relaxed text-ink">
                 {score.composite === 0
                   ? 'Regional respiratory testing and positivity are at expected baseline levels. No component is currently contributing to the composite signal.'
-                  : `Sustained increases in respiratory testing and positivity are occurring across ${scenario.affectedHospitals.length} participating ${
+                  : `Sustained increases in respiratory testing and positivity ${
+                      isDetection ? 'were' : 'are'
+                    } occurring across ${scenario.affectedHospitals.length} participating ${
                       scenario.affectedHospitals.length === 1 ? 'facility' : 'facilities'
                     } and ${scenario.affectedZipCodes.length} geographic ${
                       scenario.affectedZipCodes.length === 1 ? 'area' : 'areas'

@@ -179,6 +179,14 @@ export const getAlerts = (
     },
   );
 
+/**
+ * Look up a detection by id regardless of the current day. Callers use this to
+ * tell "no such alert" apart from "that alert has not been detected yet",
+ * which need different messages.
+ */
+export const findDetection = (alertId: string): AlertDetection | undefined =>
+  ALL_DETECTIONS.find((detection) => detection.id === alertId);
+
 /** The single regional signal that opens the Signal Investigation view. */
 export const getRegionalAlert = (
   currentDay: number,

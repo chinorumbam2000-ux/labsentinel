@@ -94,7 +94,7 @@ export default function AlertCard({ scenario, score }: AlertCardProps) {
           <p className="max-w-2xl text-xs font-medium text-muted">{SIGNAL_DISCLAIMER}</p>
           <button
             type="button"
-            onClick={() => navigate('/signals')}
+            onClick={() => navigate('/signals?view=current')}
             className="ls-btn-primary"
           >
             Investigate Signal →

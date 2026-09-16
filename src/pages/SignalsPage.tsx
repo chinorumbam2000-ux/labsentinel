@@ -1,13 +1,29 @@
-import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import SignalTable from '../components/signals/SignalTable';
-import SignalInvestigation from '../components/signals/SignalInvestigation';
+import SignalInvestigation, {
+  type InvestigationMode,
+} from '../components/signals/SignalInvestigation';
 import SeverityBadge from '../components/signals/SeverityBadge';
-import { ErrorState, LoadingState } from '../components/common/States';
+import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
 import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../lib/signalScore';
 import { formatPercent, formatSimulationDateTime } from '../lib/format';
+import { findDetection } from '../lib/alerts';
+
+/**
+ * Investigation context lives in the URL:
+ *   ?alert=<id>             investigate that alert, at detection by default
+ *   ?alert=<id>&view=current  ... but showing current conditions
+ *   ?view=current           investigate current conditions with no alert
+ *                           (the dashboard and map entry points)
+ *
+ * Keeping it in the URL is what makes refresh and browser back/forward restore
+ * the right screen.
+ */
+const ALERT_PARAM = 'alert';
+const VIEW_PARAM = 'view';
 
 export default function SignalsPage() {
   const {
@@ -23,7 +39,24 @@ export default function SignalsPage() {
     clearError,
   } = useSimulation();
 
-  const [investigating, setInvestigating] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const alertParam = searchParams.get(ALERT_PARAM);
+  const viewParam = searchParams.get(VIEW_PARAM);
+
+  const openList = () => setSearchParams({});
+
+  const openInvestigation = (alertId: string) => {
+    // Detection-time is the default: the user clicked a specific historical alert.
+    setSearchParams({ [ALERT_PARAM]: alertId, [VIEW_PARAM]: 'detection' });
+  };
+
+  const setMode = (mode: InvestigationMode) => {
+    // Only the URL changes. The global simulation day, acknowledgements and the
+    // stored alert history are all untouched.
+    const next: Record<string, string> = { [VIEW_PARAM]: mode };
+    if (alertParam) next[ALERT_PARAM] = alertParam;
+    setSearchParams(next);
+  };
 
   if (error) {
     return (
@@ -33,22 +66,70 @@ export default function SignalsPage() {
     );
   }
 
-  if (investigating) {
+  const investigatingCurrentOnly = !alertParam && viewParam === 'current';
+  const isInvestigating = Boolean(alertParam) || investigatingCurrentOnly;
+
+  if (isInvestigating) {
+    const selectedAlert = alertParam
+      ? alerts.find((alert) => alert.id === alertParam)
+      : undefined;
+
+    // An alert reference we cannot honour: either it does not exist at all, or
+    // it exists but has not been detected by the currently selected day.
+    if (alertParam && !selectedAlert) {
+      const detection = findDetection(alertParam);
+      return (
+        <div className="space-y-5">
+          <header>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">
+              Signal Investigation
+            </h1>
+          </header>
+          <Card>
+            <EmptyState
+              icon="!"
+              title={
+                detection
+                  ? 'That alert has not been detected yet'
+                  : 'That alert could not be found'
+              }
+              message={
+                detection
+                  ? `"${detection.title}" is first detected on simulation Day ${detection.detectedDay}. The simulation is currently on Day ${currentDay}, so there is no detection-time breakdown to show. Advance to Day ${detection.detectedDay} or later, then investigate it from the alert list.`
+                  : `No alert matches the reference "${alertParam}". It may be from an older session, or the link may be incomplete.`
+              }
+              action={
+                <button type="button" onClick={openList} className="ls-btn-primary">
+                  Back to all signals
+                </button>
+              }
+            />
+          </Card>
+        </div>
+      );
+    }
+
+    const mode: InvestigationMode = viewParam === 'current' ? 'current' : 'detection';
+
     return (
       <div className="space-y-5">
-        <header>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            Signal Investigation
-          </h1>
-          <p className="mt-1 text-sm text-muted">
-            How the LabSentinel composite outbreak signal score was calculated for
-            Simulation Day {currentDay}.
-          </p>
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">
+              Signal Investigation
+            </h1>
+            <p className="mt-1 max-w-3xl text-sm text-muted">
+              How the LabSentinel composite outbreak signal score was calculated.
+            </p>
+          </div>
+          <PageMeta />
         </header>
         <SignalInvestigation
-          scenario={currentScenario}
-          score={signalScore}
-          onBack={() => setInvestigating(false)}
+          alert={selectedAlert}
+          currentDay={currentDay}
+          mode={mode}
+          onModeChange={setMode}
+          onBack={openList}
         />
       </div>
     );
@@ -112,7 +193,7 @@ export default function SignalsPage() {
 
       <Card
         title="Alert history"
-        subtitle="Values are frozen at detection time. Click Investigate on the regional signal for the full breakdown."
+        subtitle="Values are frozen at detection time. Investigate opens that alert's own detection-time breakdown."
         bodyClassName="p-0"
       >
         {isLoading ? (
@@ -120,7 +201,7 @@ export default function SignalsPage() {
         ) : (
           <SignalTable
             alerts={alerts}
-            onInvestigate={() => setInvestigating(true)}
+            onInvestigate={(alert) => openInvestigation(alert.id)}
             onAcknowledge={acknowledgeAlert}
           />
         )}
@@ -130,6 +211,15 @@ export default function SignalsPage() {
       <Card
         title={`Current regional figures — Day ${currentDay}`}
         subtitle="Live values for the selected simulation day, shown separately from the detection-time values above"
+        action={
+          <button
+            type="button"
+            onClick={() => setSearchParams({ [VIEW_PARAM]: 'current' })}
+            className="ls-btn px-3 py-1.5 text-xs"
+          >
+            Investigate current conditions →
+          </button>
+        }
       >
         <dl className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <div className="rounded-lg bg-canvas p-3">

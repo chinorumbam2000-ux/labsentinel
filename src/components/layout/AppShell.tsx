@@ -13,11 +13,14 @@ export default function AppShell() {
   const location = useLocation();
 
   // Close the mobile drawer and return to the top of the page on navigation.
+  // The search string is included because the Signal Investigation view is
+  // driven by query parameters on the same path — without it, opening or
+  // toggling an investigation leaves you scrolled half-way down.
   useEffect(() => {
     setNavOpen(false);
     const main = document.getElementById('ls-main');
     if (main) main.scrollTo({ top: 0 });
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-canvas">
