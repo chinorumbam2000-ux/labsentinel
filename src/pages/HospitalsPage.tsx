@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 import { HOSPITALS } from '../data/hospitals';
 import Card from '../components/common/Card';
+import PageMeta from '../components/common/PageMeta';
 import { ErrorState, LoadingState } from '../components/common/States';
 import VendorSidecar from '../components/hospitals/VendorSidecar';
 import FhirStatusPanel from '../components/hospitals/FhirStatusPanel';
 import HospitalDashboard from '../components/hospitals/HospitalDashboard';
-import { formatFullTimestamp } from '../lib/format';
 import type { HospitalId } from '../types';
 
 /**
@@ -73,14 +73,7 @@ export default function HospitalsPage() {
             inside it does not — it is the same component rendered in all three.
           </p>
         </div>
-        <div className="text-left sm:ml-auto sm:text-right">
-          <p className="ls-label">
-            Day {currentDay} of 5 · {currentScenario.stage}
-          </p>
-          <p className="mt-0.5 text-xs text-muted">
-            Last updated {formatFullTimestamp(lastUpdated)}
-          </p>
-        </div>
+        <PageMeta />
       </header>
 
       <div className="rounded-xl border border-hairline bg-white p-3 shadow-card">
@@ -212,10 +205,14 @@ export default function HospitalsPage() {
           <FhirStatusPanel
             vendor={activeHospital.vendor}
             lastUpdated={lastUpdated}
-            observationCount={metrics.observations.length}
+            observationCount={metrics.cumulativeTests}
           />
 
-          <HospitalDashboard metrics={metrics} lastUpdated={lastUpdated} />
+          <HospitalDashboard
+            metrics={metrics}
+            lastUpdated={lastUpdated}
+            currentDay={currentDay}
+          />
         </>
       )}
     </div>

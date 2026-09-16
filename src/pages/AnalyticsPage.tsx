@@ -14,8 +14,8 @@ import {
 } from 'recharts';
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
+import PageMeta from '../components/common/PageMeta';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
-import { formatFullTimestamp } from '../lib/format';
 import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulation';
 
 const VOLUME_COLOR = '#2563EB';
@@ -51,8 +51,7 @@ const tooltipStyles = {
 };
 
 export default function AnalyticsPage() {
-  const { currentDay, currentScenario, trendSeries, lastUpdated, isLoading, error, clearError } =
-    useSimulation();
+  const { currentDay, trendSeries, isLoading, error, clearError } = useSimulation();
   const [tab, setTab] = useState<TabKey>('volume');
 
   if (error) {
@@ -213,14 +212,7 @@ export default function AnalyticsPage() {
             Progression from Day 1 through Day {currentDay} · synthetic aggregate data
           </p>
         </div>
-        <div className="text-left sm:ml-auto sm:text-right">
-          <p className="ls-label">
-            Day {currentDay} of 5 · {currentScenario.stage}
-          </p>
-          <p className="mt-0.5 text-xs text-muted">
-            Last updated {formatFullTimestamp(lastUpdated)}
-          </p>
-        </div>
+        <PageMeta />
       </header>
 
       <div

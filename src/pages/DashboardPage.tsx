@@ -8,12 +8,9 @@ import AlertCard from '../components/dashboard/AlertCard';
 import OutbreakMap from '../components/map/OutbreakMap';
 import MapLegend from '../components/map/MapLegend';
 import Card from '../components/common/Card';
+import PageMeta from '../components/common/PageMeta';
 import { ErrorState, LoadingState } from '../components/common/States';
-import {
-  formatFullTimestamp,
-  formatPercentagePoints,
-  formatSignedPercent,
-} from '../lib/format';
+import { formatPercent, formatPercentagePoints, formatSignedPercent } from '../lib/format';
 import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulation';
 
 export default function DashboardPage() {
@@ -23,7 +20,7 @@ export default function DashboardPage() {
     signalScore,
     trendSeries,
     zipMetrics,
-    lastUpdated,
+    cumulativeTotals,
     isLoading,
     error,
     clearError,
@@ -50,12 +47,7 @@ export default function DashboardPage() {
             Respiratory Viral Syndrome | Worcester County, MA
           </p>
         </div>
-        <div className="text-left sm:ml-auto sm:text-right">
-          <p className="ls-label">Simulation Day {currentDay} of 5 · {currentScenario.stage}</p>
-          <p className="mt-0.5 text-xs text-muted">
-            Last updated {formatFullTimestamp(lastUpdated)}
-          </p>
-        </div>
+        <PageMeta />
       </header>
 
       {isLoading ? (
@@ -66,18 +58,22 @@ export default function DashboardPage() {
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <KpiCard
-              label="Total Tests"
+              label={`Total Tests — Day ${currentDay}`}
               value={currentScenario.totalTests.toLocaleString('en-US')}
               delta={`${formatSignedPercent(signalScore.volumeIncreasePercent, 0)} vs baseline`}
               deltaTone={signalScore.volumeIncreasePercent > 0 ? 'up' : 'neutral'}
-              footnote={`Baseline ${BASELINE_TEST_VOLUME} tests`}
+              footnote={`Baseline ${BASELINE_TEST_VOLUME} tests · ${cumulativeTotals.tests.toLocaleString(
+                'en-US',
+              )} cumulative through Day ${currentDay}`}
             />
             <KpiCard
-              label="Positivity Rate"
-              value={`${currentScenario.positivityRate.toFixed(1)}%`}
+              label={`Positivity Rate — Day ${currentDay}`}
+              value={formatPercent(currentScenario.positivityRate)}
               delta={formatPercentagePoints(signalScore.positivityDeltaPoints)}
               deltaTone={signalScore.positivityDeltaPoints > 0 ? 'up' : 'neutral'}
-              footnote={`Baseline ${BASELINE_POSITIVITY_RATE.toFixed(1)}%`}
+              footnote={`${currentScenario.totalPositives} of ${currentScenario.totalTests} tests · baseline ${BASELINE_POSITIVITY_RATE.toFixed(
+                1,
+              )}%`}
             />
             <KpiCard
               label="Affected Hospitals"

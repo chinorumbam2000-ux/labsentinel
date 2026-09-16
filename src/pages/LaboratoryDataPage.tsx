@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
+import PageMeta from '../components/common/PageMeta';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
 import { HOSPITALS } from '../data/hospitals';
 import { LAB_TESTS } from '../data/tests';
-import { formatDateTime, formatFullTimestamp } from '../lib/format';
+import { formatDateTime } from '../lib/format';
 import type { LabObservation } from '../types';
 
 type SortKey = 'effectiveDateTime' | 'hospitalName' | 'vendor' | 'patientId' | 'result' | 'testName';
@@ -29,9 +30,8 @@ const COLUMNS: Array<{ key: SortKey | null; label: string; className?: string }>
 export default function LaboratoryDataPage() {
   const {
     currentDay,
-    currentScenario,
     visibleObservations,
-    lastUpdated,
+    observationCounts,
     isLoading,
     error,
     clearError,
@@ -43,6 +43,7 @@ export default function LaboratoryDataPage() {
   const [resultFilter, setResultFilter] = useState('all');
   const [testFilter, setTestFilter] = useState('all');
   const [dayFilter, setDayFilter] = useState('all');
+  const [scope, setScope] = useState<'cumulative' | 'today'>('cumulative');
   const [sortKey, setSortKey] = useState<SortKey>('effectiveDateTime');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [page, setPage] = useState(1);
@@ -60,6 +61,7 @@ export default function LaboratoryDataPage() {
     const term = search.trim().toLowerCase();
 
     const rows = visibleObservations.filter((observation) => {
+      if (scope === 'today' && observation.day !== currentDay) return false;
       if (vendorFilter !== 'all' && observation.vendor !== vendorFilter) return false;
       if (hospitalFilter !== 'all' && observation.hospitalId !== hospitalFilter) return false;
       if (resultFilter !== 'all' && observation.result !== resultFilter) return false;
@@ -87,6 +89,8 @@ export default function LaboratoryDataPage() {
     );
   }, [
     visibleObservations,
+    scope,
+    currentDay,
     search,
     vendorFilter,
     hospitalFilter,
@@ -97,6 +101,8 @@ export default function LaboratoryDataPage() {
     sortDirection,
   ]);
 
+  const scopeTotal =
+    scope === 'today' ? observationCounts.day : observationCounts.cumulative;
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
   const pageRows = filtered.slice(
@@ -111,6 +117,7 @@ export default function LaboratoryDataPage() {
     setResultFilter('all');
     setTestFilter('all');
     setDayFilter('all');
+    setScope('cumulative');
     setPage(1);
   };
 
@@ -125,6 +132,7 @@ export default function LaboratoryDataPage() {
   };
 
   const hasActiveFilters =
+    scope !== 'cumulative' ||
     search.trim() !== '' ||
     vendorFilter !== 'all' ||
     hospitalFilter !== 'all' ||
@@ -149,17 +157,12 @@ export default function LaboratoryDataPage() {
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
             Normalized synthetic laboratory observations received from participating
-            healthcare organizations. All patient identifiers are synthetic placeholders.
+            healthcare organizations. Every test counted in the regional and hospital
+            totals has a record here — the table reconciles exactly with those figures.
+            All patient identifiers are synthetic placeholders.
           </p>
         </div>
-        <div className="text-left sm:ml-auto sm:text-right">
-          <p className="ls-label">
-            Day {currentDay} of 5 · {currentScenario.stage}
-          </p>
-          <p className="mt-0.5 text-xs text-muted">
-            Last updated {formatFullTimestamp(lastUpdated)}
-          </p>
-        </div>
+        <PageMeta />
       </header>
 
       <Card bodyClassName="p-4">
@@ -179,6 +182,22 @@ export default function LaboratoryDataPage() {
                 setPage(1);
               }}
             />
+          </div>
+
+          <div>
+            <label htmlFor="filter-scope" className="ls-label">Scope</label>
+            <select
+              id="filter-scope"
+              className="ls-select mt-1 block"
+              value={scope}
+              onChange={(event) => {
+                setScope(event.target.value as 'cumulative' | 'today');
+                setPage(1);
+              }}
+            >
+              <option value="cumulative">Cumulative through Day {currentDay}</option>
+              <option value="today">Day {currentDay} only</option>
+            </select>
           </div>
 
           <div>
@@ -293,8 +312,14 @@ export default function LaboratoryDataPage() {
       </Card>
 
       <Card
-        title={`${filtered.length} of ${visibleObservations.length} observations`}
-        subtitle="Synthetic FHIR Observation resources · scroll horizontally to see every column"
+        title={`${filtered.length.toLocaleString('en-US')} of ${scopeTotal.toLocaleString(
+          'en-US',
+        )} observations`}
+        subtitle={`${observationCounts.day.toLocaleString(
+          'en-US',
+        )} received on Day ${currentDay} · ${observationCounts.cumulative.toLocaleString(
+          'en-US',
+        )} cumulative through Day ${currentDay}. Synthetic FHIR Observation resources — scroll the table horizontally to see every column.`}
         bodyClassName="p-0"
       >
         {isLoading ? (

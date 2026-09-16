@@ -37,7 +37,9 @@ export default function AlertCard({ scenario, score }: AlertCardProps) {
     {
       label: 'Positivity deviation',
       value: formatPercentagePoints(score.positivityDeltaPoints),
-      detail: `${BASELINE_POSITIVITY_RATE.toFixed(1)}% → ${scenario.positivityRate.toFixed(1)}%`,
+      detail: `${BASELINE_POSITIVITY_RATE.toFixed(1)}% → ${scenario.positivityRate.toFixed(
+        1,
+      )}% (${scenario.totalPositives} of ${scenario.totalTests})`,
     },
     {
       label: 'Healthcare facilities affected',

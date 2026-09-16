@@ -62,7 +62,11 @@ export interface SimulationScenario {
   day: SimulationDay;
   stage: string;
   description: string;
+  /** Simulation-calendar date, distinct from the real session clock. */
+  simulationDate: string;
   totalTests: number;
+  totalPositives: number;
+  /** Derived as totalPositives / totalTests. Unrounded. */
   positivityRate: number;
   affectedHospitals: HospitalId[];
   affectedZipCodes: string[];
@@ -112,6 +116,9 @@ export interface ZipMetrics {
   totalTests: number;
   positiveTests: number;
   positivityRate: number;
+  /** Day 1 through the current day inclusive. */
+  cumulativeTests: number;
+  cumulativePositives: number;
   trend: 'Baseline' | 'Increasing' | 'Stable' | 'Decreasing';
   severity: Severity;
   score: number;
@@ -120,18 +127,27 @@ export interface ZipMetrics {
 
 export interface HospitalMetrics {
   hospital: Hospital;
+  /** Current simulation day only. */
   totalTests: number;
   positiveTests: number;
   positivityRate: number;
+  /** Day 1 through the current day inclusive. */
+  cumulativeTests: number;
+  cumulativePositives: number;
+  cumulativePositivityRate: number;
+  /** Null until this facility actually signals; never reveals a future day. */
   firstSignalDay: SimulationDay | null;
   isAffected: boolean;
   severity: Severity;
+  /** Observations for the current day only. */
+  dayObservations: LabObservation[];
+  /** Observations from Day 1 through the current day. */
   observations: LabObservation[];
   volumeSeries: Array<{ day: number; tests: number }>;
   positivitySeries: Array<{ day: number; positivity: number }>;
 }
 
-export type AlertStatus = 'NEW' | 'Acknowledged';
+export type AlertStatus = 'New' | 'Active' | 'Acknowledged';
 
 export type AlertKind =
   | 'volume'
@@ -139,17 +155,44 @@ export type AlertKind =
   | 'cluster'
   | 'regional';
 
-export interface OutbreakAlert {
-  id: string;
-  kind: AlertKind;
-  title: string;
+/**
+ * A frozen snapshot of what was true at the moment an alert was detected.
+ * These values never change as the simulation advances — that is the whole
+ * point of an alert history.
+ */
+export interface AlertDetectionSnapshot {
   detail: string;
   severity: Severity;
   geography: string;
   facilities: string;
-  status: AlertStatus;
-  triggeredDay: SimulationDay;
-  time: string;
+  totalTests: number;
+  positivityRate: number;
+  compositeScore: number;
+  affectedHospitals: number;
+  affectedZipCodes: number;
+}
+
+export interface AcknowledgementRecord {
+  /** Simulation day on which the user acknowledged. */
+  day: SimulationDay;
+  /** Simulation-calendar timestamp of the acknowledgement. */
+  simulationTime: string;
+  /** Real wall-clock ISO timestamp of the acknowledgement. */
+  realTime: string;
+}
+
+export interface OutbreakAlert {
+  id: string;
+  kind: AlertKind;
+  title: string;
+  /** Simulation day on which this alert was first detected. */
+  detectedDay: SimulationDay;
+  /** Simulation-calendar timestamp of detection. */
+  detectedAt: string;
+  /** Frozen detection-time values. */
+  detection: AlertDetectionSnapshot;
   /** Only the regional signal opens the full investigation view. */
   investigable: boolean;
+  status: AlertStatus;
+  acknowledgement: AcknowledgementRecord | null;
 }

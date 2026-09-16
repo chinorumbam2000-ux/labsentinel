@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
-import { formatClockTime } from '../../lib/format';
+import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
 
 export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   const {
     currentDay,
     currentScenario,
+    simulationDate,
     signalScore,
     nextDay,
     previousDay,
@@ -15,7 +16,8 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
     refresh,
     lastUpdated,
     alerts,
-    newAlertCount,
+    unacknowledgedCount,
+    acknowledgeAlert,
     isFirstDay,
     isLastDay,
   } = useSimulation();
@@ -70,13 +72,20 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
+        <div className="hidden text-right lg:block">
+          <p className="ls-label">Simulation date</p>
+          <p className="text-sm font-medium text-ink">
+            {formatSimulationDate(simulationDate)}
+          </p>
+        </div>
+
         <div className="hidden text-right md:block">
-          <p className="ls-label">Last Updated</p>
+          <p className="ls-label">Session updated</p>
           <button
             type="button"
             onClick={refresh}
             className="text-sm font-medium text-brand hover:underline"
-            title="Refresh timestamp"
+            title="Refresh the session timestamp (real time, not simulation time)"
           >
             {formatClockTime(lastUpdated)}
           </button>
@@ -95,13 +104,15 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
             type="button"
             onClick={() => setShowAlerts((open) => !open)}
             className="ls-btn relative px-2.5 py-1.5"
-            aria-label={`Notifications: ${newAlertCount} new`}
+            aria-label={`Notifications: ${unacknowledgedCount} ${
+              unacknowledgedCount === 1 ? 'alert' : 'alerts'
+            } awaiting acknowledgement`}
             aria-expanded={showAlerts}
           >
             <span aria-hidden="true">🔔</span>
-            {newAlertCount > 0 ? (
+            {unacknowledgedCount > 0 ? (
               <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-severity-critical px-1 text-[10px] font-bold text-white">
-                {newAlertCount}
+                {unacknowledgedCount}
               </span>
             ) : null}
           </button>
@@ -116,36 +127,50 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
               />
               <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-hairline bg-white p-2 shadow-panel">
                 <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                  Active Alerts — Day {currentDay}
+                  {unacknowledgedCount} awaiting acknowledgement · Day {currentDay}
                 </p>
                 {alerts.length === 0 ? (
                   <p className="px-2 py-3 text-sm text-muted">
-                    No active alerts. Regional activity is at baseline.
+                    No alerts detected yet. Regional activity is at baseline.
                   </p>
                 ) : (
-                  <ul className="max-h-72 space-y-1 overflow-y-auto">
+                  <ul className="max-h-80 space-y-1 overflow-y-auto">
                     {alerts.map((alert) => (
-                      <li key={alert.id}>
+                      <li key={alert.id} className="rounded-lg px-2 py-2 hover:bg-canvas">
                         <button
                           type="button"
                           onClick={() => {
                             setShowAlerts(false);
                             navigate('/signals');
                           }}
-                          className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-canvas"
+                          className="flex w-full items-start gap-2 text-left"
                         >
                           <span className="mt-0.5">
-                            <SeverityBadge severity={alert.severity} />
+                            <SeverityBadge severity={alert.detection.severity} />
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium text-ink">
                               {alert.title}
                             </span>
                             <span className="block truncate text-xs text-muted">
-                              {alert.detail}
+                              {alert.detection.detail} · detected Day {alert.detectedDay}
                             </span>
                           </span>
                         </button>
+                        {alert.status !== 'Acknowledged' ? (
+                          <button
+                            type="button"
+                            onClick={() => acknowledgeAlert(alert.id)}
+                            className="ls-btn mt-1.5 w-full px-2 py-1 text-[11px]"
+                            aria-label={`Acknowledge alert: ${alert.title}`}
+                          >
+                            Acknowledge
+                          </button>
+                        ) : (
+                          <p className="mt-1 text-[11px] text-muted">
+                            Acknowledged on Day {alert.acknowledgement?.day}
+                          </p>
+                        )}
                       </li>
                     ))}
                   </ul>

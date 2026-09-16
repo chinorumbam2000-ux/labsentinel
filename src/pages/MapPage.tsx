@@ -1,28 +1,21 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 import OutbreakMap from '../components/map/OutbreakMap';
 import MapLegend from '../components/map/MapLegend';
 import ZipDetailPanel from '../components/map/ZipDetailPanel';
 import Card from '../components/common/Card';
+import PageMeta from '../components/common/PageMeta';
 import { ErrorState, LoadingState } from '../components/common/States';
 import { SYNDROME } from '../data/tests';
-import { formatFullTimestamp } from '../lib/format';
+import SeverityBadge from '../components/signals/SeverityBadge';
 
 export default function MapPage() {
-  const {
-    currentDay,
-    currentScenario,
-    zipMetrics,
-    lastUpdated,
-    isLoading,
-    error,
-    clearError,
-    goToDay,
-  } = useSimulation();
+  const { currentDay, zipMetrics, isLoading, error, clearError, goToDay } = useSimulation();
 
   const [selectedZip, setSelectedZip] = useState<string | null>(null);
   const [resetToken, setResetToken] = useState(0);
-  const [zoomToken, setZoomToken] = useState(0);
+  const [tileToken, setTileToken] = useState(0);
+  const [tilesFailed, setTilesFailed] = useState(false);
 
   // The panel reads from zipMetrics, so it re-renders with new day values
   // automatically while the selected area stays open.
@@ -33,6 +26,13 @@ export default function MapPage() {
   const handleReset = () => {
     setResetToken((token) => token + 1);
     setSelectedZip(null);
+  };
+
+  const handleTileError = useCallback(() => setTilesFailed(true), []);
+  const handleTileLoad = useCallback(() => setTilesFailed(false), []);
+  const retryTiles = () => {
+    setTilesFailed(false);
+    setTileToken((token) => token + 1);
   };
 
   if (error) {
@@ -53,14 +53,7 @@ export default function MapPage() {
             simplified synthetic shapes, not official ZIP Code Tabulation Areas.
           </p>
         </div>
-        <div className="text-left sm:ml-auto sm:text-right">
-          <p className="ls-label">
-            Day {currentDay} of 5 · {currentScenario.stage}
-          </p>
-          <p className="mt-0.5 text-xs text-muted">
-            Last updated {formatFullTimestamp(lastUpdated)}
-          </p>
-        </div>
+        <PageMeta />
       </header>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-hairline bg-white p-3 shadow-card">
@@ -86,16 +79,19 @@ export default function MapPage() {
           </select>
         </label>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="flex w-full items-center gap-1.5 sm:ml-auto sm:w-auto">
           <button
             type="button"
-            onClick={() => setZoomToken((token) => token + 1)}
-            className="ls-btn px-3 py-1.5 text-xs"
-            title="Zoom controls are also available on the map itself"
+            onClick={() => setResetToken((token) => token + 1)}
+            className="ls-btn flex-1 px-3 py-1.5 text-xs sm:flex-none"
           >
             Recentre
           </button>
-          <button type="button" onClick={handleReset} className="ls-btn px-3 py-1.5 text-xs">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="ls-btn flex-1 px-3 py-1.5 text-xs sm:flex-none"
+          >
             Reset map
           </button>
         </div>
@@ -108,18 +104,58 @@ export default function MapPage() {
       ) : (
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
           <Card className="xl:col-span-2" bodyClassName="p-0">
-            <div className="relative h-[520px] w-full overflow-hidden rounded-xl">
+            {tilesFailed ? (
+              <div
+                role="status"
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-severity-watch/40 bg-severity-watch/10 px-4 py-2.5"
+              >
+                <p className="text-xs leading-snug text-[#7A5D02]">
+                  <span className="font-semibold">Basemap tiles unavailable.</span>{' '}
+                  Surveillance areas, severity and every figure below are unaffected — only
+                  the background map is missing.
+                </p>
+                <button
+                  type="button"
+                  onClick={retryTiles}
+                  className="ls-btn shrink-0 px-3 py-1 text-xs"
+                >
+                  Retry basemap
+                </button>
+              </div>
+            ) : null}
+
+            <div className="relative h-[380px] w-full overflow-hidden sm:h-[520px]">
               <OutbreakMap
                 zipMetrics={zipMetrics}
                 selectedZip={selectedZip}
                 onSelectZip={setSelectedZip}
-                resetToken={resetToken + zoomToken}
+                resetToken={resetToken}
+                tileToken={tileToken}
+                onTileError={handleTileError}
+                onTileLoad={handleTileLoad}
               />
-              <div className="absolute bottom-3 left-3 z-[1100] w-44">
+              {/*
+                The legend is an overlay only where there is room for it. On
+                narrow screens it moves into the card footer so it can never sit
+                on top of the zoom control or the attribution.
+              */}
+              <div className="absolute bottom-3 left-3 z-[1100] hidden w-44 lg:block">
                 <MapLegend />
               </div>
-              <div className="pointer-events-none absolute right-3 top-3 z-[1100] rounded-lg border border-hairline bg-white/95 px-3 py-2 text-[11px] font-medium text-muted shadow-card">
-                Use + / − to zoom · drag to pan · click an area for details
+            </div>
+
+            {/*
+              Instructions live OUTSIDE the map at every width. They used to be
+              an overlay pinned top-right, which collided with the zoom-in
+              control at phone widths.
+            */}
+            <div className="space-y-3 border-t border-hairline px-4 py-3">
+              <p className="text-[11px] leading-snug text-muted">
+                Use the + and − controls to zoom, drag to pan, and select an area on the
+                map — or from the table below — to see its details.
+              </p>
+              <div className="lg:hidden">
+                <MapLegend compact />
               </div>
             </div>
           </Card>
@@ -130,17 +166,22 @@ export default function MapPage() {
         </div>
       )}
 
-      <Card title="Surveillance areas" subtitle={`Synthetic values for Day ${currentDay}`} bodyClassName="p-0">
+      <Card
+        title="Surveillance areas"
+        subtitle={`Synthetic values for Day ${currentDay}. Selecting a ZIP here opens the same detail panel as clicking the map, so the map is not the only way in.`}
+        bodyClassName="p-0"
+      >
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse">
+          <table className="w-full min-w-[860px] border-collapse">
             <thead className="border-b border-hairline bg-canvas">
               <tr>
                 <th scope="col" className="ls-th">ZIP</th>
                 <th scope="col" className="ls-th">City</th>
                 <th scope="col" className="ls-th">Participating Hospital</th>
-                <th scope="col" className="ls-th text-right">Tests</th>
-                <th scope="col" className="ls-th text-right">Positive</th>
+                <th scope="col" className="ls-th text-right">Tests (day)</th>
+                <th scope="col" className="ls-th text-right">Positive (day)</th>
                 <th scope="col" className="ls-th text-right">Positivity</th>
+                <th scope="col" className="ls-th text-right">Tests (cumulative)</th>
                 <th scope="col" className="ls-th">Trend</th>
                 <th scope="col" className="ls-th">Severity</th>
               </tr>
@@ -149,12 +190,21 @@ export default function MapPage() {
               {zipMetrics.map((area) => (
                 <tr
                   key={area.zipCode}
-                  onClick={() => setSelectedZip(area.zipCode)}
-                  className={`cursor-pointer transition-colors hover:bg-canvas ${
+                  className={`transition-colors hover:bg-canvas ${
                     selectedZip === area.zipCode ? 'bg-brand-light' : ''
                   }`}
                 >
-                  <td className="ls-td font-semibold tabular-nums">{area.zipCode}</td>
+                  <td className="ls-td">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedZip(area.zipCode)}
+                      aria-pressed={selectedZip === area.zipCode}
+                      className="rounded font-semibold tabular-nums text-brand hover:underline"
+                      aria-label={`Show details for surveillance area ${area.zipCode}, ${area.city}`}
+                    >
+                      {area.zipCode}
+                    </button>
+                  </td>
                   <td className="ls-td text-muted">
                     {area.city}, {area.state}
                   </td>
@@ -164,14 +214,12 @@ export default function MapPage() {
                   <td className="ls-td text-right tabular-nums">
                     {area.positivityRate.toFixed(1)}%
                   </td>
+                  <td className="ls-td text-right tabular-nums text-muted">
+                    {area.cumulativeTests}
+                  </td>
                   <td className="ls-td text-muted">{area.trend}</td>
                   <td className="ls-td">
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold"
-                      style={{ color: area.isAffected ? undefined : '#64748B' }}
-                    >
-                      {area.severity}
-                    </span>
+                    <SeverityBadge severity={area.severity} />
                   </td>
                 </tr>
               ))}

@@ -36,9 +36,17 @@ export default function ZipDetailPanel({ metrics, onClose }: ZipDetailPanelProps
   const rows = [
     { label: 'ZIP Code', value: metrics.zipCode },
     { label: 'City', value: `${metrics.city}, ${metrics.state}` },
-    { label: 'Total Tests', value: metrics.totalTests.toLocaleString('en-US') },
-    { label: 'Positive Tests', value: metrics.positiveTests.toLocaleString('en-US') },
-    { label: 'Positivity', value: `${metrics.positivityRate.toFixed(1)}%` },
+    { label: 'Total Tests (day)', value: metrics.totalTests.toLocaleString('en-US') },
+    { label: 'Positive Tests (day)', value: metrics.positiveTests.toLocaleString('en-US') },
+    { label: 'Positivity (day)', value: `${metrics.positivityRate.toFixed(1)}%` },
+    {
+      label: 'Tests (cumulative)',
+      value: metrics.cumulativeTests.toLocaleString('en-US'),
+    },
+    {
+      label: 'Positives (cumulative)',
+      value: metrics.cumulativePositives.toLocaleString('en-US'),
+    },
   ];
 
   return (

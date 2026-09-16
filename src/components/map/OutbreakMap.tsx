@@ -7,7 +7,6 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet';
-import type { Map as LeafletMap } from 'leaflet';
 import type { ZipMetrics } from '../../types';
 import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM, ZIP_AREAS } from '../../data/zipAreas';
 import { SEVERITY_COLORS } from '../../lib/format';
@@ -18,9 +17,13 @@ interface OutbreakMapProps {
   onSelectZip: (zipCode: string) => void;
   /** Bumping this value re-centres the map on the default viewport. */
   resetToken: number;
+  /** Bumping this value retries the basemap tile layer after a failure. */
+  tileToken?: number;
   interactive?: boolean;
   showLabels?: boolean;
   className?: string;
+  onTileError?: () => void;
+  onTileLoad?: () => void;
 }
 
 /** Imperatively re-centres the map when the reset control is used. */
@@ -49,15 +52,15 @@ export default function OutbreakMap({
   selectedZip,
   onSelectZip,
   resetToken,
+  tileToken = 0,
   interactive = true,
   showLabels = true,
   className = 'h-full w-full',
+  onTileError,
+  onTileLoad,
 }: OutbreakMapProps) {
-  const mapRef = useRef<LeafletMap | null>(null);
-
   return (
     <MapContainer
-      ref={mapRef}
       center={MAP_DEFAULT_CENTER}
       zoom={MAP_DEFAULT_ZOOM}
       scrollWheelZoom={interactive}
@@ -69,10 +72,23 @@ export default function OutbreakMap({
       className={className}
       attributionControl
     >
+      {/*
+        The surveillance layer below does not depend on this tile layer, so a
+        tile failure degrades the basemap only — the data stays readable.
+        `key` lets the retry control remount the layer.
+      */}
       <TileLayer
+        key={tileToken}
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors — synthetic overlay, demonstration only'
         maxZoom={18}
+        eventHandlers={{
+          tileerror: () => onTileError?.(),
+          // `tileload` fires only for a tile that genuinely loaded. The
+          // layer-level `load` event fires even when every tile errored, which
+          // would clear the fallback notice while the basemap is still blank.
+          tileload: () => onTileLoad?.(),
+        }}
       />
       <ViewportController resetToken={resetToken} />
 
@@ -103,10 +119,7 @@ export default function OutbreakMap({
                 {metrics.totalTests} tests · {metrics.positiveTests} positive ·{' '}
                 {metrics.positivityRate.toFixed(1)}%
               </span>
-              <span
-                className="mt-0.5 block text-[11px] font-semibold"
-                style={{ color }}
-              >
+              <span className="mt-0.5 block text-[11px] font-semibold" style={{ color }}>
                 {metrics.severity}
                 {!metrics.isAffected ? ' — no active signal' : ''}
               </span>

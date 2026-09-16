@@ -79,6 +79,9 @@ export default function VendorSidecar({
           <dd className="text-xs font-semibold text-ink">
             {score.positivityDeltaPoints > 0 ? '↑ ' : ''}
             {scenario.positivityRate.toFixed(1)}%
+            <span className="ml-1 font-normal text-muted">
+              ({scenario.totalPositives}/{scenario.totalTests})
+            </span>
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3 py-2.5">
@@ -96,7 +99,7 @@ export default function VendorSidecar({
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Last updated</dt>
+          <dt className="text-xs text-muted">Session updated</dt>
           <dd className="text-xs font-semibold text-ink">
             {formatClockTime(lastUpdated)}
           </dd>

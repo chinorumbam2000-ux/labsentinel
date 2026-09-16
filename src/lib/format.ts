@@ -82,6 +82,21 @@ export const formatDateTime = (isoString: string): string => {
   })}, ${formatClockTime(local)}`;
 };
 
+/** A simulation-calendar date, e.g. "Tue, Nov 4, 2025". Never the real clock. */
+export const formatSimulationDate = (isoDate: string): string => {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+/** A simulation-calendar timestamp, e.g. "Nov 4, 9:05 AM". */
+export const formatSimulationDateTime = (isoString: string): string =>
+  formatDateTime(isoString);
+
 export const formatFullTimestamp = (date: Date): string =>
   `${date.toLocaleDateString('en-US', {
     month: 'short',

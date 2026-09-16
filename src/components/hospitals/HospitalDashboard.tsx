@@ -22,6 +22,7 @@ const GRID_COLOR = '#DCE6F1';
 interface HospitalDashboardProps {
   metrics: HospitalMetrics;
   lastUpdated: Date;
+  currentDay: number;
 }
 
 const axisProps = {
@@ -43,27 +44,33 @@ const tooltipStyles = {
 export default function HospitalDashboard({
   metrics,
   lastUpdated,
+  currentDay,
 }: HospitalDashboardProps) {
   const stats = [
     {
-      label: 'Total Tests',
+      label: `Tests — Day ${currentDay}`,
       value: metrics.totalTests.toLocaleString('en-US'),
-      note: 'Current simulation day',
+      note: `${metrics.cumulativeTests.toLocaleString('en-US')} cumulative through Day ${currentDay}`,
     },
     {
-      label: 'Positivity',
+      label: `Positivity — Day ${currentDay}`,
       value: `${metrics.positivityRate.toFixed(1)}%`,
-      note: `${metrics.positiveTests} positive results`,
+      note: `${metrics.positiveTests} of ${metrics.totalTests} tests positive`,
     },
     {
+      // Never reveals a day the simulation has not reached yet.
       label: 'First Signal',
-      value: metrics.firstSignalDay ? `Day ${metrics.firstSignalDay}` : 'Not yet',
-      note: metrics.isAffected ? 'Currently contributing' : 'No active contribution',
+      value: metrics.firstSignalDay ? `Day ${metrics.firstSignalDay}` : 'Not yet detected',
+      note: metrics.firstSignalDay
+        ? metrics.isAffected
+          ? 'Currently contributing'
+          : 'Not contributing on this day'
+        : 'No signal through the current day',
     },
     {
       label: 'Last Sync',
       value: formatClockTime(lastUpdated),
-      note: 'Simulated FHIR delivery',
+      note: 'Session clock (real time)',
     },
   ];
 
@@ -153,13 +160,16 @@ export default function HospitalDashboard({
 
       <section className="ls-card">
         <header className="ls-card-header">
-          <h3 className="ls-card-title">Recent Observations</h3>
+          <h3 className="ls-card-title">Recent Observations — Day {currentDay}</h3>
           <div className="flex items-center gap-2">
-            <span className="ls-label">Current severity</span>
+            <span className="ls-label">
+              {metrics.dayObservations.length} on this day ·{' '}
+              {metrics.observations.length} cumulative
+            </span>
             <SeverityBadge severity={metrics.severity} />
           </div>
         </header>
-        {metrics.observations.length === 0 ? (
+        {metrics.dayObservations.length === 0 ? (
           <EmptyState
             icon="≡"
             title="No observations received yet"
@@ -179,7 +189,7 @@ export default function HospitalDashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline">
-                {metrics.observations.slice(0, 8).map((observation) => (
+                {metrics.dayObservations.slice(0, 8).map((observation) => (
                   <tr key={observation.id} className="hover:bg-canvas">
                     <td className="ls-td text-muted">
                       {formatDateTime(observation.effectiveDateTime)}

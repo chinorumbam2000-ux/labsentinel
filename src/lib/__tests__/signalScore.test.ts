@@ -40,7 +40,10 @@ describe('composite score weights', () => {
 });
 
 describe('five-day score progression', () => {
-  const expected: Record<number, number> = { 1: 0, 2: 23, 3: 49, 4: 74, 5: 86 };
+  // Recalculated from the corrected integer dataset — not the previously
+  // displayed values, which were produced from a stored positivity that had
+  // drifted away from the underlying counts.
+  const expected: Record<number, number> = { 1: 0, 2: 24, 3: 50, 4: 74, 5: 87 };
 
   it.each(SCENARIOS.map((scenario) => scenario.day))(
     'calculates day %i to the expected composite score',
@@ -49,10 +52,11 @@ describe('five-day score progression', () => {
     },
   );
 
-  it('calculates Day 5 as approximately 86 rather than hard-coding it', () => {
+  it('calculates Day 5 from the data rather than hard-coding it', () => {
     const result = scoreScenario(getScenario(5));
+    // Derived from 34 positives / 176 tests = 19.32% positivity.
     expect(result.composite).toBeGreaterThanOrEqual(85);
-    expect(result.composite).toBeLessThanOrEqual(87);
+    expect(result.composite).toBeLessThanOrEqual(88);
     expect(result.severity).toBe('Critical');
   });
 
@@ -70,18 +74,18 @@ describe('five-day score progression', () => {
 });
 
 describe('score components', () => {
-  it('produces the blueprint Day 5 breakdown', () => {
+  it('produces a Day 5 breakdown that sums to the composite', () => {
     const { components, composite } = scoreScenario(getScenario(5));
     const points = Object.fromEntries(
       components.map((component) => [component.key, component.points]),
     );
 
     expect(points.volume).toBe(19);
-    expect(points.positivity).toBe(22);
+    expect(points.positivity).toBe(23);
     expect(points.facilities).toBe(20);
     expect(points.geography).toBe(15);
     expect(points.persistence).toBe(10);
-    expect(composite).toBe(86);
+    expect(composite).toBe(87);
   });
 
   it('exposes five components with the specified maximum point values', () => {

@@ -9,7 +9,7 @@
 **This is a classroom prototype. Everything in it is fabricated.**
 
 - All three hospitals are **fictional**. They do not exist and are not modelled on any real healthcare organization.
-- All patients are **synthetic placeholders** (`SYN-P001` … `SYN-P025`). There is no PHI anywhere in this repository — no names, no addresses, no dates of birth, no real identifiers.
+- All patients are **synthetic placeholders** (`SYN-P0001` … `SYN-P0699`). There is no PHI anywhere in this repository — no names, no addresses, no dates of birth, no real identifiers.
 - All laboratory results are **invented** for demonstration.
 - The prototype is **not connected** to any real hospital, patient record, public-health agency, laboratory information system, FHIR server, or to Epic, Oracle Health or MEDITECH. The vendor environments shown are generic simulated shells, clearly labelled *"Simulated … Environment"*, and deliberately do not reproduce any vendor's proprietary interface.
 - **The LabSentinel Composite Outbreak Signal Score used in this prototype is an illustrative, non-validated demonstration model and is not intended for clinical diagnosis or public-health decision-making.**
@@ -99,19 +99,33 @@ Controls are available in the top bar (Previous / Next / Reset) on every page, a
 
 ### The five days
 
-| Day | Stage | Tests | Positivity | Hospitals | ZIPs | Persistence |
-|-----|-------|-------|-----------|-----------|------|-------------|
-| 1 | Baseline | 100 | 8.0% | 0 | 0 | 0 |
-| 2 | Early Local Increase | 124 | 9.5% | 1 | 1 | 1 |
-| 3 | Rising Positivity | 141 | 13.2% | 2 | 2 | 2 |
-| 4 | Multi-Site Cluster | 158 | 16.4% | 3 | 3 | 3 |
-| 5 | Regional Early-Warning Signal | 176 | 19.1% | 3 | 3 | 4 |
+| Day | Stage | Tests | Positives | Positivity | Hospitals | ZIPs | Persistence | Score |
+|-----|-------|-------|-----------|-----------|-----------|------|-------------|-------|
+| 1 | Baseline | 100 | 8 | 8.0% | 0 | 0 | 0 | 0 (Low) |
+| 2 | Early Local Increase | 124 | 12 | 9.7% | 1 | 1 | 1 | 24 (Watch) |
+| 3 | Rising Positivity | 141 | 19 | 13.5% | 2 | 2 | 2 | 50 (Moderate) |
+| 4 | Multi-Site Cluster | 158 | 26 | 16.5% | 3 | 3 | 3 | 74 (High) |
+| 5 | Regional Early-Warning Signal | 176 | 34 | 19.3% | 3 | 3 | 4 | 87 (Critical) |
 
-Baseline test volume is 100; baseline positivity is 8.0%.
+Baseline test volume is 100; baseline positivity is 8.0% (Day 1 is the baseline day).
+
+Positivity is **always** derived as positives ÷ tests and rounded only for
+display. Affected facilities, affected areas and persistence are derived too — a
+facility counts as affected once its own positivity sits at least 3 percentage
+points above baseline, and persistence counts consecutive days with regional
+positivity above baseline. Nothing in that table is stored independently of the
+counts, so the figures cannot drift apart.
+
+### The simulation calendar
+
+Observations and alerts are stamped with a fixed simulation calendar running
+**Mon 3 Nov 2025 → Fri 7 Nov 2025**. That is deliberately separate from the real
+session clock, which only ever reports when this browser tab last recalculated.
+Both are labelled wherever they appear (`Simulation date:` vs `Session updated`).
 
 ### The synthetic data
 
-- **25 deterministic FHIR-style `Observation` records**, five per simulated day, ids `OBS-001` … `OBS-025`, patients `SYN-P001` … `SYN-P025`. Timestamps are derived from a fixed start date and five fixed daily time slots, so the data never changes between runs.
+- **699 deterministic FHIR-style `Observation` records** — one per test counted in the dataset, ids `OBS-0001` … `OBS-0699`, patients `SYN-P0001` … `SYN-P0699`. The laboratory table therefore reconciles exactly with every hospital, area and regional total. The 25 representative records named in the blueprint are retained verbatim as the first five records of each simulated day. Generation is fully deterministic — no randomness, no dependence on the wall clock, identical on every render and reload.
 - **Three fictional hospitals:**
 
   | ID | Hospital | Vendor | ZIP |
@@ -128,7 +142,12 @@ Baseline test volume is 100; baseline positivity is 8.0%.
   | SARS-CoV-2 RNA | 94500-6 |
   | RSV RNA | 85479-4 |
 
-Per-site figures (tests, positives, positivity) are derived from the regional aggregates by fixed shares and largest-remainder allocation, so the parts always sum exactly to the regional total shown on the dashboard. Nothing is random.
+The authoritative dataset is a table of **integer per-day, per-site test and
+positive counts** (`src/data/dataset.ts`). Regional and cumulative totals are
+sums of it; positivity is a ratio of it; the composite score's inputs are derived
+from it. A test either happened or it did not, and a result is either positive or
+negative — storing a percentage alongside the counts is exactly what previously
+allowed the two to disagree.
 
 ---
 
@@ -167,7 +186,13 @@ Severity bands:
 | 65–84 | High |
 | 85–100 | Critical |
 
-Calculated progression: **Day 1 → 0, Day 2 → 23, Day 3 → 49, Day 4 → 74, Day 5 → 86.** The Day 5 breakdown is 19/25 + 22/30 + 20/20 + 15/15 + 10/10 = 86.
+Calculated progression: **Day 1 → 0, Day 2 → 24, Day 3 → 50, Day 4 → 74, Day 5 → 87.** The Day 5 breakdown is 19/25 + 23/30 + 20/20 + 15/15 + 10/10 = 87.
+
+These scores are recalculated from the corrected integer dataset. They differ by
+a point or two from the blueprint's illustrative figures (0/23/49/74/86), which
+were produced from a stored positivity that had drifted away from the underlying
+counts. The formula and the severity thresholds are unchanged, and the severity
+band for every day is the same: Low → Watch → Moderate → High → Critical.
 
 `/signals` → *Investigate* opens the Signal Investigation view, which shows each component's raw evidence, its normalized score, its weight and its point contribution, alongside the weighted total.
 
@@ -179,6 +204,59 @@ Both disclaimers appear on the Signals and Investigation screens:
 
 ---
 
+## Alerts, acknowledgement and session state
+
+Three things that are easy to conflate are kept strictly separate:
+
+| Concept | Meaning | Changes when? |
+|---------|---------|---------------|
+| **Detection** | The day the data first crossed a trigger | Never — it is a property of the data |
+| **New today** | `detectedDay === currentDay` | With the simulation day |
+| **Acknowledgement** | A person pressed Acknowledge | Only on explicit user action |
+
+Each alert carries a **frozen detection-time snapshot**: the detail line,
+severity, geography, facility count, volume, positivity and composite score as
+they stood on its detection day. Advancing the simulation never rewrites them,
+so an alert stamped *Nov 4, 9:05 AM* still reports Day 2's `+24% vs baseline`
+when you are looking at Day 5 — where the current figure is `+76%`. Current
+regional figures are shown in their own clearly labelled panel below the table.
+
+Statuses are `New today` (detected on the selected day), `Active` (detected
+earlier, not yet acknowledged) and `Acknowledged` (a person pressed the button).
+Acknowledging records both the simulation day/time and the real timestamp, and
+they are listed in an acknowledgement log. The notification badge counts
+**alerts awaiting acknowledgement** and says so in its accessible label.
+
+Stepping backwards hides alerts detected on later days without inventing or
+discarding any acknowledgement; stepping forward restores the full history with
+its snapshots intact.
+
+The selected day and acknowledgements persist through a browser refresh via
+`sessionStorage`. Everything read back is validated — a corrupt payload, an
+out-of-range day or a malformed acknowledgement is discarded and the prototype
+falls back to Day 1 rather than crashing. Autoplay is deliberately never
+persisted, so a refresh always resumes paused. **Reset Simulation** stops
+autoplay, clears every acknowledgement, returns to Day 1 and clears the stored
+session.
+
+---
+
+## Accessibility and resilience notes
+
+- Every surveillance area can be opened from the **Surveillance areas table** as
+  well as from the map, so area selection does not depend on clicking an SVG
+  polygon. Those ZIP cells are real buttons with descriptive labels.
+- Map instructions sit outside the map canvas at every width, so they cannot
+  overlap the zoom control, the attribution or the legend. The legend is an
+  overlay only at `lg` and above; below that it moves into the card footer.
+- A visible focus ring is applied globally via `:focus-visible`.
+- If the OpenStreetMap basemap fails to load, the map shows a labelled fallback
+  notice and a **Retry basemap** control. The surveillance polygons, severity
+  colours, tooltips, detail panel and every figure on the page are unaffected,
+  because none of them depend on the tile layer.
+
+---
+
 ## Routes
 
 | Route | Screen |
@@ -187,7 +265,7 @@ Both disclaimers appear on the Signals and Investigation screens:
 | `/dashboard` | Public Health Dashboard — 5 KPI cards, volume/positivity trend, geographic preview, current alert |
 | `/map` | Outbreak Map — synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail |
 | `/laboratory-data` | Laboratory Observations (FHIR) — search, six filters, sorting, pagination, horizontal overflow |
-| `/signals` | Signals & Alerts, and the Signal Investigation breakdown |
+| `/signals` | Signals & Alerts with per-alert acknowledgement, and the Signal Investigation breakdown |
 | `/hospitals` | Hospital dashboards + the vendor sidecar demonstration (Epic / Oracle Health / MEDITECH tabs) |
 | `/analytics` | Trends — Test Volume, Positivity, Signal Score, Geographic Spread |
 | `/simulation` | Outbreak simulation controls and the day-by-day progression |
@@ -243,10 +321,11 @@ Worth stating plainly, because they are the difference between a demonstration a
 
 - **The score is not validated.** The weights, denominators and thresholds were chosen to produce a legible teaching progression, not fitted to or evaluated against real epidemiological data. It has no sensitivity, specificity or lead-time characterisation.
 - **No real interoperability.** Nothing negotiates SMART on FHIR scopes, authenticates against a FHIR server, or parses a real `Observation` bundle. The FHIR-shaped records are local TypeScript objects and the "Interoperability Status" panel is a static depiction.
-- **Aggregates are authored, not computed.** The daily totals (100 → 176 tests, 8.0% → 19.1%) are given by the specification. The 25 observation records illustrate the underlying data; they do not add up to those aggregates.
+- **Daily test volumes are authored.** The per-day regional volumes (100 → 176) and the per-site shares come from the specification rather than from a modelled population. Everything downstream of them — positives, positivity, per-site and per-area figures, observation records, detection flags and the score — is derived from the single integer dataset.
+- **Alerts are rule-triggered, not statistically detected.** Thresholds are fixed constants, not baselines estimated from history.
 - **Geography is synthetic.** The map polygons are generated hexagons around approximate centre points. They are not ZIP Code Tabulation Areas and must not be read as boundaries.
 - **Only three sites, one syndrome, five days.** There is no multi-syndrome support, no facility onboarding, no historical baseline estimation and no seasonality adjustment.
-- **No persistence.** All state is in memory. Reloading the page returns the simulation to Day 1.
+- **Session-only persistence.** The selected day and your acknowledgements survive a refresh via `sessionStorage`, validated on read and discarded if malformed. Nothing is stored on a server, nothing survives closing the tab, and autoplay always comes back paused.
 - **No access control.** There are no users, roles, sessions or audit logging. The "Public Health Analyst" identity in the top bar is decorative.
 - **Dual-axis chart.** The dashboard trend chart plots volume and positivity on two y-scales because the specification calls for it. Dual-axis charts can imply correlations that the data does not support; both axes are explicitly labelled and colour-keyed to mitigate this, and `/analytics` shows each measure on its own scale.
 - **Single-region scope.** The prototype models one county with no cross-region aggregation or state/federal reporting path.

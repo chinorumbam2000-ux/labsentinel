@@ -1,13 +1,26 @@
 /**
- * Five-day aggregate simulation. These aggregates drive every headline metric
- * in the prototype and are the inputs to the composite outbreak signal score.
+ * Five-day simulation narrative and calendar.
+ *
+ * Only the stage name and description are authored here. Every number —
+ * totals, positivity, affected facilities, affected areas, persistence — is
+ * derived from the authoritative dataset in `dataset.ts`.
  *
  * DEMO ENVIRONMENT — Synthetic data only.
  */
 import type { SimulationDay, SimulationScenario } from '../types';
+import { HOSPITAL_BY_ID } from './hospitals';
+import {
+  SIMULATION_DAYS,
+  getAffectedHospitals,
+  getPersistenceDays,
+  getRegionalCounts,
+} from './dataset';
 
-export const BASELINE_TEST_VOLUME = 100;
-export const BASELINE_POSITIVITY_RATE = 8.0;
+export {
+  BASELINE_TEST_VOLUME,
+  BASELINE_POSITIVITY_RATE,
+  AFFECTED_MARGIN_POINTS,
+} from './dataset';
 
 export const FIRST_DAY: SimulationDay = 1;
 export const LAST_DAY: SimulationDay = 5;
@@ -15,63 +28,70 @@ export const LAST_DAY: SimulationDay = 5;
 /** Auto-play cadence, in milliseconds. */
 export const AUTOPLAY_INTERVAL_MS = 3000;
 
-export const SCENARIOS: SimulationScenario[] = [
-  {
-    day: 1,
+/**
+ * The simulation calendar. Observations and alerts are stamped with these
+ * dates. They are deliberately distinct from the real session clock, which is
+ * shown separately as "session updated" so the two are never confused.
+ */
+export const SIMULATION_START_DATE = '2025-11-03';
+
+/** Simulation date for a given day, as an ISO date string (no timezone drift). */
+export const simulationDateFor = (day: number): string => {
+  const [year, month, date] = SIMULATION_START_DATE.split('-').map(Number);
+  const base = new Date(Date.UTC(year, month - 1, date));
+  base.setUTCDate(base.getUTCDate() + (day - 1));
+  return base.toISOString().slice(0, 10);
+};
+
+/** Simulation timestamp: a simulation date plus an HH:mm clock time. */
+export const simulationTimestamp = (day: number, clock: string): string =>
+  `${simulationDateFor(day)}T${clock}:00`;
+
+const NARRATIVE: Record<SimulationDay, { stage: string; description: string }> = {
+  1: {
     stage: 'Baseline',
     description:
       'Regional respiratory testing is at expected seasonal volume. Positivity sits at the historical baseline and no participating facility is contributing an elevated signal.',
-    totalTests: 100,
-    positivityRate: 8.0,
-    affectedHospitals: [],
-    affectedZipCodes: [],
-    persistenceDays: 0,
   },
-  {
-    day: 2,
+  2: {
     stage: 'Early Local Increase',
     description:
-      'A single participating facility reports a modest rise in respiratory testing volume alongside the first positive result of the surveillance period. The signal is isolated to one surveillance area.',
-    totalTests: 124,
-    positivityRate: 9.5,
-    affectedHospitals: ['HOSP-A'],
-    affectedZipCodes: ['01604'],
-    persistenceDays: 1,
+      'A single participating facility reports a modest rise in respiratory testing volume alongside positivity well above baseline. The signal is isolated to one surveillance area.',
   },
-  {
-    day: 3,
+  3: {
     stage: 'Rising Positivity',
     description:
-      'Positivity climbs well above baseline while volume continues to increase. A second facility in a neighbouring surveillance area begins contributing positives, indicating the signal is no longer isolated.',
-    totalTests: 141,
-    positivityRate: 13.2,
-    affectedHospitals: ['HOSP-A', 'HOSP-B'],
-    affectedZipCodes: ['01604', '01605'],
-    persistenceDays: 2,
+      'Positivity climbs further above baseline while volume continues to increase. A second facility in a neighbouring surveillance area crosses the detection margin, indicating the signal is no longer isolated.',
   },
-  {
-    day: 4,
+  4: {
     stage: 'Multi-Site Cluster',
     description:
-      'All three participating facilities are now reporting positives across three distinct surveillance areas. Correlated multi-site activity raises the composite signal into the high range.',
-    totalTests: 158,
-    positivityRate: 16.4,
-    affectedHospitals: ['HOSP-A', 'HOSP-B', 'HOSP-C'],
-    affectedZipCodes: ['01604', '01605', '01545'],
-    persistenceDays: 3,
+      'All three participating facilities are now above the detection margin across three distinct surveillance areas. Correlated multi-site activity raises the composite signal into the high range.',
   },
-  {
-    day: 5,
+  5: {
     stage: 'Regional Early-Warning Signal',
     description:
       'Elevated volume and positivity have persisted for four consecutive days across the full participating network. LabSentinel raises a regional early-warning signal for epidemiological review.',
-    totalTests: 176,
-    positivityRate: 19.1,
-    affectedHospitals: ['HOSP-A', 'HOSP-B', 'HOSP-C'],
-    affectedZipCodes: ['01604', '01605', '01545'],
-    persistenceDays: 4,
   },
-];
+};
+
+/** Scenarios are built once from the dataset — they store no independent numbers. */
+export const SCENARIOS: SimulationScenario[] = SIMULATION_DAYS.map((day) => {
+  const regional = getRegionalCounts(day);
+  const affectedHospitals = getAffectedHospitals(day);
+  return {
+    day,
+    stage: NARRATIVE[day].stage,
+    description: NARRATIVE[day].description,
+    simulationDate: simulationDateFor(day),
+    totalTests: regional.tests,
+    totalPositives: regional.positives,
+    positivityRate: regional.positivityRate,
+    affectedHospitals,
+    affectedZipCodes: affectedHospitals.map((id) => HOSPITAL_BY_ID[id].zipCode),
+    persistenceDays: getPersistenceDays(day),
+  };
+});
 
 export const getScenario = (day: number): SimulationScenario => {
   const scenario = SCENARIOS.find((item) => item.day === day);
@@ -86,3 +106,10 @@ export const clampDay = (day: number): SimulationDay => {
   const bounded = Math.min(Math.max(Math.round(day), FIRST_DAY), LAST_DAY);
   return bounded as SimulationDay;
 };
+
+/** True only for a finite integer inside the simulation range. */
+export const isValidDay = (value: unknown): value is SimulationDay =>
+  typeof value === 'number' &&
+  Number.isInteger(value) &&
+  value >= FIRST_DAY &&
+  value <= LAST_DAY;

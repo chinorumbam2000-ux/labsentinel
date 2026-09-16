@@ -12,7 +12,14 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <BrowserRouter>
+    {/*
+      Opt in to the v7 behaviours React Router 6.26 already supports. This
+      silences the future-flag warnings using the installed version's own
+      options rather than upgrading the dependency.
+    */}
+    <BrowserRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <App />
     </BrowserRouter>
   </StrictMode>,

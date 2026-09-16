@@ -1,10 +1,11 @@
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
+import PageMeta from '../components/common/PageMeta';
 import { ErrorState } from '../components/common/States';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { SCENARIOS } from '../data/simulation';
 import { getScoreForDay } from '../lib/selectors';
-import { SEVERITY_STYLES, formatFullTimestamp } from '../lib/format';
+import { SEVERITY_STYLES } from '../lib/format';
 import { SCORE_DISCLAIMER } from '../lib/signalScore';
 
 export default function SimulationPage() {
@@ -12,7 +13,6 @@ export default function SimulationPage() {
     currentDay,
     currentScenario,
     signalScore,
-    lastUpdated,
     isPlaying,
     isFirstDay,
     isLastDay,
@@ -38,6 +38,7 @@ export default function SimulationPage() {
 
   const state = [
     { label: 'Tests', value: currentScenario.totalTests.toLocaleString('en-US') },
+    { label: 'Positives', value: currentScenario.totalPositives.toLocaleString('en-US') },
     { label: 'Positivity', value: `${currentScenario.positivityRate.toFixed(1)}%` },
     { label: 'Affected Hospitals', value: `${currentScenario.affectedHospitals.length} / 3` },
     { label: 'Affected ZIP Codes', value: `${currentScenario.affectedZipCodes.length} / 3` },
@@ -63,10 +64,7 @@ export default function SimulationPage() {
             sidecars.
           </p>
         </div>
-        <div className="text-left sm:ml-auto sm:text-right">
-          <p className="ls-label">Last updated</p>
-          <p className="mt-0.5 text-xs text-muted">{formatFullTimestamp(lastUpdated)}</p>
-        </div>
+        <PageMeta />
       </header>
 
       <div className={`ls-card overflow-hidden border ${styles.soft}`}>
@@ -197,7 +195,7 @@ export default function SimulationPage() {
       </div>
 
       <Card title="Current State" subtitle={`Derived from Simulation Day ${currentDay}`}>
-        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-7">
+        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-8">
           {state.map((item) => (
             <div key={item.label} className="rounded-lg bg-canvas p-3">
               <dt className="ls-label">{item.label}</dt>

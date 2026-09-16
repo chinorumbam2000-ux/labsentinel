@@ -37,7 +37,7 @@ function ActiveMarker({ isActive }: { isActive: boolean }) {
 }
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { currentDay, signalScore, newAlertCount } = useSimulation();
+  const { currentDay, signalScore, unacknowledgedCount } = useSimulation();
 
   return (
     <nav
@@ -83,9 +83,12 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                       {item.icon}
                     </span>
                     <span className="flex-1 truncate">{item.label}</span>
-                    {item.label === 'Signals' && newAlertCount > 0 ? (
-                      <span className="rounded-full bg-severity-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                        {newAlertCount}
+                    {item.label === 'Signals' && unacknowledgedCount > 0 ? (
+                      <span
+                        className="rounded-full bg-severity-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+                        aria-label={`${unacknowledgedCount} alerts awaiting acknowledgement`}
+                      >
+                        {unacknowledgedCount}
                       </span>
                     ) : null}
                   </>

@@ -5,6 +5,12 @@
  * the day updates the dashboard, map, tables, alerts, hospital views and all
  * three vendor sidecars in the same render.
  *
+ * Two clocks are kept deliberately separate:
+ *   - the SIMULATION calendar (Nov 3-7, 2025), which stamps observations and
+ *     alerts, and
+ *   - the real SESSION clock, which only ever says when this browser tab last
+ *     recalculated.
+ *
  * DEMO ENVIRONMENT — Synthetic data only.
  */
 import {
@@ -18,6 +24,7 @@ import {
   type ReactNode,
 } from 'react';
 import type {
+  AcknowledgementRecord,
   HospitalMetrics,
   LabObservation,
   OutbreakAlert,
@@ -31,27 +38,50 @@ import {
   FIRST_DAY,
   LAST_DAY,
   getScenario,
+  simulationTimestamp,
 } from '../data/simulation';
 import { getVisibleObservations } from '../data/observations';
 import {
   getAllHospitalMetrics,
+  getCumulativeTotals,
+  getObservationCounts,
   getScoreForDay,
   getZipMetrics,
 } from '../lib/selectors';
-import { getAlerts, getNewAlertCount, getRegionalAlert } from '../lib/alerts';
+import {
+  getAlerts,
+  getNewTodayCount,
+  getRegionalAlert,
+  getUnacknowledgedCount,
+} from '../lib/alerts';
 import { getTrendSeries, type TrendPoint } from '../lib/analytics';
+import {
+  clearSession,
+  loadSession,
+  saveSession,
+  type PersistedSession,
+} from '../lib/sessionState';
 
 export interface SimulationContextValue {
   currentDay: SimulationDay;
   currentScenario: SimulationScenario;
+  /** Simulation-calendar date for the current day (not the session clock). */
+  simulationDate: string;
   visibleObservations: LabObservation[];
+  observationCounts: { day: number; cumulative: number };
+  cumulativeTotals: ReturnType<typeof getCumulativeTotals>;
   signalScore: SignalScoreResult;
   zipMetrics: ZipMetrics[];
   hospitalMetrics: HospitalMetrics[];
   alerts: OutbreakAlert[];
   regionalAlert: OutbreakAlert | undefined;
-  newAlertCount: number;
+  /** Alerts awaiting acknowledgement — what the notification badge counts. */
+  unacknowledgedCount: number;
+  /** Alerts first detected on the current simulation day. */
+  newTodayCount: number;
+  acknowledgements: Record<string, AcknowledgementRecord>;
   trendSeries: TrendPoint[];
+  /** Real wall-clock time of the last recalculation in this browser tab. */
   lastUpdated: Date;
   isPlaying: boolean;
   isLoading: boolean;
@@ -64,6 +94,7 @@ export interface SimulationContextValue {
   resetSimulation: () => void;
   playSimulation: () => void;
   pauseSimulation: () => void;
+  acknowledgeAlert: (alertId: string) => void;
   refresh: () => void;
   clearError: () => void;
 }
@@ -73,8 +104,18 @@ const SimulationContext = createContext<SimulationContextValue | undefined>(unde
 /** Brief spinner on day change, so the loading state is a real, visible state. */
 const TRANSITION_MS = 220;
 
+/** Acknowledgements are stamped at the end of the acknowledging day. */
+const ACK_CLOCK = '17:00';
+
 export function SimulationProvider({ children }: { children: ReactNode }) {
-  const [currentDay, setCurrentDay] = useState<SimulationDay>(FIRST_DAY);
+  // Restored synchronously so the first paint is already the right day.
+  const restored = useRef<PersistedSession>(loadSession());
+
+  const [currentDay, setCurrentDay] = useState<SimulationDay>(restored.current.day);
+  const [acknowledgements, setAcknowledgements] = useState<
+    Record<string, AcknowledgementRecord>
+  >(restored.current.acknowledgements);
+  // Autoplay is never restored: a refresh always comes back paused.
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +123,11 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   const loadingTimer = useRef<number | null>(null);
   const playTimer = useRef<number | null>(null);
+
+  // Persist whenever either piece of session state changes.
+  useEffect(() => {
+    saveSession({ day: currentDay, acknowledgements });
+  }, [currentDay, acknowledgements]);
 
   const clearLoadingTimer = useCallback(() => {
     if (loadingTimer.current !== null) {
@@ -119,7 +165,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   const goToDay = useCallback(
     (day: number) => {
       if (!Number.isFinite(day) || day < FIRST_DAY || day > LAST_DAY) {
-        setError(`Simulation day ${day} is outside the valid range (1–5).`);
+        setError(`Simulation day ${day} is outside the valid range (1-5).`);
         return;
       }
       applyDay(day as SimulationDay);
@@ -137,9 +183,29 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     setIsPlaying(true);
   }, [currentDay, applyDay]);
 
+  /** Acknowledgement only ever happens here, from an explicit user action. */
+  const acknowledgeAlert = useCallback(
+    (alertId: string) => {
+      setAcknowledgements((current) => {
+        if (current[alertId]) return current;
+        return {
+          ...current,
+          [alertId]: {
+            day: currentDay,
+            simulationTime: simulationTimestamp(currentDay, ACK_CLOCK),
+            realTime: new Date().toISOString(),
+          },
+        };
+      });
+    },
+    [currentDay],
+  );
+
   const resetSimulation = useCallback(() => {
     setIsPlaying(false);
     setError(null);
+    setAcknowledgements({});
+    clearSession();
     applyDay(FIRST_DAY);
   }, [applyDay]);
 
@@ -172,43 +238,42 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   useEffect(() => clearLoadingTimer, [clearLoadingTimer]);
 
   const value = useMemo<SimulationContextValue>(() => {
-    try {
-      const currentScenario = getScenario(currentDay);
-      const alerts = getAlerts(currentDay);
-      return {
-        currentDay,
-        currentScenario,
-        visibleObservations: getVisibleObservations(currentDay),
-        signalScore: getScoreForDay(currentDay),
-        zipMetrics: getZipMetrics(currentDay),
-        hospitalMetrics: getAllHospitalMetrics(currentDay),
-        alerts,
-        regionalAlert: getRegionalAlert(currentDay),
-        newAlertCount: getNewAlertCount(currentDay),
-        trendSeries: getTrendSeries(currentDay),
-        lastUpdated,
-        isPlaying,
-        isLoading,
-        error,
-        isFirstDay: currentDay <= FIRST_DAY,
-        isLastDay: currentDay >= LAST_DAY,
-        nextDay,
-        previousDay,
-        goToDay,
-        resetSimulation,
-        playSimulation,
-        pauseSimulation,
-        refresh,
-        clearError,
-      };
-    } catch (caught) {
-      // Should be unreachable: currentDay is always clamped to 1..5.
-      throw caught instanceof Error
-        ? caught
-        : new Error('Unable to derive simulation state.');
-    }
+    const currentScenario = getScenario(currentDay);
+    return {
+      currentDay,
+      currentScenario,
+      simulationDate: currentScenario.simulationDate,
+      visibleObservations: getVisibleObservations(currentDay),
+      observationCounts: getObservationCounts(currentDay),
+      cumulativeTotals: getCumulativeTotals(currentDay),
+      signalScore: getScoreForDay(currentDay),
+      zipMetrics: getZipMetrics(currentDay),
+      hospitalMetrics: getAllHospitalMetrics(currentDay),
+      alerts: getAlerts(currentDay, acknowledgements),
+      regionalAlert: getRegionalAlert(currentDay, acknowledgements),
+      unacknowledgedCount: getUnacknowledgedCount(currentDay, acknowledgements),
+      newTodayCount: getNewTodayCount(currentDay),
+      acknowledgements,
+      trendSeries: getTrendSeries(currentDay),
+      lastUpdated,
+      isPlaying,
+      isLoading,
+      error,
+      isFirstDay: currentDay <= FIRST_DAY,
+      isLastDay: currentDay >= LAST_DAY,
+      nextDay,
+      previousDay,
+      goToDay,
+      resetSimulation,
+      playSimulation,
+      pauseSimulation,
+      acknowledgeAlert,
+      refresh,
+      clearError,
+    };
   }, [
     currentDay,
+    acknowledgements,
     lastUpdated,
     isPlaying,
     isLoading,
@@ -219,6 +284,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     resetSimulation,
     playSimulation,
     pauseSimulation,
+    acknowledgeAlert,
     refresh,
     clearError,
   ]);
