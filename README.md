@@ -2,6 +2,11 @@
 
 **From laboratory signals to population-level outbreak intelligence**
 
+A classroom prototype of a vendor-agnostic public-health early-warning
+platform. **All data is synthetic.**
+
+🔗 **Live demo:** https://REPLACE_ME_PAGES_URL
+
 ---
 
 ## ⚠ DEMO ENVIRONMENT — Synthetic data only
@@ -73,6 +78,49 @@ npm run lint      # type-check only
 ```
 
 The outbreak map loads OpenStreetMap tiles over the network. Without internet the basemap is blank, but the synthetic surveillance-area polygons, severity colours, legend, tooltips and detail panel all still work — the data layer is self-contained.
+
+---
+
+## Deployment
+
+The site is hosted on **GitHub Pages** and rebuilt automatically by the
+workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+**Every push to `main` redeploys the live site.** The workflow installs
+dependencies, runs the unit tests, type-checks, builds, and publishes `dist/`.
+If the tests or the type-check fail, nothing is deployed and the previous
+version stays live.
+
+### Two things make routing work on GitHub Pages
+
+Pages serves static files from a sub-path and has no server-side rewrites, so
+the project is configured for both:
+
+1. **Sub-path base.** `vite.config.ts` sets `base: '/labsentinel/'`, and
+   `main.tsx` passes Vite's `BASE_URL` to React Router as its `basename`. This
+   is why built asset URLs are `/labsentinel/assets/...`. If you fork this under
+   a different repository name, change `BASE_PATH` in `vite.config.ts` to match.
+2. **SPA fallback.** A direct request to `/labsentinel/dashboard` is not a file,
+   so Pages serves [`public/404.html`](public/404.html). That page stashes the
+   requested route in a query string and bounces to the app root; a small script
+   in `index.html` restores the real URL with `history.replaceState` before React
+   mounts. The result is that deep links, refreshes and shared investigation URLs
+   all resolve to the right screen.
+
+`public/.nojekyll` stops GitHub from running the files through Jekyll.
+
+### Deploying somewhere else
+
+For a host that serves from the domain root (Netlify, Vercel, Cloudflare Pages),
+set `BASE_PATH` to `'/'` in `vite.config.ts` and add that host's SPA rewrite
+(`/* /index.html 200`). The `404.html` fallback is then unnecessary but harmless.
+
+### Verifying a production build locally
+
+```bash
+npm run build
+npm run preview
+```
 
 ---
 

@@ -2,7 +2,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+/*
+ * GitHub Pages serves this project from a sub-path, not the domain root, so
+ * every built asset URL has to be prefixed with the repository name. Change
+ * this to '/' if you ever host the app at a domain root instead.
+ */
+const BASE_PATH = '/labsentinel/';
+
 export default defineConfig({
+  base: BASE_PATH,
   plugins: [react()],
   build: {
     rollupOptions: {

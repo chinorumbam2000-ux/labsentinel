@@ -17,7 +17,12 @@ createRoot(container).render(
       silences the future-flag warnings using the installed version's own
       options rather than upgrading the dependency.
     */}
+    {/*
+      basename comes from Vite's base, so routes resolve correctly whether the
+      app is served from the domain root (dev) or a sub-path (GitHub Pages).
+    */}
     <BrowserRouter
+      basename={import.meta.env.BASE_URL}
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
       <App />

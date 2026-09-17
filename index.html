@@ -10,6 +10,29 @@
     />
   </head>
   <body>
+    <script>
+      /*
+       * Restores the path that 404.html stashed in the query string, so a
+       * direct link or refresh on /dashboard lands on /dashboard rather than
+       * the app root. Runs before React mounts, so Router sees the right URL.
+       */
+      (function restoreRoute(l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (part) {
+              return part.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(
+            null,
+            '',
+            l.pathname.slice(0, -1) + decoded + l.hash,
+          );
+        }
+      })(window.location);
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
