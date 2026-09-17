@@ -5,7 +5,7 @@
 A classroom prototype of a vendor-agnostic public-health early-warning
 platform. **All data is synthetic.**
 
-🔗 **Live demo:** https://REPLACE_ME_PAGES_URL
+🔗 **Live demo:** https://chinorumbam2000-ux.github.io/labsentinel/
 
 ---
 
@@ -85,6 +85,8 @@ The outbreak map loads OpenStreetMap tiles over the network. Without internet th
 
 The site is hosted on **GitHub Pages** and rebuilt automatically by the
 workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+**Repository:** https://github.com/chinorumbam2000-ux/labsentinel
 
 **Every push to `main` redeploys the live site.** The workflow installs
 dependencies, runs the unit tests, type-checks, builds, and publishes `dist/`.
