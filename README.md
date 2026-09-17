@@ -2,7 +2,7 @@
 
 **From laboratory signals to population-level outbreak intelligence**
 
-A classroom prototype of a vendor-agnostic public-health early-warning
+A prototype of a vendor-agnostic public-health early-warning
 platform. **All data is synthetic.**
 
 🔗 **Live demo:** https://chinorumbam2000-ux.github.io/labsentinel/
@@ -11,7 +11,7 @@ platform. **All data is synthetic.**
 
 ## ⚠ DEMO ENVIRONMENT — Synthetic data only
 
-**This is a classroom prototype. Everything in it is fabricated.**
+**This is a prototype. Everything in it is fabricated.**
 
 - All three hospitals are **fictional**. They do not exist and are not modelled on any real healthcare organization.
 - All patients are **synthetic placeholders** (`SYN-P0001` … `SYN-P0699`). There is no PHI anywhere in this repository — no names, no addresses, no dates of birth, no real identifiers.
@@ -406,4 +406,4 @@ A production system would replace almost every layer of this prototype:
 
 ---
 
-*LabSentinel is a classroom prototype. Synthetic data only.*
+*LabSentinel is a prototype. Synthetic data only.*

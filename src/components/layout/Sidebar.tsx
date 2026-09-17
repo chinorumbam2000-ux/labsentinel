@@ -122,7 +122,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           Demo Environment
         </p>
         <p className="mt-1 text-[11px] leading-snug text-white/45">
-          Synthetic data only. Classroom prototype — not a clinical or public-health
+          Synthetic data only. Prototype — not a clinical or public-health
           system.
         </p>
       </div>

@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "LabSentinel — classroom prototype for laboratory-driven outbreak early warning. Synthetic data only.",
+  "description": "LabSentinel — prototype for laboratory-driven outbreak early warning. Synthetic data only.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
