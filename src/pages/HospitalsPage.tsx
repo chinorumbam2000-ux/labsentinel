@@ -6,6 +6,8 @@ import PageMeta from '../components/common/PageMeta';
 import DataConfidenceCard from '../components/common/DataConfidenceCard';
 import FeedHealthCard from '../components/common/FeedHealthCard';
 import WhyThisSignalPanel from '../components/signals/WhyThisSignalPanel';
+import { PrivacyDisclosure } from '../components/common/PrivacyValue';
+import { getDisclosureSummary } from '../lib/geographicPrivacy';
 import { ErrorState, LoadingState } from '../components/common/States';
 import VendorSidecar from '../components/hospitals/VendorSidecar';
 import FhirStatusPanel from '../components/hospitals/FhirStatusPanel';
@@ -227,6 +229,8 @@ export default function HospitalsPage() {
             feeds={feedHealth}
             lastUpdated={lastUpdated}
           />
+
+          <PrivacyDisclosure summary={getDisclosureSummary(currentDay)} />
 
           <FhirStatusPanel
             vendor={activeHospital.vendor}

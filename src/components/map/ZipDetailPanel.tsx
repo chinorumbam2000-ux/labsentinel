@@ -3,10 +3,17 @@ import type { ZipMetrics } from '../../types';
 import { SEVERITY_STYLES } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
 import { EmptyState } from '../common/States';
+import { PrivacyNote } from '../common/PrivacyValue';
+import {
+  getAreaPositivePrivacy,
+  getAreaPositivityDisplay,
+} from '../../lib/geographicPrivacy';
 
 interface ZipDetailPanelProps {
   metrics: ZipMetrics | null;
   onClose: () => void;
+  /** Needed to evaluate the privacy rule for the selected day. */
+  currentDay: number;
 }
 
 const TREND_TONE: Record<ZipMetrics['trend'], string> = {
@@ -16,7 +23,11 @@ const TREND_TONE: Record<ZipMetrics['trend'], string> = {
   Decreasing: 'text-severity-low',
 };
 
-export default function ZipDetailPanel({ metrics, onClose }: ZipDetailPanelProps) {
+export default function ZipDetailPanel({
+  metrics,
+  onClose,
+  currentDay,
+}: ZipDetailPanelProps) {
   const navigate = useNavigate();
 
   if (!metrics) {
@@ -33,12 +44,16 @@ export default function ZipDetailPanel({ metrics, onClose }: ZipDetailPanelProps
 
   const styles = SEVERITY_STYLES[metrics.severity];
 
+  // Small area counts go through the privacy rule before they are shown.
+  const positivePrivacy = getAreaPositivePrivacy(currentDay, metrics.hospitalId);
+  const positivityDisplay = getAreaPositivityDisplay(currentDay, metrics.hospitalId);
+
   const rows = [
     { label: 'ZIP Code', value: metrics.zipCode },
     { label: 'City', value: `${metrics.city}, ${metrics.state}` },
     { label: 'Total Tests (day)', value: metrics.totalTests.toLocaleString('en-US') },
-    { label: 'Positive Tests (day)', value: metrics.positiveTests.toLocaleString('en-US') },
-    { label: 'Positivity (day)', value: `${metrics.positivityRate.toFixed(1)}%` },
+    { label: 'Positive Tests (day)', value: positivePrivacy.displayValue },
+    { label: 'Positivity (day)', value: positivityDisplay.value },
     {
       label: 'Tests (cumulative)',
       value: metrics.cumulativeTests.toLocaleString('en-US'),
@@ -106,6 +121,18 @@ export default function ZipDetailPanel({ metrics, onClose }: ZipDetailPanelProps
             </dd>
           </div>
         </dl>
+
+        {positivePrivacy.suppressed ? (
+          <div
+            role="note"
+            className="mt-4 rounded-lg border border-hairline bg-canvas px-3 py-2"
+          >
+            <p className="text-xs leading-relaxed text-ink">
+              {positivePrivacy.explanation}
+            </p>
+            <PrivacyNote className="mt-1.5" />
+          </div>
+        ) : null}
 
         {!metrics.isAffected ? (
           <p className="mt-4 rounded-lg bg-canvas px-3 py-2 text-xs text-muted">

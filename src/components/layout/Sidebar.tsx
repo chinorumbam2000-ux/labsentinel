@@ -13,6 +13,7 @@ const PRIMARY_NAV: NavItem[] = [
   { to: '/laboratory-data', label: 'Laboratory Data', icon: '≡' },
   { to: '/signals', label: 'Signals', icon: '⚠' },
   { to: '/hospitals', label: 'Hospitals', icon: '⌂' },
+  { to: '/reports', label: 'Reports', icon: '▤' },
   { to: '/analytics', label: 'Analytics', icon: '◫' },
   { to: '/simulation', label: 'Simulation', icon: '▶' },
 ];

@@ -57,6 +57,8 @@ describe('round trip', () => {
           realTime: '2026-09-16T10:00:00.000Z',
         },
       },
+      investigations: {},
+      reports: [],
     });
 
     const loaded = loadSession();
@@ -69,7 +71,7 @@ describe('round trip', () => {
   });
 
   it('clears stored state', () => {
-    saveSession({ day: 5, acknowledgements: {} });
+    saveSession({ day: 5, acknowledgements: {}, investigations: {}, reports: [] });
     clearSession();
     expect(loadSession().day).toBe(1);
   });
@@ -130,7 +132,7 @@ describe('recovers safely from malformed storage', () => {
 
   it('handles acknowledgements being the wrong type entirely', () => {
     write(JSON.stringify({ day: 2, acknowledgements: 'nope' }));
-    expect(loadSession()).toEqual({ day: 2, acknowledgements: {} });
+    expect(loadSession()).toEqual({ day: 2, acknowledgements: {}, investigations: {}, reports: [] });
     write(JSON.stringify({ day: 2, acknowledgements: [1, 2, 3] }));
     expect(loadSession().acknowledgements).toEqual({});
   });
@@ -140,7 +142,7 @@ describe('storage being unavailable', () => {
   it('falls back to defaults when there is no window', () => {
     vi.stubGlobal('window', undefined);
     expect(loadSession()).toEqual(DEFAULT_SESSION);
-    expect(() => saveSession({ day: 3, acknowledgements: {} })).not.toThrow();
+    expect(() => saveSession({ day: 3, acknowledgements: {}, investigations: {}, reports: [] })).not.toThrow();
     expect(() => clearSession()).not.toThrow();
   });
 
@@ -158,7 +160,7 @@ describe('storage being unavailable', () => {
     installStorage(hostile);
 
     expect(loadSession()).toEqual(DEFAULT_SESSION);
-    expect(() => saveSession({ day: 2, acknowledgements: {} })).not.toThrow();
+    expect(() => saveSession({ day: 2, acknowledgements: {}, investigations: {}, reports: [] })).not.toThrow();
     expect(() => clearSession()).not.toThrow();
   });
 });

@@ -285,3 +285,127 @@ export interface DayOverDayComparison {
   explanation: string;
   scoreDelta: number;
 }
+
+/* ------------------------------------------------------------------------ *
+ * Phase 2 — responsible workflow, privacy controls and human review.
+ * ------------------------------------------------------------------------ */
+
+export type GeographicLevel = 'ZIP' | 'County' | 'State';
+
+export interface PrivacyResult {
+  /** True when the exact count may be shown at the requested level. */
+  displayAllowed: boolean;
+  /** What to render: the count, or "<5" when suppressed. */
+  displayValue: string;
+  suppressed: boolean;
+  /** The level the value is actually reported at after any roll-up. */
+  rollupLevel: GeographicLevel;
+  /** Plain-language reason, shown wherever a value is suppressed. */
+  explanation: string;
+  /** The underlying count, or null when it must not be exposed. */
+  rawCount: number | null;
+  /** Populated when the value was rolled up to a broader level. */
+  rollupValue: string | null;
+  rollupLabel: string | null;
+}
+
+export type InvestigationStatus =
+  | 'NEW'
+  | 'UNDER REVIEW'
+  | 'MONITORING'
+  | 'ESCALATED'
+  | 'DISMISSED'
+  | 'CONFIRMED CONCERN'
+  | 'CLOSED';
+
+export type InvestigationAction =
+  | 'acknowledge'
+  | 'begin-review'
+  | 'monitor'
+  | 'escalate'
+  | 'dismiss'
+  | 'confirm-concern'
+  | 'close';
+
+export interface InvestigationEvent {
+  id: string;
+  /** 'generated' is the synthetic opening event from the alert detection. */
+  action: InvestigationAction | 'generated';
+  label: string;
+  fromStatus: InvestigationStatus | null;
+  toStatus: InvestigationStatus;
+  /** Real wall-clock ISO timestamp of the action. */
+  at: string;
+  /** Simulation-calendar timestamp, kept separate from the session clock. */
+  simulationAt: string;
+  day: SimulationDay;
+  investigator: string;
+  note: string | null;
+}
+
+export interface InvestigationRecord {
+  alertId: string;
+  status: InvestigationStatus;
+  assignedInvestigator: string | null;
+  acknowledged: boolean;
+  /** Real ISO timestamp of the most recent status change. */
+  lastStatusChangeAt: string | null;
+  /** Real ISO timestamp of the most recent review action of any kind. */
+  lastReviewedAt: string | null;
+  history: InvestigationEvent[];
+}
+
+export type ReportStatus =
+  | 'DRAFT'
+  | 'READY FOR REVIEW'
+  | 'APPROVED'
+  | 'SIMULATED SUBMISSION'
+  | 'FAILED';
+
+export type ReportAction = 'save-draft' | 'review' | 'approve' | 'submit' | 'fail' | 'retry';
+
+export interface ReportEvent {
+  id: string;
+  action: ReportAction;
+  label: string;
+  toStatus: ReportStatus;
+  at: string;
+  investigator: string;
+  note: string | null;
+}
+
+/** Everything the report preview shows, frozen when the report is created. */
+export interface ReportSnapshot {
+  signalId: string;
+  signalTitle: string;
+  syndrome: string;
+  detectedAt: string;
+  detectedDay: SimulationDay;
+  preparedForDay: SimulationDay;
+  preparedForDate: string;
+  affectedFacilities: string[];
+  affectedAreas: string[];
+  areaDisclosure: string;
+  testVolume: number;
+  baselineTestVolume: number;
+  positivityRate: number;
+  baselinePositivityRate: number;
+  positiveResults: number;
+  compositeScore: number;
+  severity: Severity;
+  dataConfidenceScore: number;
+  dataConfidenceLevel: ConfidenceLevel;
+  persistenceDays: number;
+}
+
+export interface ReportRecord {
+  id: string;
+  alertId: string;
+  status: ReportStatus;
+  createdAt: string;
+  updatedAt: string;
+  investigationStatus: InvestigationStatus;
+  analystNotes: string;
+  snapshot: ReportSnapshot;
+  history: ReportEvent[];
+}

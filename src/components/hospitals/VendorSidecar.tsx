@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type {
   DataConfidenceResult,
@@ -6,6 +7,9 @@ import type {
   SimulationScenario,
 } from '../../types';
 import { SEVERITY_STYLES, formatClockTime } from '../../lib/format';
+import { CONFIDENCE_DISCLAIMER } from '../../lib/dataConfidence';
+import { getDisclosureSummary } from '../../lib/geographicPrivacy';
+import { BASELINE_POSITIVITY_RATE } from '../../data/simulation';
 
 interface VendorSidecarProps {
   scenario: SimulationScenario;
@@ -21,7 +25,8 @@ interface VendorSidecarProps {
  *
  * This exact component is rendered unchanged inside all three simulated EHR
  * environments. The surrounding shell changes; LabSentinel does not. That is
- * the vendor-agnostic point the prototype is making.
+ * the vendor-agnostic point the prototype is making — there is deliberately no
+ * per-vendor variant of this file.
  */
 export default function VendorSidecar({
   scenario,
@@ -32,6 +37,54 @@ export default function VendorSidecar({
 }: VendorSidecarProps) {
   const navigate = useNavigate();
   const styles = SEVERITY_STYLES[score.severity];
+  const [panel, setPanel] = useState<'none' | 'why' | 'confidence'>('none');
+
+  const toggle = (next: 'why' | 'confidence') =>
+    setPanel((current) => (current === next ? 'none' : next));
+
+  const rows = [
+    {
+      label: 'Test volume',
+      value: `${score.volumeIncreasePercent > 0 ? '↑ ' : ''}${
+        score.volumeIncreasePercent >= 0 ? '+' : ''
+      }${score.volumeIncreasePercent.toFixed(0)}%`,
+      hint: undefined as string | undefined,
+    },
+    {
+      label: 'Positivity',
+      value: `${score.positivityDeltaPoints > 0 ? '↑ ' : ''}${scenario.positivityRate.toFixed(
+        1,
+      )}%`,
+      hint: `(${scenario.totalPositives}/${scenario.totalTests})`,
+    },
+    {
+      label: 'Affected facilities',
+      value: `${scenario.affectedHospitals.length} of 3`,
+      hint: undefined,
+    },
+    {
+      label: 'Affected areas',
+      value:
+        scenario.affectedZipCodes.length === 0
+          ? 'None'
+          : `${scenario.affectedZipCodes.length} of 3`,
+      hint: undefined,
+    },
+    {
+      label: 'Persistence',
+      value: `${scenario.persistenceDays} ${
+        scenario.persistenceDays === 1 ? 'day' : 'days'
+      }`,
+      hint: undefined,
+    },
+    {
+      label: 'Data confidence',
+      value: `${confidence.score} / 100`,
+      hint: `(${confidence.level})`,
+    },
+    { label: 'This feed', value: feed.status, hint: undefined },
+    { label: 'Last updated', value: formatClockTime(lastUpdated), hint: undefined },
+  ];
 
   return (
     <aside
@@ -57,9 +110,7 @@ export default function VendorSidecar({
 
       <div className={`border-b px-4 py-3 ${styles.soft}`}>
         <div className="flex items-baseline justify-between gap-3">
-          <span
-            className={`text-sm font-bold uppercase tracking-[0.08em] ${styles.text}`}
-          >
+          <span className={`text-sm font-bold uppercase tracking-[0.08em] ${styles.text}`}>
             {score.severity}
           </span>
           <span className="text-lg font-semibold tabular-nums text-ink">
@@ -76,55 +127,17 @@ export default function VendorSidecar({
       </div>
 
       <dl className="divide-y divide-hairline px-4">
-        <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Test volume</dt>
-          <dd className="text-xs font-semibold text-ink">
-            {score.volumeIncreasePercent > 0 ? '↑ ' : ''}
-            {score.volumeIncreasePercent >= 0 ? '+' : ''}
-            {score.volumeIncreasePercent.toFixed(0)}%
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Positivity</dt>
-          <dd className="text-xs font-semibold text-ink">
-            {score.positivityDeltaPoints > 0 ? '↑ ' : ''}
-            {scenario.positivityRate.toFixed(1)}%
-            <span className="ml-1 font-normal text-muted">
-              ({scenario.totalPositives}/{scenario.totalTests})
-            </span>
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Affected hospitals</dt>
-          <dd className="text-xs font-semibold text-ink">
-            {scenario.affectedHospitals.length} of 3 facilities
-          </dd>
-        </div>
-        <div className="flex items-start justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Affected ZIP codes</dt>
-          <dd className="text-right text-xs font-semibold text-ink">
-            {scenario.affectedZipCodes.length === 0
-              ? 'None'
-              : scenario.affectedZipCodes.join(', ')}
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Data confidence</dt>
-          <dd className="text-xs font-semibold text-ink">
-            {confidence.score} / 100
-            <span className="ml-1 font-normal text-muted">({confidence.level})</span>
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">This feed</dt>
-          <dd className="text-xs font-semibold text-ink">{feed.status}</dd>
-        </div>
-        <div className="flex items-center justify-between gap-3 py-2.5">
-          <dt className="text-xs text-muted">Session updated</dt>
-          <dd className="text-xs font-semibold text-ink">
-            {formatClockTime(lastUpdated)}
-          </dd>
-        </div>
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-3 py-2.5">
+            <dt className="text-xs text-muted">{row.label}</dt>
+            <dd className="text-right text-xs font-semibold text-ink">
+              {row.value}
+              {row.hint ? (
+                <span className="ml-1 font-normal text-muted">{row.hint}</span>
+              ) : null}
+            </dd>
+          </div>
+        ))}
       </dl>
 
       {!feed.isReporting ? (
@@ -135,7 +148,101 @@ export default function VendorSidecar({
         </p>
       ) : null}
 
-      <div className="p-4 pt-3">
+      {/* Compact explainability, expanded in place so the sidecar stays narrow. */}
+      {panel === 'why' ? (
+        <div className="mx-4 mt-3 rounded-lg border border-hairline bg-canvas p-3">
+          <p className="ls-label">Why this alert?</p>
+          <dl className="mt-2 space-y-2 text-[11px] leading-relaxed">
+            <div>
+              <dt className="font-semibold text-ink">What changed</dt>
+              <dd className="text-muted">
+                Testing {score.volumeIncreasePercent >= 0 ? 'up' : 'down'}{' '}
+                {Math.abs(score.volumeIncreasePercent).toFixed(0)}% vs baseline; positivity{' '}
+                {BASELINE_POSITIVITY_RATE.toFixed(1)}% →{' '}
+                {scenario.positivityRate.toFixed(1)}%.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-ink">Where</dt>
+              <dd className="text-muted">
+                {scenario.affectedZipCodes.length === 0
+                  ? 'No surveillance area above the detection margin.'
+                  : `${scenario.affectedZipCodes.length} of 3 surveillance areas.`}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-ink">Which facilities</dt>
+              <dd className="text-muted">
+                {scenario.affectedHospitals.length} of 3 participating facilities.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-ink">How long</dt>
+              <dd className="text-muted">
+                {scenario.persistenceDays} consecutive{' '}
+                {scenario.persistenceDays === 1 ? 'day' : 'days'} above baseline.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-ink">Why this severity</dt>
+              <dd className="text-muted">
+                Five weighted components sum to {score.composite} of 100, in the{' '}
+                {score.severity} band.
+              </dd>
+            </div>
+          </dl>
+          <button
+            type="button"
+            onClick={() => navigate('/signals?view=current')}
+            className="ls-btn mt-3 w-full text-[11px]"
+          >
+            Open full investigation →
+          </button>
+        </div>
+      ) : null}
+
+      {panel === 'confidence' ? (
+        <div className="mx-4 mt-3 rounded-lg border border-hairline bg-canvas p-3">
+          <p className="ls-label">Data confidence</p>
+          <p className="mt-1 text-sm font-semibold text-ink">
+            {confidence.score} / 100 · {confidence.level}
+          </p>
+          <ul className="mt-2 space-y-1 text-[11px] text-muted">
+            {confidence.components.map((component) => (
+              <li key={component.key} className="flex justify-between gap-2">
+                <span>{component.label}</span>
+                <span className="tabular-nums text-ink">
+                  {component.points} / {component.maxPoints}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] leading-snug text-muted">
+            {getDisclosureSummary(scenario.day)}
+          </p>
+          <p className="mt-1.5 text-[10px] leading-snug text-muted">
+            {CONFIDENCE_DISCLAIMER}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="space-y-2 p-4 pt-3">
+        <button
+          type="button"
+          onClick={() => toggle('why')}
+          aria-expanded={panel === 'why'}
+          className="ls-btn w-full text-xs"
+        >
+          {panel === 'why' ? 'Hide — Why This Alert?' : 'Why This Alert?'}
+        </button>
+        <button
+          type="button"
+          onClick={() => toggle('confidence')}
+          aria-expanded={panel === 'confidence'}
+          className="ls-btn w-full text-xs"
+        >
+          {panel === 'confidence' ? 'Hide — Data Confidence' : 'View Data Confidence'}
+        </button>
         <button
           type="button"
           onClick={() => navigate('/dashboard')}
@@ -143,9 +250,9 @@ export default function VendorSidecar({
         >
           View Regional Intelligence
         </button>
-        <p className="mt-2 text-center text-[10px] leading-snug text-muted">
-          Early-warning signal — not a confirmed outbreak. Data Confidence is an
-          illustrative prototype quality indicator.
+
+        <p className="pt-1 text-center text-[10px] leading-snug text-muted">
+          Regional early-warning information. Not a diagnosis or confirmed outbreak.
         </p>
       </div>
     </aside>

@@ -11,6 +11,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/common/State
 import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../lib/signalScore';
 import { formatPercent, formatSimulationDateTime } from '../lib/format';
 import { findDetection } from '../lib/alerts';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Investigation context lives in the URL:
@@ -35,6 +36,10 @@ export default function SignalsPage() {
     feedHealth,
     dayOverDay,
     lastUpdated,
+    getInvestigation,
+    runInvestigationAction,
+    prepareReport,
+    reports,
     acknowledgeAlert,
     unacknowledgedCount,
     newTodayCount,
@@ -43,6 +48,7 @@ export default function SignalsPage() {
     clearError,
   } = useSimulation();
 
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const alertParam = searchParams.get(ALERT_PARAM);
   const viewParam = searchParams.get(VIEW_PARAM);
@@ -138,6 +144,22 @@ export default function SignalsPage() {
           feeds={feedHealth}
           dayOverDay={dayOverDay}
           lastUpdated={lastUpdated}
+          investigation={selectedAlert ? getInvestigation(selectedAlert.id) : undefined}
+          onInvestigationAction={(action, note) =>
+            selectedAlert
+              ? runInvestigationAction(selectedAlert.id, action, note)
+              : 'No signal selected.'
+          }
+          onPrepareReport={() => {
+            if (!selectedAlert) return;
+            const failure = prepareReport(selectedAlert.id);
+            if (!failure) navigate('/reports');
+          }}
+          hasReport={
+            selectedAlert
+              ? reports.some((report) => report.alertId === selectedAlert.id)
+              : false
+          }
         />
       </div>
     );

@@ -13,6 +13,8 @@ import DataConfidenceCard from '../components/common/DataConfidenceCard';
 import FeedHealthCard from '../components/common/FeedHealthCard';
 import DayOverDayChange from '../components/common/DayOverDayChange';
 import WhyThisSignalPanel from '../components/signals/WhyThisSignalPanel';
+import { PrivacyDisclosure } from '../components/common/PrivacyValue';
+import { getDisclosureSummary } from '../lib/geographicPrivacy';
 import { ErrorState, LoadingState } from '../components/common/States';
 import { formatPercent, formatPercentagePoints, formatSignedPercent } from '../lib/format';
 import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulation';
@@ -155,6 +157,8 @@ export default function DashboardPage() {
               </div>
             </Card>
           </div>
+
+          <PrivacyDisclosure summary={getDisclosureSummary(currentDay)} />
 
           <AlertCard scenario={currentScenario} score={signalScore} />
 

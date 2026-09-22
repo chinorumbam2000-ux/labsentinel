@@ -29,6 +29,10 @@ import type {
   DayOverDayComparison,
   FacilityFeedHealth,
   HospitalMetrics,
+  InvestigationAction,
+  InvestigationRecord,
+  ReportAction,
+  ReportRecord,
   LabObservation,
   OutbreakAlert,
   SignalScoreResult,
@@ -62,6 +66,12 @@ import { getAllFeedHealth } from '../data/feedHealth';
 import { getDataConfidence } from '../lib/dataConfidence';
 import { getDayOverDayComparison } from '../lib/dayOverDay';
 import {
+  applyInvestigationAction,
+  createInvestigation,
+  DEFAULT_INVESTIGATOR,
+} from '../lib/investigationWorkflow';
+import { applyReportAction, createReport } from '../lib/reporting';
+import {
   clearSession,
   loadSession,
   saveSession,
@@ -91,6 +101,25 @@ export interface SimulationContextValue {
   dataConfidence: DataConfidenceResult;
   feedHealth: FacilityFeedHealth[];
   dayOverDay: DayOverDayComparison;
+  /** Human review state per alert. Browser-only; never transmitted. */
+  investigations: Record<string, InvestigationRecord>;
+  /** Simulated public-health reports. Browser-only; never transmitted. */
+  reports: ReportRecord[];
+  /** Returns the record for an alert, creating a NEW one on first access. */
+  getInvestigation: (alertId: string) => InvestigationRecord | undefined;
+  /** Applies an analyst action. Returns an error string when refused. */
+  runInvestigationAction: (
+    alertId: string,
+    action: InvestigationAction,
+    note?: string,
+  ) => string | null;
+  prepareReport: (alertId: string, analystNotes?: string) => string | null;
+  runReportAction: (
+    reportId: string,
+    action: ReportAction,
+    notes?: string,
+  ) => string | null;
+  updateReportNotes: (reportId: string, notes: string) => void;
   /** Real wall-clock time of the last recalculation in this browser tab. */
   lastUpdated: Date;
   isPlaying: boolean;
@@ -125,6 +154,11 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   const [acknowledgements, setAcknowledgements] = useState<
     Record<string, AcknowledgementRecord>
   >(restored.current.acknowledgements);
+  const [investigations, setInvestigations] = useState<
+    Record<string, InvestigationRecord>
+  >(restored.current.investigations);
+  const [reports, setReports] = useState<ReportRecord[]>(restored.current.reports);
+  const [workflowError, setWorkflowError] = useState<string | null>(null);
   // Autoplay is never restored: a refresh always comes back paused.
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,8 +170,8 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   // Persist whenever either piece of session state changes.
   useEffect(() => {
-    saveSession({ day: currentDay, acknowledgements });
-  }, [currentDay, acknowledgements]);
+    saveSession({ day: currentDay, acknowledgements, investigations, reports });
+  }, [currentDay, acknowledgements, investigations, reports]);
 
   const clearLoadingTimer = useCallback(() => {
     if (loadingTimer.current !== null) {
@@ -211,10 +245,125 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     [currentDay],
   );
 
+  /**
+   * Ensures a record exists for an alert. Creating it lazily means an alert
+   * that has never been looked at carries no review state at all.
+   */
+  const ensureInvestigation = useCallback(
+    (alertId: string): InvestigationRecord | undefined => {
+      const existing = investigations[alertId];
+      if (existing) return existing;
+
+      const detection = getAlerts(currentDay, acknowledgements).find(
+        (alert) => alert.id === alertId,
+      );
+      if (!detection) return undefined;
+      return createInvestigation(alertId, detection.detectedDay, detection.detectedAt);
+    },
+    [investigations, currentDay, acknowledgements],
+  );
+
+  const getInvestigation = useCallback(
+    (alertId: string) => ensureInvestigation(alertId),
+    [ensureInvestigation],
+  );
+
+  const runInvestigationAction = useCallback(
+    (alertId: string, action: InvestigationAction, note?: string): string | null => {
+      const record = ensureInvestigation(alertId);
+      if (!record) return 'That signal is not available on the current simulation day.';
+
+      const result = applyInvestigationAction({
+        record,
+        action,
+        day: currentDay,
+        note,
+        investigator: DEFAULT_INVESTIGATOR,
+      });
+
+      if (!result.ok) {
+        setWorkflowError(result.error);
+        return result.error;
+      }
+
+      setInvestigations((current) => ({ ...current, [alertId]: result.record }));
+      setWorkflowError(null);
+
+      // Acknowledging in the review workflow is the same act as acknowledging
+      // the alert, so the notification count stays consistent with the review.
+      if (action === 'acknowledge') {
+        acknowledgeAlert(alertId);
+      }
+      return null;
+    },
+    [ensureInvestigation, currentDay, acknowledgeAlert],
+  );
+
+  const prepareReport = useCallback(
+    (alertId: string, analystNotes?: string): string | null => {
+      const alert = getAlerts(currentDay, acknowledgements).find(
+        (item) => item.id === alertId,
+      );
+      if (!alert) return 'That signal is not available on the current simulation day.';
+
+      const investigation = investigations[alertId];
+      if (!investigation) {
+        return 'Start a review before preparing a public-health report.';
+      }
+
+      const report = createReport({
+        alert,
+        investigation,
+        scenario: getScenario(currentDay),
+        score: getScoreForDay(currentDay),
+        confidence: getDataConfidence(currentDay),
+        analystNotes,
+      });
+
+      setReports((current) => [report, ...current]);
+      setWorkflowError(null);
+      return null;
+    },
+    [currentDay, acknowledgements, investigations],
+  );
+
+  const runReportAction = useCallback(
+    (reportId: string, action: ReportAction, notes?: string): string | null => {
+      const existing = reports.find((report) => report.id === reportId);
+      if (!existing) return 'That report no longer exists in this session.';
+
+      const result = applyReportAction(existing, action, { notes });
+      if (!result.ok) {
+        setWorkflowError(result.error);
+        return result.error;
+      }
+
+      setReports((current) =>
+        current.map((report) => (report.id === reportId ? result.report : report)),
+      );
+      setWorkflowError(null);
+      return null;
+    },
+    [reports],
+  );
+
+  const updateReportNotes = useCallback((reportId: string, notes: string) => {
+    setReports((current) =>
+      current.map((report) =>
+        report.id === reportId
+          ? { ...report, analystNotes: notes, updatedAt: new Date().toISOString() }
+          : report,
+      ),
+    );
+  }, []);
+
   const resetSimulation = useCallback(() => {
     setIsPlaying(false);
     setError(null);
     setAcknowledgements({});
+    setInvestigations({});
+    setReports([]);
+    setWorkflowError(null);
     clearSession();
     applyDay(FIRST_DAY);
   }, [applyDay]);
@@ -268,10 +417,17 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       dataConfidence: getDataConfidence(currentDay),
       feedHealth: getAllFeedHealth(currentDay),
       dayOverDay: getDayOverDayComparison(currentDay),
+      investigations,
+      reports,
+      getInvestigation,
+      runInvestigationAction,
+      prepareReport,
+      runReportAction,
+      updateReportNotes,
       lastUpdated,
       isPlaying,
       isLoading,
-      error,
+      error: error ?? workflowError,
       isFirstDay: currentDay <= FIRST_DAY,
       isLastDay: currentDay >= LAST_DAY,
       nextDay,
@@ -287,6 +443,14 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   }, [
     currentDay,
     acknowledgements,
+    investigations,
+    reports,
+    getInvestigation,
+    runInvestigationAction,
+    prepareReport,
+    runReportAction,
+    updateReportNotes,
+    workflowError,
     lastUpdated,
     isPlaying,
     isLoading,

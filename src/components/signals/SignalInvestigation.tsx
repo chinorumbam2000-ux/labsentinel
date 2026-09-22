@@ -2,6 +2,8 @@ import type {
   DataConfidenceResult,
   DayOverDayComparison,
   FacilityFeedHealth,
+  InvestigationAction,
+  InvestigationRecord,
   OutbreakAlert,
   SimulationDay,
 } from '../../types';
@@ -14,6 +16,7 @@ import WhyThisSignalPanel from './WhyThisSignalPanel';
 import DataConfidenceCard from '../common/DataConfidenceCard';
 import FeedHealthCard from '../common/FeedHealthCard';
 import DayOverDayChange from '../common/DayOverDayChange';
+import InvestigationWorkflowPanel from './InvestigationWorkflowPanel';
 
 export type InvestigationMode = 'detection' | 'current';
 
@@ -29,6 +32,11 @@ interface SignalInvestigationProps {
   feeds: FacilityFeedHealth[];
   dayOverDay: DayOverDayComparison;
   lastUpdated: Date;
+  /** Human review state; absent when investigating current conditions only. */
+  investigation?: InvestigationRecord;
+  onInvestigationAction?: (action: InvestigationAction, note?: string) => string | null;
+  onPrepareReport?: () => void;
+  hasReport?: boolean;
 }
 
 /**
@@ -53,6 +61,10 @@ export default function SignalInvestigation({
   feeds,
   dayOverDay,
   lastUpdated,
+  investigation,
+  onInvestigationAction,
+  onPrepareReport,
+  hasReport = false,
 }: SignalInvestigationProps) {
   // Without an alert there is nothing historical to replay, so the only
   // meaningful view is current conditions.
@@ -306,6 +318,19 @@ export default function SignalInvestigation({
           </div>
         </section>
       </div>
+
+      {/*
+        Human review belongs to the alert, not to a particular view of it, so
+        it shows in both detection and current modes.
+      */}
+      {investigation && onInvestigationAction ? (
+        <InvestigationWorkflowPanel
+          record={investigation}
+          onAction={onInvestigationAction}
+          onPrepareReport={onPrepareReport ?? (() => {})}
+          hasReport={hasReport}
+        />
+      ) : null}
 
       <WhyThisSignalPanel
         scenario={scenario}

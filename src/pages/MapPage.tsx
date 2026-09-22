@@ -8,6 +8,12 @@ import PageMeta from '../components/common/PageMeta';
 import { ErrorState, LoadingState } from '../components/common/States';
 import { SYNDROME } from '../data/tests';
 import SeverityBadge from '../components/signals/SeverityBadge';
+import { PrivacyDisclosure, PrivacyValue } from '../components/common/PrivacyValue';
+import {
+  getAreaPositivePrivacy,
+  getAreaPositivityDisplay,
+  getDisclosureSummary,
+} from '../lib/geographicPrivacy';
 
 export default function MapPage() {
   const { currentDay, zipMetrics, isLoading, error, clearError, goToDay } = useSimulation();
@@ -161,10 +167,16 @@ export default function MapPage() {
           </Card>
 
           <div className="xl:col-span-1">
-            <ZipDetailPanel metrics={selected} onClose={() => setSelectedZip(null)} />
+            <ZipDetailPanel
+              metrics={selected}
+              onClose={() => setSelectedZip(null)}
+              currentDay={currentDay}
+            />
           </div>
         </div>
       )}
+
+      <PrivacyDisclosure summary={getDisclosureSummary(currentDay)} />
 
       <Card
         title="Surveillance areas"
@@ -210,9 +222,11 @@ export default function MapPage() {
                   </td>
                   <td className="ls-td">{area.hospitalName}</td>
                   <td className="ls-td text-right tabular-nums">{area.totalTests}</td>
-                  <td className="ls-td text-right tabular-nums">{area.positiveTests}</td>
                   <td className="ls-td text-right tabular-nums">
-                    {area.positivityRate.toFixed(1)}%
+                    <PrivacyValue privacy={getAreaPositivePrivacy(currentDay, area.hospitalId)} />
+                  </td>
+                  <td className="ls-td text-right tabular-nums">
+                    {getAreaPositivityDisplay(currentDay, area.hospitalId).value}
                   </td>
                   <td className="ls-td text-right tabular-nums text-muted">
                     {area.cumulativeTests}
