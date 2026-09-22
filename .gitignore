@@ -44,3 +44,6 @@ temp/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Editor workspace files
+*.code-workspace

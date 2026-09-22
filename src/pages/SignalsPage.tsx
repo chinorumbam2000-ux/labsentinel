@@ -31,6 +31,10 @@ export default function SignalsPage() {
     currentScenario,
     signalScore,
     alerts,
+    dataConfidence,
+    feedHealth,
+    dayOverDay,
+    lastUpdated,
     acknowledgeAlert,
     unacknowledgedCount,
     newTodayCount,
@@ -130,6 +134,10 @@ export default function SignalsPage() {
           mode={mode}
           onModeChange={setMode}
           onBack={openList}
+          confidence={dataConfidence}
+          feeds={feedHealth}
+          dayOverDay={dayOverDay}
+          lastUpdated={lastUpdated}
         />
       </div>
     );

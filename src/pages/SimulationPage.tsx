@@ -1,6 +1,7 @@
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
+import DayOverDayChange from '../components/common/DayOverDayChange';
 import { ErrorState } from '../components/common/States';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { SCENARIOS } from '../data/simulation';
@@ -13,6 +14,7 @@ export default function SimulationPage() {
     currentDay,
     currentScenario,
     signalScore,
+    dayOverDay,
     isPlaying,
     isFirstDay,
     isLastDay,
@@ -193,6 +195,8 @@ export default function SimulationPage() {
           </div>
         </div>
       </div>
+
+      <DayOverDayChange comparison={dayOverDay} />
 
       <Card title="Current State" subtitle={`Derived from Simulation Day ${currentDay}`}>
         <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-8">

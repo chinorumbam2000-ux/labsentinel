@@ -1,11 +1,19 @@
 import { useNavigate } from 'react-router-dom';
-import type { SignalScoreResult, SimulationScenario } from '../../types';
+import type {
+  DataConfidenceResult,
+  FacilityFeedHealth,
+  SignalScoreResult,
+  SimulationScenario,
+} from '../../types';
 import { SEVERITY_STYLES, formatClockTime } from '../../lib/format';
 
 interface VendorSidecarProps {
   scenario: SimulationScenario;
   score: SignalScoreResult;
   lastUpdated: Date;
+  confidence: DataConfidenceResult;
+  /** This facility's own feed, used for the offline disclosure. */
+  feed: FacilityFeedHealth;
 }
 
 /**
@@ -19,6 +27,8 @@ export default function VendorSidecar({
   scenario,
   score,
   lastUpdated,
+  confidence,
+  feed,
 }: VendorSidecarProps) {
   const navigate = useNavigate();
   const styles = SEVERITY_STYLES[score.severity];
@@ -99,12 +109,31 @@ export default function VendorSidecar({
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3 py-2.5">
+          <dt className="text-xs text-muted">Data confidence</dt>
+          <dd className="text-xs font-semibold text-ink">
+            {confidence.score} / 100
+            <span className="ml-1 font-normal text-muted">({confidence.level})</span>
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-3 py-2.5">
+          <dt className="text-xs text-muted">This feed</dt>
+          <dd className="text-xs font-semibold text-ink">{feed.status}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-3 py-2.5">
           <dt className="text-xs text-muted">Session updated</dt>
           <dd className="text-xs font-semibold text-ink">
             {formatClockTime(lastUpdated)}
           </dd>
         </div>
       </dl>
+
+      {!feed.isReporting ? (
+        <p className="mx-4 mt-3 rounded-lg bg-canvas px-3 py-2 text-[11px] leading-snug text-ink">
+          <span className="font-semibold">No data currently available</span> from this
+          facility. The regional figures above exclude it — they do not indicate that
+          activity here is normal.
+        </p>
+      ) : null}
 
       <div className="p-4 pt-3">
         <button
@@ -115,7 +144,8 @@ export default function VendorSidecar({
           View Regional Intelligence
         </button>
         <p className="mt-2 text-center text-[10px] leading-snug text-muted">
-          Early-warning signal — not a confirmed outbreak.
+          Early-warning signal — not a confirmed outbreak. Data Confidence is an
+          illustrative prototype quality indicator.
         </p>
       </div>
     </aside>

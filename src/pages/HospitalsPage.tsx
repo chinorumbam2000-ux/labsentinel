@@ -3,6 +3,9 @@ import { useSimulation } from '../context/SimulationContext';
 import { HOSPITALS } from '../data/hospitals';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
+import DataConfidenceCard from '../components/common/DataConfidenceCard';
+import FeedHealthCard from '../components/common/FeedHealthCard';
+import WhyThisSignalPanel from '../components/signals/WhyThisSignalPanel';
 import { ErrorState, LoadingState } from '../components/common/States';
 import VendorSidecar from '../components/hospitals/VendorSidecar';
 import FhirStatusPanel from '../components/hospitals/FhirStatusPanel';
@@ -40,6 +43,8 @@ export default function HospitalsPage() {
     currentScenario,
     signalScore,
     hospitalMetrics,
+    dataConfidence,
+    feedHealth,
     lastUpdated,
     isLoading,
     error,
@@ -52,6 +57,8 @@ export default function HospitalsPage() {
     hospitalMetrics.find((item) => item.hospital.id === activeHospital.id) ??
     hospitalMetrics[0];
   const theme = ENVIRONMENT_THEMES[activeHospital.id];
+  const activeFeed =
+    feedHealth.find((feed) => feed.hospitalId === activeHospital.id) ?? feedHealth[0];
 
   if (error) {
     return (
@@ -194,6 +201,8 @@ export default function HospitalsPage() {
                 scenario={currentScenario}
                 score={signalScore}
                 lastUpdated={lastUpdated}
+                confidence={dataConfidence}
+                feed={activeFeed}
               />
               <p className="mt-2 px-1 text-[11px] leading-snug text-muted">
                 Rendered from a single shared <code className="font-mono">VendorSidecar</code>{' '}
@@ -201,6 +210,23 @@ export default function HospitalsPage() {
               </p>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+            <DataConfidenceCard confidence={dataConfidence} />
+            <FeedHealthCard
+              feeds={activeFeed ? [activeFeed] : []}
+              title={`${activeHospital.vendor} Feed Health`}
+              className="xl:col-span-2"
+            />
+          </div>
+
+          <WhyThisSignalPanel
+            scenario={currentScenario}
+            score={signalScore}
+            confidence={dataConfidence}
+            feeds={feedHealth}
+            lastUpdated={lastUpdated}
+          />
 
           <FhirStatusPanel
             vendor={activeHospital.vendor}

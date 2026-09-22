@@ -9,6 +9,10 @@ import OutbreakMap from '../components/map/OutbreakMap';
 import MapLegend from '../components/map/MapLegend';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
+import DataConfidenceCard from '../components/common/DataConfidenceCard';
+import FeedHealthCard from '../components/common/FeedHealthCard';
+import DayOverDayChange from '../components/common/DayOverDayChange';
+import WhyThisSignalPanel from '../components/signals/WhyThisSignalPanel';
 import { ErrorState, LoadingState } from '../components/common/States';
 import { formatPercent, formatPercentagePoints, formatSignedPercent } from '../lib/format';
 import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulation';
@@ -21,6 +25,10 @@ export default function DashboardPage() {
     trendSeries,
     zipMetrics,
     cumulativeTotals,
+    dataConfidence,
+    feedHealth,
+    dayOverDay,
+    lastUpdated,
     isLoading,
     error,
     clearError,
@@ -149,6 +157,26 @@ export default function DashboardPage() {
           </div>
 
           <AlertCard scenario={currentScenario} score={signalScore} />
+
+          {/*
+            Data trust sits alongside the signal, never merged into it: how
+            concerning the signal is, and how much the data can be relied on,
+            are two separate readings.
+          */}
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+            <DataConfidenceCard confidence={dataConfidence} />
+            <FeedHealthCard feeds={feedHealth} compact className="xl:col-span-2" />
+          </div>
+
+          <WhyThisSignalPanel
+            scenario={currentScenario}
+            score={signalScore}
+            confidence={dataConfidence}
+            feeds={feedHealth}
+            lastUpdated={lastUpdated}
+          />
+
+          <DayOverDayChange comparison={dayOverDay} />
         </>
       )}
     </div>

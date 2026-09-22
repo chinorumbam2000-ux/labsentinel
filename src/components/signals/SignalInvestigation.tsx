@@ -1,9 +1,19 @@
-import type { OutbreakAlert, SimulationDay } from '../../types';
+import type {
+  DataConfidenceResult,
+  DayOverDayComparison,
+  FacilityFeedHealth,
+  OutbreakAlert,
+  SimulationDay,
+} from '../../types';
 import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../../lib/signalScore';
 import { SEVERITY_STYLES, formatSimulationDate, formatSimulationDateTime } from '../../lib/format';
 import { getScenario } from '../../data/simulation';
 import { getScoreForDay } from '../../lib/selectors';
 import SeverityBadge from './SeverityBadge';
+import WhyThisSignalPanel from './WhyThisSignalPanel';
+import DataConfidenceCard from '../common/DataConfidenceCard';
+import FeedHealthCard from '../common/FeedHealthCard';
+import DayOverDayChange from '../common/DayOverDayChange';
 
 export type InvestigationMode = 'detection' | 'current';
 
@@ -15,6 +25,10 @@ interface SignalInvestigationProps {
   mode: InvestigationMode;
   onModeChange: (mode: InvestigationMode) => void;
   onBack: () => void;
+  confidence: DataConfidenceResult;
+  feeds: FacilityFeedHealth[];
+  dayOverDay: DayOverDayComparison;
+  lastUpdated: Date;
 }
 
 /**
@@ -35,6 +49,10 @@ export default function SignalInvestigation({
   mode,
   onModeChange,
   onBack,
+  confidence,
+  feeds,
+  dayOverDay,
+  lastUpdated,
 }: SignalInvestigationProps) {
   // Without an alert there is nothing historical to replay, so the only
   // meaningful view is current conditions.
@@ -288,6 +306,26 @@ export default function SignalInvestigation({
           </div>
         </section>
       </div>
+
+      <WhyThisSignalPanel
+        scenario={scenario}
+        score={score}
+        confidence={confidence}
+        feeds={feeds}
+        lastUpdated={lastUpdated}
+      />
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <DataConfidenceCard confidence={confidence} />
+        <FeedHealthCard feeds={feeds} className="xl:col-span-2" />
+      </div>
+
+      {/*
+        Day-over-day always describes the globally selected day, so it is only
+        shown in the current view — pairing it with a frozen detection-time
+        breakdown would mix two different days on one screen.
+      */}
+      {!isDetection ? <DayOverDayChange comparison={dayOverDay} /> : null}
 
       <div className="ls-card border-l-4 border-l-severity-critical p-5">
         <p className="text-sm font-semibold text-ink">{SIGNAL_DISCLAIMER}</p>

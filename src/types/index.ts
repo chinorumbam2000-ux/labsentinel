@@ -196,3 +196,92 @@ export interface OutbreakAlert {
   status: AlertStatus;
   acknowledgement: AcknowledgementRecord | null;
 }
+
+/* ------------------------------------------------------------------------ *
+ * Phase 1 — data trust, transparency and explainability.
+ *
+ * These describe how trustworthy the DATA is. They are deliberately separate
+ * from the Composite Outbreak Signal Score, which describes how concerning the
+ * EPIDEMIOLOGICAL SIGNAL is. The two must never be combined.
+ * ------------------------------------------------------------------------ */
+
+/** Operational state of one facility's simulated data feed. */
+export type FeedStatus = 'HEALTHY' | 'DELAYED' | 'DEGRADED' | 'OFFLINE';
+
+export interface FacilityFeedHealth {
+  hospitalId: HospitalId;
+  facilityName: string;
+  vendor: VendorName;
+  status: FeedStatus;
+  /** Simulation-calendar timestamp of the most recent event. */
+  lastEventAt: string;
+  minutesSinceLastEvent: number;
+  eventsReceived: number;
+  terminologyMappedPercent: number;
+  completenessPercent: number;
+  failedEvents: number;
+  duplicateEvents: number;
+  /** Mean delivery latency, in seconds. */
+  latencySeconds: number;
+  /**
+   * False only when the feed is OFFLINE. An offline feed means NO DATA IS
+   * AVAILABLE — it must never be read as "no abnormal activity detected".
+   */
+  isReporting: boolean;
+  /** Plain-language note explaining the current status. */
+  note: string;
+}
+
+export type ConfidenceLevel = 'Very High' | 'High' | 'Moderate' | 'Low';
+
+export interface ConfidenceComponent {
+  key: 'freshness' | 'completeness' | 'terminology' | 'participation' | 'integrity';
+  label: string;
+  /** Normalized 0-100 component score. */
+  score: number;
+  /** Weight as a fraction, e.g. 0.30. */
+  weight: number;
+  /** Maximum points this component can contribute, e.g. 30. */
+  maxPoints: number;
+  /** Weighted contribution, rounded for display. */
+  points: number;
+  /** Plain-language description of what produced the score. */
+  evidence: string;
+}
+
+export interface DataConfidenceResult {
+  /** 0-100, rounded. Never combined with the outbreak signal score. */
+  score: number;
+  level: ConfidenceLevel;
+  components: ConfidenceComponent[];
+  /** Plain-language summary of overall data trustworthiness. */
+  explanation: string;
+  facilitiesReporting: number;
+  facilitiesTotal: number;
+  terminologyMappedPercent: number;
+  completenessPercent: number;
+  freshestMinutes: number;
+  totalIssues: number;
+  hasOfflineFacility: boolean;
+}
+
+export type ChangeDirection = 'up' | 'down' | 'none';
+
+export interface DayOverDayMetric {
+  label: string;
+  previous: string;
+  current: string;
+  /** Formatted delta, e.g. "+18" or "No change". */
+  delta: string;
+  direction: ChangeDirection;
+}
+
+export interface DayOverDayComparison {
+  available: boolean;
+  previousDay: number | null;
+  currentDay: number;
+  metrics: DayOverDayMetric[];
+  /** Plain-language explanation of why the score moved. */
+  explanation: string;
+  scoreDelta: number;
+}

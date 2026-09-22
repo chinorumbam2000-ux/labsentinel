@@ -25,6 +25,9 @@ import {
 } from 'react';
 import type {
   AcknowledgementRecord,
+  DataConfidenceResult,
+  DayOverDayComparison,
+  FacilityFeedHealth,
   HospitalMetrics,
   LabObservation,
   OutbreakAlert,
@@ -55,6 +58,9 @@ import {
   getUnacknowledgedCount,
 } from '../lib/alerts';
 import { getTrendSeries, type TrendPoint } from '../lib/analytics';
+import { getAllFeedHealth } from '../data/feedHealth';
+import { getDataConfidence } from '../lib/dataConfidence';
+import { getDayOverDayComparison } from '../lib/dayOverDay';
 import {
   clearSession,
   loadSession,
@@ -81,6 +87,10 @@ export interface SimulationContextValue {
   newTodayCount: number;
   acknowledgements: Record<string, AcknowledgementRecord>;
   trendSeries: TrendPoint[];
+  /** Data trust, kept entirely separate from the outbreak signal score. */
+  dataConfidence: DataConfidenceResult;
+  feedHealth: FacilityFeedHealth[];
+  dayOverDay: DayOverDayComparison;
   /** Real wall-clock time of the last recalculation in this browser tab. */
   lastUpdated: Date;
   isPlaying: boolean;
@@ -255,6 +265,9 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       newTodayCount: getNewTodayCount(currentDay),
       acknowledgements,
       trendSeries: getTrendSeries(currentDay),
+      dataConfidence: getDataConfidence(currentDay),
+      feedHealth: getAllFeedHealth(currentDay),
+      dayOverDay: getDayOverDayComparison(currentDay),
       lastUpdated,
       isPlaying,
       isLoading,
