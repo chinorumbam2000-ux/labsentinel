@@ -11,6 +11,7 @@ import HospitalsPage from './pages/HospitalsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SimulationPage from './pages/SimulationPage';
 import ReportsPage from './pages/ReportsPage';
+import ArchitecturePage from './pages/ArchitecturePage';
 
 function NotFoundPage() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/simulation" element={<SimulationPage />} />
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/architecture" element={<ArchitecturePage />} />
           <Route path="/index.html" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

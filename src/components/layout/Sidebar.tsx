@@ -16,6 +16,7 @@ const PRIMARY_NAV: NavItem[] = [
   { to: '/reports', label: 'Reports', icon: '▤' },
   { to: '/analytics', label: 'Analytics', icon: '◫' },
   { to: '/simulation', label: 'Simulation', icon: '▶' },
+  { to: '/architecture', label: 'Architecture', icon: '⊞' },
 ];
 
 const linkClasses = ({ isActive }: { isActive: boolean }): string =>

@@ -20,6 +20,12 @@ import type { GeographicLevel, HospitalId, PrivacyResult } from '../types';
 import { HOSPITAL_BY_ID } from '../data/hospitals';
 import { getRegionalCounts, getSiteCounts } from '../data/dataset';
 import { ZIP_AREA_BY_CODE } from '../data/zipAreas';
+import {
+  ACTIVE_HIERARCHY,
+  getAncestorAtLevel,
+  getBroaderLevel,
+  getLevelLabels,
+} from '../data/geography';
 
 /** Configurable prototype threshold. Counts below this are not shown. */
 export const MINIMUM_DISPLAY_COUNT = 5;
@@ -33,14 +39,20 @@ export const PRIVACY_TOOLTIP =
 export const PRIVACY_DISCLAIMER =
   'Illustrative prototype privacy rule — not an official HIPAA legal threshold or a de-identification determination.';
 
-/** ZIP rolls up to County, County to State. State cannot roll up further. */
-export const GEOGRAPHIC_HIERARCHY: GeographicLevel[] = ['ZIP', 'County', 'State'];
+/**
+ * The roll-up chain, derived from the active geographic configuration rather
+ * than hard-coded. Under the U.S. prototype this resolves to
+ * Facility → ZIP → County → State → Country; a district/province deployment
+ * would produce its own chain from the same code.
+ */
+export const GEOGRAPHIC_HIERARCHY: GeographicLevel[] = getLevelLabels();
 
+/** The next broader level by display label, or null at the top. */
 export const broaderLevel = (level: GeographicLevel): GeographicLevel | null => {
-  const index = GEOGRAPHIC_HIERARCHY.indexOf(level);
-  return index >= 0 && index < GEOGRAPHIC_HIERARCHY.length - 1
-    ? GEOGRAPHIC_HIERARCHY[index + 1]
-    : null;
+  const definition = ACTIVE_HIERARCHY.levels.find((item) => item.label === level);
+  if (!definition) return null;
+  const broader = getBroaderLevel(definition.id);
+  return broader ? broader.label : null;
 };
 
 export interface PrivacyInput {
@@ -120,16 +132,26 @@ export const getAreaPositivePrivacy = (
   const counts = getSiteCounts(day, hospitalId);
   const regional = getRegionalCounts(day);
 
+  // The area level and its roll-up target both come from the configuration,
+  // so a deployment using districts and provinces needs no code change here.
+  const areaLevel = ACTIVE_HIERARCHY.levels.find((level) => level.rank === 1);
+  const broader = areaLevel ? getBroaderLevel(areaLevel.id) : null;
+  const parentUnit = broader
+    ? getAncestorAtLevel(hospital.zipCode, broader.id)
+    : undefined;
+
   return applyGeographicPrivacy({
     count: counts.positives,
-    level: 'ZIP',
+    level: areaLevel?.label ?? 'ZIP',
     measure: 'positive results',
     areaLabel: hospital.zipCode,
-    rollup: {
-      level: 'County',
-      count: regional.positives,
-      label: area?.county ?? 'Worcester County',
-    },
+    rollup: broader
+      ? {
+          level: broader.label,
+          count: regional.positives,
+          label: parentUnit?.name ?? area?.county ?? 'Worcester County',
+        }
+      : undefined,
   });
 };
 

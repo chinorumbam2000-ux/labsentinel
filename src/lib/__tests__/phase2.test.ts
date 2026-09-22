@@ -109,10 +109,14 @@ describe('geographic privacy rule', () => {
     expect(result.displayValue).toBe('2');
   });
 
-  it('walks the ZIP to County to State hierarchy', () => {
+  it('walks the configured hierarchy upward', () => {
+    // Phase 3 made geography configurable, and the U.S. configuration extends
+    // to Country, so State now has a broader level. The roll-up the UI
+    // actually uses (ZIP -> County) is unchanged.
     expect(broaderLevel('ZIP')).toBe('County');
     expect(broaderLevel('County')).toBe('State');
-    expect(broaderLevel('State')).toBeNull();
+    expect(broaderLevel('State')).toBe('Country');
+    expect(broaderLevel('Country')).toBeNull();
   });
 });
 

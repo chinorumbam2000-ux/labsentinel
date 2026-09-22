@@ -290,7 +290,23 @@ export interface DayOverDayComparison {
  * Phase 2 — responsible workflow, privacy controls and human review.
  * ------------------------------------------------------------------------ */
 
-export type GeographicLevel = 'ZIP' | 'County' | 'State';
+/**
+ * A geographic level's display name. The named members are the ones the U.S.
+ * prototype uses; `(string & {})` keeps the union open so a deployment can
+ * configure districts, municipalities, provinces or any other jurisdictional
+ * unit without editing this type.
+ */
+export type GeographicLevel =
+  | 'Facility'
+  | 'ZIP'
+  | 'County'
+  | 'State'
+  | 'Country'
+  | 'District'
+  | 'Province'
+  | 'Region'
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | (string & {});
 
 export interface PrivacyResult {
   /** True when the exact count may be shown at the requested level. */
@@ -409,3 +425,94 @@ export interface ReportRecord {
   snapshot: ReportSnapshot;
   history: ReportEvent[];
 }
+
+/* ------------------------------------------------------------------------ *
+ * Phase 3 — configurable geography, multi-source hooks, future architecture.
+ * ------------------------------------------------------------------------ */
+
+/** Stable machine identifier for a level, e.g. 'zip', 'district'. */
+export type GeographicLevelId = string;
+
+export interface GeographicLevelDefinition {
+  id: GeographicLevelId;
+  /** Display name used in the UI, e.g. 'ZIP' or 'District'. */
+  label: GeographicLevel;
+  /** Longer form for prose, e.g. 'ZIP Code'. */
+  longLabel: string;
+  /** 0 is the finest level; higher numbers are progressively broader. */
+  rank: number;
+}
+
+export interface GeographicUnit {
+  id: string;
+  name: string;
+  /** The level this unit belongs to, matching a level definition id. */
+  type: GeographicLevelId;
+  /** The containing unit, or null at the top of the hierarchy. */
+  parentId: string | null;
+  /** ISO 3166-1 alpha-2, e.g. 'US'. */
+  countryCode: string;
+}
+
+export interface GeographicHierarchy {
+  id: string;
+  label: string;
+  countryCode: string;
+  /** Ordered finest to broadest. */
+  levels: GeographicLevelDefinition[];
+  /** Populated for a configured deployment; empty for a template. */
+  units: GeographicUnit[];
+  description: string;
+}
+
+/**
+ * Surveillance stream types the architecture is designed to accept.
+ * LABORATORY is the only one carrying data in this prototype.
+ */
+export type SurveillanceSourceType =
+  | 'LABORATORY'
+  | 'EMERGENCY_DEPARTMENT'
+  | 'HOSPITALIZATION'
+  | 'WASTEWATER'
+  | 'PHARMACY'
+  | 'OTHER';
+
+export type SourceAvailability = 'ACTIVE' | 'PLANNED';
+
+/**
+ * A source-agnostic surveillance observation. Laboratory results are mapped
+ * into this shape today; other stream types would map into the same shape.
+ */
+export interface SurveillanceSignal {
+  sourceType: SurveillanceSourceType;
+  /** Simulation-calendar timestamp in this prototype. */
+  timestamp: string;
+  geography: {
+    unitId: string;
+    level: GeographicLevelId;
+    label: string;
+    countryCode: string;
+  };
+  organization: {
+    id: string;
+    name: string;
+    vendor?: string;
+  };
+  syndrome: string;
+  /** What is being measured, e.g. 'test_volume' or 'positivity_rate'. */
+  metric: string;
+  value: number;
+  /** 0-100 confidence in this observation, from the feed's data quality. */
+  quality: number;
+}
+
+export interface SurveillanceSourceDefinition {
+  type: SurveillanceSourceType;
+  label: string;
+  availability: SourceAvailability;
+  description: string;
+  /** Example metrics such a stream would carry. Illustrative only. */
+  exampleMetrics: string[];
+}
+
+export type ArchitectureStatus = 'IMPLEMENTED' | 'PROTOTYPE' | 'PLANNED' | 'FUTURE';
