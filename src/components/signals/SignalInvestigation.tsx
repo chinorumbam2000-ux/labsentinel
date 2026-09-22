@@ -215,11 +215,11 @@ export default function SignalInvestigation({
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
         <section className="ls-card xl:col-span-3">
           <header className="ls-card-header">
-            <h3 className="ls-card-title">
+            <h2 className="ls-card-title">
               {isDetection
                 ? `Why did LabSentinel trigger this on Day ${day}?`
                 : `What is driving the signal on Day ${day}?`}
-            </h3>
+            </h2>
           </header>
           <ul className="divide-y divide-hairline">
             {score.components.map((component) => (
@@ -250,7 +250,7 @@ export default function SignalInvestigation({
 
         <section className="ls-card xl:col-span-2">
           <header className="ls-card-header">
-            <h3 className="ls-card-title">Composite score</h3>
+            <h2 className="ls-card-title">Composite score</h2>
             <span className="ls-label">
               {isDetection ? `Day ${day} — at detection` : `Day ${day} — current`}
             </span>

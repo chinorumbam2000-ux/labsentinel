@@ -29,7 +29,7 @@ export default function FhirStatusPanel({
   return (
     <section className="ls-card">
       <header className="ls-card-header">
-        <h3 className="ls-card-title">Interoperability Status</h3>
+        <h2 className="ls-card-title">Interoperability Status</h2>
         <span className="ls-label">
           {observationCount} simulated {observationCount === 1 ? 'resource' : 'resources'}
         </span>
@@ -41,7 +41,7 @@ export default function FhirStatusPanel({
             <dd className="flex items-center gap-1.5 text-sm font-semibold text-ink">
               {row.value}
               {row.verified ? (
-                <span aria-label="verified" className="text-severity-low">
+                <span aria-label="verified" className="text-[#166534]">
                   ✓
                 </span>
               ) : null}

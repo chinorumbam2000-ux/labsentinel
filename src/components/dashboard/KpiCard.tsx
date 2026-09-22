@@ -10,7 +10,7 @@ interface KpiCardProps {
 
 const TONE_CLASSES: Record<NonNullable<KpiCardProps['deltaTone']>, string> = {
   up: 'text-severity-critical',
-  down: 'text-severity-low',
+  down: 'text-[#166534]',
   neutral: 'text-muted',
 };
 

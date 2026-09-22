@@ -20,7 +20,7 @@ const TREND_TONE: Record<ZipMetrics['trend'], string> = {
   Baseline: 'text-muted',
   Increasing: 'text-severity-critical',
   Stable: 'text-muted',
-  Decreasing: 'text-severity-low',
+  Decreasing: 'text-[#166534]',
 };
 
 export default function ZipDetailPanel({

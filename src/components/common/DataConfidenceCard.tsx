@@ -108,7 +108,8 @@ export default function DataConfidenceCard({
             <summary className="cursor-pointer text-xs font-medium text-brand">
               How this score was calculated
             </summary>
-            <table className="mt-3 w-full border-collapse text-xs">
+            <div className="mt-3 w-full overflow-x-auto">
+            <table className="w-full border-collapse text-xs">
               <caption className="sr-only">
                 Weighted contribution of each data confidence component
               </caption>
@@ -146,6 +147,7 @@ export default function DataConfidenceCard({
                 </tr>
               </tfoot>
             </table>
+            </div>
           </details>
         </>
       ) : null}

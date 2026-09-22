@@ -18,10 +18,10 @@ export const SEVERITY_STYLES: Record<
   { badge: string; accent: string; soft: string; text: string }
 > = {
   Low: {
-    badge: 'bg-severity-low/10 text-severity-low ring-1 ring-inset ring-severity-low/25',
+    badge: 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/25',
     accent: 'bg-severity-low',
     soft: 'bg-severity-low/5 border-severity-low/30',
-    text: 'text-severity-low',
+    text: 'text-[#166534]',
   },
   Watch: {
     badge:

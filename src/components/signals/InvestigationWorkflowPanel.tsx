@@ -63,7 +63,7 @@ export default function InvestigationWorkflowPanel({
   return (
     <section className={`ls-card ${className}`} aria-label="Investigation review">
       <header className="ls-card-header">
-        <h3 className="ls-card-title">Epidemiological review</h3>
+        <h2 className="ls-card-title">Epidemiological review</h2>
         <span
           className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] ${
             INVESTIGATION_STATUS_STYLES[record.status]

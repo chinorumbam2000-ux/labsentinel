@@ -4,7 +4,7 @@ import { formatMinutesAgo } from '../../lib/dataConfidence';
 
 const STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string }> = {
   HEALTHY: {
-    badge: 'bg-severity-low/10 text-severity-low ring-1 ring-inset ring-severity-low/25',
+    badge: 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/25',
     dot: 'bg-severity-low',
   },
   DELAYED: {
@@ -49,7 +49,7 @@ export default function FeedHealthCard({
   return (
     <section className={`ls-card ${className}`} aria-label="Facility feed health">
       <header className="ls-card-header">
-        <h3 className="ls-card-title">{title}</h3>
+        <h2 className="ls-card-title">{title}</h2>
         <span className="ls-label">
           {reporting} of {feeds.length} reporting
         </span>

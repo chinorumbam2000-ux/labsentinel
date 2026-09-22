@@ -100,7 +100,7 @@ export default function HospitalDashboard({
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <section className="ls-card">
           <header className="ls-card-header">
-            <h3 className="ls-card-title">Test Volume</h3>
+            <h2 className="ls-card-title">Test Volume</h2>
             <span className="ls-label">Day 1 → current</span>
           </header>
           <div className="h-[200px] p-4">
@@ -123,7 +123,7 @@ export default function HospitalDashboard({
 
         <section className="ls-card">
           <header className="ls-card-header">
-            <h3 className="ls-card-title">Positivity Rate</h3>
+            <h2 className="ls-card-title">Positivity Rate</h2>
             <span className="ls-label">Day 1 → current</span>
           </header>
           <div className="h-[200px] p-4">
@@ -160,7 +160,7 @@ export default function HospitalDashboard({
 
       <section className="ls-card">
         <header className="ls-card-header">
-          <h3 className="ls-card-title">Recent Observations — Day {currentDay}</h3>
+          <h2 className="ls-card-title">Recent Observations — Day {currentDay}</h2>
           <div className="flex items-center gap-2">
             <span className="ls-label">
               {metrics.dayObservations.length} on this day ·{' '}
@@ -204,14 +204,14 @@ export default function HospitalDashboard({
                         className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                           observation.result === 'Positive'
                             ? 'bg-severity-critical/10 text-severity-critical ring-1 ring-inset ring-severity-critical/25'
-                            : 'bg-severity-low/10 text-severity-low ring-1 ring-inset ring-severity-low/20'
+                            : 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/20'
                         }`}
                       >
                         {observation.result}
                       </span>
                     </td>
                     <td className="ls-td text-muted">
-                      {observation.fhirStatus} <span className="text-severity-low">✓</span>
+                      {observation.fhirStatus} <span className="text-[#166534]">✓</span>
                     </td>
                   </tr>
                 ))}

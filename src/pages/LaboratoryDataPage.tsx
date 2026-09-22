@@ -390,7 +390,7 @@ export default function LaboratoryDataPage() {
                           className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                             observation.result === 'Positive'
                               ? 'bg-severity-critical/10 text-severity-critical ring-1 ring-inset ring-severity-critical/25'
-                              : 'bg-severity-low/10 text-severity-low ring-1 ring-inset ring-severity-low/20'
+                              : 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/20'
                           }`}
                         >
                           {observation.result}
@@ -403,7 +403,7 @@ export default function LaboratoryDataPage() {
                       <td className="ls-td tabular-nums text-muted">{observation.zipCode}</td>
                       <td className="ls-td text-muted">
                         {observation.fhirStatus}{' '}
-                        <span className="text-severity-low">✓</span>
+                        <span className="text-[#166534]">✓</span>
                       </td>
                     </tr>
                   ))}

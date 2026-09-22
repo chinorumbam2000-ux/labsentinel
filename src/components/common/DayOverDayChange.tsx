@@ -2,7 +2,7 @@ import type { ChangeDirection, DayOverDayComparison } from '../../types';
 
 const DIRECTION_STYLES: Record<ChangeDirection, string> = {
   up: 'text-severity-critical',
-  down: 'text-severity-low',
+  down: 'text-[#166534]',
   none: 'text-muted',
 };
 
@@ -30,7 +30,7 @@ export default function DayOverDayChange({
     return (
       <section className={`ls-card ${className}`} aria-label="Day-to-day change">
         <header className="ls-card-header">
-          <h3 className="ls-card-title">Change since previous day</h3>
+          <h2 className="ls-card-title">Change since previous day</h2>
         </header>
         <div className="px-5 py-6 text-center">
           <p className="text-sm font-medium text-ink">
@@ -47,9 +47,9 @@ export default function DayOverDayChange({
   return (
     <section className={`ls-card ${className}`} aria-label="Day-to-day change">
       <header className="ls-card-header">
-        <h3 className="ls-card-title">
+        <h2 className="ls-card-title">
           Change: Day {comparison.previousDay} → Day {comparison.currentDay}
-        </h3>
+        </h2>
         <span
           className={`text-sm font-semibold tabular-nums ${
             DIRECTION_STYLES[

@@ -120,7 +120,7 @@ export default function WhyThisSignalPanel({
 
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline px-5 py-4">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-ink">Why this signal?</h3>
+          <h2 className="text-sm font-semibold text-ink">Why this signal?</h2>
           <p className="mt-0.5 text-xs text-muted">
             Respiratory Viral Syndrome · Day {scenario.day} ·{' '}
             {formatSimulationDate(scenario.simulationDate)}
@@ -149,7 +149,8 @@ export default function WhyThisSignalPanel({
         <summary className="cursor-pointer text-xs font-medium text-brand">
           Show the weighted calculation
         </summary>
-        <table className="mt-3 w-full border-collapse text-xs">
+        <div className="mt-3 w-full overflow-x-auto">
+        <table className="w-full border-collapse text-xs">
           <caption className="sr-only">
             Weighted contribution of each component to the composite outbreak signal score
           </caption>
@@ -187,6 +188,7 @@ export default function WhyThisSignalPanel({
             </tr>
           </tfoot>
         </table>
+            </div>
       </details>
 
       {/* Data trust, kept visibly separate from the severity above. */}

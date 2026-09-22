@@ -245,7 +245,7 @@ export const applyReportAction = (
 export const REPORT_STATUS_STYLES: Record<ReportStatus, string> = {
   DRAFT: 'bg-canvas text-muted ring-1 ring-inset ring-hairline',
   'READY FOR REVIEW': 'bg-[#0369A1]/10 text-[#0369A1] ring-1 ring-inset ring-[#0369A1]/25',
-  APPROVED: 'bg-severity-low/10 text-severity-low ring-1 ring-inset ring-severity-low/25',
+  APPROVED: 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/25',
   'SIMULATED SUBMISSION':
     'bg-[#0F766E]/10 text-[#0F766E] ring-1 ring-inset ring-[#0F766E]/25',
   FAILED:

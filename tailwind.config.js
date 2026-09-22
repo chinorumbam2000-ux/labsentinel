@@ -8,7 +8,9 @@ export default {
         canvas: '#F5F8FC',
         hairline: '#DCE6F1',
         ink: '#0F172A',
-        muted: '#64748B',
+        // Darkened from #64748B so secondary text clears WCAG AA (4.5:1)
+        // on the #F5F8FC page background as well as on white cards.
+        muted: '#5E6E84',
         brand: {
           DEFAULT: '#2563EB',
           dark: '#1D4ED8',

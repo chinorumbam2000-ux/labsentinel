@@ -10,7 +10,7 @@ import type { ArchitectureStatus } from '../../types';
  */
 const STYLES: Record<ArchitectureStatus, string> = {
   IMPLEMENTED:
-    'bg-severity-low/10 text-severity-low ring-1 ring-inset ring-severity-low/30',
+    'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/30',
   PROTOTYPE: 'bg-brand-light text-brand ring-1 ring-inset ring-brand/25',
   PLANNED:
     'bg-transparent text-muted ring-1 ring-inset ring-dashed ring-muted/40 border border-dashed border-muted/40',

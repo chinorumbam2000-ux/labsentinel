@@ -26,7 +26,7 @@ export default function FederatedConcept() {
     <section className="ls-card" aria-label="Federated surveillance concept">
       <header className="ls-card-header">
         <div>
-          <h3 className="ls-card-title">Federated Surveillance</h3>
+          <h2 className="ls-card-title">Federated Surveillance</h2>
           <p className="mt-0.5 text-xs text-muted">{FUTURE_CONCEPT_LABEL}</p>
         </div>
         <StatusBadge status="FUTURE" />
