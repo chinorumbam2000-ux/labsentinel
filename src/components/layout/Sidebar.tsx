@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import BrandMark from '../common/BrandMark';
 import { useSimulation } from '../../context/SimulationContext';
 
 interface NavItem {
@@ -47,12 +48,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       className="flex h-full w-64 shrink-0 flex-col bg-sidebar text-white"
     >
       <div className="flex items-center gap-3 px-5 py-5">
-        <span
-          aria-hidden="true"
-          className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-base font-bold"
-        >
-          LS
-        </span>
+        <BrandMark size={36} className="shrink-0" />
         <div className="min-w-0">
           <p className="truncate text-[15px] font-semibold leading-tight">LabSentinel</p>
           <p className="truncate text-[11px] leading-tight text-white/50">

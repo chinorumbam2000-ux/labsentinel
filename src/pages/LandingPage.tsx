@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import BrandMark from '../components/common/BrandMark';
 
 /**
  * Deliberately minimal opening screen: brand mark, title, subtitle, one button.
@@ -15,12 +16,9 @@ import { Link } from 'react-router-dom';
 export default function LandingPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-sidebar px-6 py-10 text-center text-white">
-      <span
-        aria-hidden="true"
-        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand text-2xl font-bold sm:h-20 sm:w-20 sm:text-3xl"
-      >
-        LS
-      </span>
+      {/* CSS sizing wins over the SVG width/height, keeping the original
+          responsive step from 64px to 80px at the sm breakpoint. */}
+      <BrandMark size={80} className="h-16 w-16 shrink-0 sm:h-20 sm:w-20" />
 
       <h1 className="mt-7 text-4xl font-semibold tracking-tight sm:text-6xl">
         LabSentinel
