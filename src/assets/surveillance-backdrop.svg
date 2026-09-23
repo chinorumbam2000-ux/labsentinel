@@ -22,16 +22,16 @@
     <!-- Soft falloff used by the pulse rings, so they fade outward rather
          than ending on a hard edge. -->
     <radialGradient id="pulse" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#5B7FA6" stop-opacity="0.055" />
-      <stop offset="55%"  stop-color="#5B7FA6" stop-opacity="0.018" />
+      <stop offset="0%"   stop-color="#5B7FA6" stop-opacity="0.155" />
+      <stop offset="55%"  stop-color="#5B7FA6" stop-opacity="0.055" />
       <stop offset="100%" stop-color="#5B7FA6" stop-opacity="0" />
     </radialGradient>
 
     <!-- Landmasses sit slightly heavier at the top of the canvas and lift
          toward the bottom, which keeps the lower half calm for content. -->
     <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#7C9BBE" stop-opacity="0.058" />
-      <stop offset="100%" stop-color="#7C9BBE" stop-opacity="0.034" />
+      <stop offset="0%"   stop-color="#7C9BBE" stop-opacity="0.205" />
+      <stop offset="100%" stop-color="#7C9BBE" stop-opacity="0.140" />
     </linearGradient>
 
     <!-- The silhouettes are crops of a much larger field, so their outlines
@@ -45,7 +45,7 @@
   <!-- ============================================================
        1. Graticule — the faint measurement grid
        ============================================================ -->
-  <g stroke="#8AA4C2" stroke-width="0.7" stroke-opacity="0.15" fill="none">
+  <g stroke="#8AA4C2" stroke-width="0.7" stroke-opacity="0.24" fill="none">
     <path d="M100 0V900M200 0V900M300 0V900M400 0V900M500 0V900M600 0V900
              M700 0V900M800 0V900M900 0V900M1000 0V900M1100 0V900M1200 0V900
              M1300 0V900M1400 0V900M1500 0V900" />
@@ -55,7 +55,7 @@
 
   <!-- Two wider graticule curves, to hint at a projection rather than a
        flat spreadsheet grid. -->
-  <g stroke="#7E9AB9" stroke-width="0.8" stroke-opacity="0.12" fill="none">
+  <g stroke="#7E9AB9" stroke-width="0.8" stroke-opacity="0.19" fill="none">
     <path d="M0 250 Q 300 170 640 250 T 1280 250 T 1600 300" />
     <path d="M0 640 Q 340 720 700 640 T 1340 650 T 1600 610" />
   </g>
@@ -101,7 +101,7 @@
        ============================================================ -->
   <g fill="none" stroke="#6E8CAE" stroke-linecap="round">
     <!-- Solid arcs -->
-    <g stroke-opacity="0.22" stroke-width="0.9">
+    <g stroke-opacity="0.30" stroke-width="0.9">
       <path d="M496 188 Q 760 92 1084 248" />
       <path d="M496 188 Q 700 300 972 492" />
       <path d="M1084 248 Q 1210 330 1296 392" />
@@ -111,7 +111,7 @@
     </g>
     <!-- Dashed arcs — the same network, drawn lighter so the field has
          depth instead of reading as one flat web. -->
-    <g stroke-opacity="0.17" stroke-width="0.8" stroke-dasharray="5 9">
+    <g stroke-opacity="0.23" stroke-width="0.8" stroke-dasharray="5 9">
       <path d="M120 96 Q 420 20 700 68" />
       <path d="M700 68 Q 900 220 816 300" />
       <path d="M816 300 Q 700 470 424 536" />
@@ -128,7 +128,7 @@
   <g>
     <!-- Primary focus, North America -->
     <circle cx="1084" cy="248" r="62" fill="url(#pulse)" />
-    <g fill="none" stroke="#4F76A0" stroke-opacity="0.13">
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.18">
       <circle cx="1084" cy="248" r="14" stroke-width="1" />
       <circle cx="1084" cy="248" r="26" stroke-width="0.8" stroke-opacity="0.13" />
       <circle cx="1084" cy="248" r="40" stroke-width="0.7" stroke-opacity="0.08" />
@@ -136,14 +136,14 @@
 
     <!-- Secondary, eastern seaboard -->
     <circle cx="1296" cy="392" r="46" fill="url(#pulse)" />
-    <g fill="none" stroke="#4F76A0" stroke-opacity="0.16">
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.22">
       <circle cx="1296" cy="392" r="11" stroke-width="0.9" />
       <circle cx="1296" cy="392" r="22" stroke-width="0.7" stroke-opacity="0.10" />
     </g>
 
     <!-- Tertiary, Oceania -->
     <circle cx="316" cy="708" r="44" fill="url(#pulse)" />
-    <g fill="none" stroke="#4F76A0" stroke-opacity="0.12">
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.16">
       <circle cx="316" cy="708" r="10" stroke-width="0.9" />
       <circle cx="316" cy="708" r="20" stroke-width="0.7" stroke-opacity="0.09" />
     </g>
@@ -160,17 +160,17 @@
        ============================================================ -->
   <g fill="#5C7FA8">
     <!-- Larger hubs -->
-    <g fill-opacity="0.20">
-      <circle cx="1084" cy="248" r="4" />
-      <circle cx="1296" cy="392" r="3.6" />
-      <circle cx="316" cy="708" r="3.6" />
+    <g fill-opacity="0.34">
+      <circle cx="1084" cy="248" r="4.6" />
+      <circle cx="1296" cy="392" r="4" />
+      <circle cx="316" cy="708" r="4" />
       <circle cx="496" cy="188" r="4" />
       <circle cx="972" cy="492" r="3.6" />
       <circle cx="1246" cy="604" r="4" />
       <circle cx="1540" cy="214" r="3.8" />
     </g>
     <!-- Mid-weight sites -->
-    <g fill-opacity="0.17">
+    <g fill-opacity="0.26">
       <circle cx="700" cy="68" r="3" />
       <circle cx="816" cy="300" r="3" />
       <circle cx="424" cy="536" r="2.8" />
@@ -183,7 +183,7 @@
       <circle cx="196" cy="736" r="2.4" />
     </g>
     <!-- Background field — many small contributors -->
-    <g fill-opacity="0.12">
+    <g fill-opacity="0.18">
       <circle cx="44" cy="126" r="2" /><circle cx="286" cy="60" r="2" />
       <circle cx="300" cy="286" r="1.8" /><circle cx="52" cy="286" r="1.8" />
       <circle cx="248" cy="366" r="1.8" /><circle cx="176" cy="440" r="1.8" />

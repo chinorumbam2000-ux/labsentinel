@@ -79,36 +79,74 @@
  * its box while the content scrolls over it — no background-attachment, no
  * extra DOM, no z-index changes.
  *
- * Four layers. CSS paints the first-listed on top, so reading the stack
+ * Three layers. CSS paints the first-listed on top, so reading the stack
  * downwards is reading it front to back:
- *   1. a flat legibility wash that caps the whole field's darkness
- *   2. a cool wash at the top-right, where the signal cluster sits
- *   3. a warm-neutral lift at the lower-left, to stop the field going flat
- *   4. the vector surveillance field itself
+ *   1. a cool wash at the top-right, where the signal cluster sits
+ *   2. a warm-neutral lift at the lower-left, to stop the field going flat
+ *   3. the vector surveillance field itself
  * The page colour underneath stays the solid #F5F8FC inherited from the
  * shell, so text contrast is measured against an unchanged base.
+ *
+ * The field is deliberately allowed to read in open canvas. Text that sits
+ * directly on it is protected locally by the scrims below rather than by
+ * flattening the whole backdrop, which is what kept it nearly invisible.
  * ------------------------------------------------------------------ */
 #ls-main {
   background-image:
-    /* Legibility wash, painted ON TOP of everything below it. Secondary text
-       (#5E6E84) clears AA on the bare canvas by only ~11 RGB points, so this
-       caps how far the backdrop may ever darken that budget. One number
-       scales the whole field. */
-    linear-gradient(rgba(245, 248, 252, 0.45), rgba(245, 248, 252, 0.45)),
-    radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.055) 0%, rgba(112, 146, 186, 0) 58%),
-    radial-gradient(100% 80% at 6% 96%, rgba(126, 156, 192, 0.045) 0%, rgba(126, 156, 192, 0) 62%),
+    radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.155) 0%, rgba(112, 146, 186, 0) 58%),
+    radial-gradient(100% 80% at 6% 96%, rgba(126, 156, 192, 0.130) 0%, rgba(126, 156, 192, 0) 62%),
     url('./assets/surveillance-backdrop.svg');
-  background-position: center, center, center, center;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
-  background-size: cover, cover, cover, cover;
+  background-position: center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: cover, cover, cover;
 }
 
-/* Honour a reduced-transparency preference by dropping the vector field and
-   keeping only the flat wash. */
+/* ------------------------------------------------------------------ *
+ * Legibility scrims
+ *
+ * Cards are opaque, so the backdrop is already hidden beneath dense
+ * content. The only text genuinely at risk is the text sitting directly on
+ * the canvas: page headers and dashboard section headings. Each gets a
+ * feathered halo of canvas colour behind it — soft enough to read as a
+ * local calming of the field rather than a panel.
+ *
+ * Both selectors were checked against every route and match nothing inside
+ * a card, so no scrim is ever painted on white.
+ * ------------------------------------------------------------------ */
+#ls-main header:not(.ls-card-header),
+#ls-main section[aria-labelledby] > div:first-child {
+  position: relative;
+}
+
+#ls-main header:not(.ls-card-header)::before,
+#ls-main section[aria-labelledby] > div:first-child::before {
+  content: '';
+  position: absolute;
+  inset: -18px -30px;
+  /* #ls-main already establishes a stacking context, so this sits above the
+     backdrop but behind the heading's own content. */
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    115% 130% at 50% 50%,
+    rgba(245, 248, 252, 0.95) 0%,
+    rgba(245, 248, 252, 0.9) 44%,
+    rgba(245, 248, 252, 0.5) 74%,
+    rgba(245, 248, 252, 0) 100%
+  );
+}
+
+/* Honour a reduced-transparency preference: drop the vector field and the
+   scrims, leaving one faint directional wash. */
 @media (prefers-reduced-transparency: reduce) {
   #ls-main {
     background-image:
       radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.06) 0%, rgba(112, 146, 186, 0) 58%);
+  }
+
+  #ls-main header:not(.ls-card-header)::before,
+  #ls-main section[aria-labelledby] > div:first-child::before {
+    background: none;
   }
 }
 
