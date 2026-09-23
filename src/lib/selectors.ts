@@ -9,7 +9,6 @@ import type {
   Hospital,
   HospitalId,
   HospitalMetrics,
-  LabObservation,
   SimulationDay,
   ZipMetrics,
 } from '../types';
@@ -25,15 +24,11 @@ import {
   getCumulativeRegionalCounts,
   getCumulativeSiteCounts,
   getFirstSignalDay as datasetFirstSignalDay,
-  getRegionalCounts,
   getSiteCounts,
   positivityOf,
 } from '../data/dataset';
 import { ZIP_AREAS } from '../data/zipAreas';
 import { getSeverity, scoreScenario } from './signalScore';
-
-/** Regional counts for a day, straight from the authoritative dataset. */
-export const getRegionalTotals = (day: number) => getRegionalCounts(day);
 
 /** Cumulative regional counts from Day 1 through the given day. */
 export const getCumulativeTotals = (day: number) => getCumulativeRegionalCounts(day);
@@ -99,12 +94,6 @@ export const getZipMetrics = (day: number): ZipMetrics[] => {
   });
 };
 
-export const getZipMetricsByCode = (
-  day: number,
-  zipCode: string,
-): ZipMetrics | undefined =>
-  getZipMetrics(day).find((metrics) => metrics.zipCode === zipCode);
-
 /** Everything a single hospital tab needs for the given day. */
 export const getHospitalMetrics = (hospital: Hospital, day: number): HospitalMetrics => {
   const scenario = getScenario(day);
@@ -143,12 +132,6 @@ export const getHospitalMetrics = (hospital: Hospital, day: number): HospitalMet
 
 export const getAllHospitalMetrics = (day: number): HospitalMetrics[] =>
   HOSPITALS.map((hospital) => getHospitalMetrics(hospital, day));
-
-/** Observations visible on the given day, newest first. */
-export const getObservationFeed = (day: number): LabObservation[] =>
-  [...getVisibleObservations(day)].sort((a, b) =>
-    b.effectiveDateTime.localeCompare(a.effectiveDateTime),
-  );
 
 /** Observation counts for the current day and cumulatively, for labelling. */
 export const getObservationCounts = (day: number) => ({

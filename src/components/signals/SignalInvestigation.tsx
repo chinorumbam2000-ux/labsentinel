@@ -111,7 +111,7 @@ export default function SignalInvestigation({
               type="button"
               onClick={() => onModeChange('detection')}
               aria-pressed={isDetection}
-              className={`flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
+              className={`flex min-h-[32px] flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
                 isDetection
                   ? 'bg-brand text-white'
                   : 'text-muted hover:bg-canvas hover:text-ink'
@@ -123,7 +123,7 @@ export default function SignalInvestigation({
               type="button"
               onClick={() => onModeChange('current')}
               aria-pressed={!isDetection}
-              className={`flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
+              className={`flex min-h-[32px] flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
                 !isDetection
                   ? 'bg-brand text-white'
                   : 'text-muted hover:bg-canvas hover:text-ink'

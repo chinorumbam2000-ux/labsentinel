@@ -217,7 +217,7 @@ export default function HospitalsPage() {
             <DataConfidenceCard confidence={dataConfidence} />
             <FeedHealthCard
               feeds={activeFeed ? [activeFeed] : []}
-              title={`${activeHospital.vendor} Feed Health`}
+              title={`${activeHospital.name} — Feed Health`}
               className="xl:col-span-2"
             />
           </div>

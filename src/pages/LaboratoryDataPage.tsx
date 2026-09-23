@@ -353,7 +353,7 @@ export default function LaboratoryDataPage() {
                           <button
                             type="button"
                             onClick={() => toggleSort(column.key as SortKey)}
-                            className="inline-flex items-center gap-1 uppercase tracking-[0.06em] hover:text-ink"
+                            className="-my-3 inline-flex items-center gap-1 py-3 uppercase tracking-[0.06em] hover:text-ink"
                           >
                             {column.label}
                             <span aria-hidden="true" className="text-[9px]">

@@ -1,6 +1,7 @@
 import type { FacilityFeedHealth, FeedStatus } from '../../types';
 import { formatSimulationDateTime } from '../../lib/format';
 import { formatMinutesAgo } from '../../lib/dataConfidence';
+import { FEED_HEALTH_DISCLAIMER } from '../../data/feedHealth';
 
 const STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string }> = {
   HEALTHY: {
@@ -78,8 +79,11 @@ export default function FeedHealthCard({
                   <p className="truncate text-sm font-medium text-ink">
                     {feed.facilityName}
                   </p>
+                  {/* Deliberately identified by facility, not by vendor: these
+                      figures are fictional facility characteristics and must not
+                      read as a comparison between real products. */}
                   <p className="text-[11px] text-muted">
-                    {feed.vendor} · {feed.hospitalId}
+                    {feed.hospitalId} · Simulated EHR environment
                   </p>
                 </div>
                 <span
@@ -150,8 +154,8 @@ export default function FeedHealthCard({
       </ul>
 
       <p className="border-t border-hairline px-5 py-3 text-[11px] leading-snug text-muted">
-        Simulated feed telemetry. Deterministic synthetic values — no live interface
-        engine is monitored by this prototype.
+        Simulated feed telemetry — no live interface is monitored by this prototype.{' '}
+        {FEED_HEALTH_DISCLAIMER}
       </p>
     </section>
   );

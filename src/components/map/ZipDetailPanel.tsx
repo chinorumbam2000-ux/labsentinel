@@ -80,7 +80,7 @@ export default function ZipDetailPanel({
         <button
           type="button"
           onClick={onClose}
-          className="ls-btn px-2 py-1 text-xs"
+          className="ls-btn min-w-[34px] px-2 py-1 text-xs"
           aria-label="Close area details"
         >
           ✕

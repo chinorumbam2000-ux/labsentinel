@@ -30,6 +30,3 @@ export const getTrendSeries = (currentDay: number): TrendPoint[] =>
     affectedHospitals: scenario.affectedHospitals.length,
     stage: scenario.stage,
   }));
-
-/** Full five-day progression, used where the whole arc must be shown. */
-export const getFullTrendSeries = (): TrendPoint[] => getTrendSeries(SCENARIOS.length);

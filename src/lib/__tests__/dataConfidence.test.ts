@@ -255,7 +255,7 @@ describe('feed health', () => {
     });
   });
 
-  it('shows the scripted Day 3 delay at the MEDITECH site only', () => {
+  it('shows the scripted Day 3 delay at HOSP-C only', () => {
     const dayThree = getAllFeedHealth(3);
     expect(dayThree.find((f) => f.hospitalId === 'HOSP-C')?.status).toBe('DELAYED');
     expect(dayThree.find((f) => f.hospitalId === 'HOSP-A')?.status).toBe('HEALTHY');

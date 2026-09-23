@@ -20,7 +20,7 @@ import type {
   SurveillanceSourceDefinition,
   SurveillanceSourceType,
 } from '../types';
-import { HOSPITALS, HOSPITAL_BY_ID } from '../data/hospitals';
+import { HOSPITAL_BY_ID } from '../data/hospitals';
 import { SYNDROME } from '../data/tests';
 import { getSiteCounts, positivityOf, HOSPITAL_IDS } from '../data/dataset';
 import { getAllFeedHealth } from '../data/feedHealth';
@@ -198,9 +198,6 @@ export const getAllSurveillanceSignals = (day: number): SurveillanceSignal[] =>
   SOURCE_ADAPTERS.filter((adapter) => adapter.availability === 'ACTIVE').flatMap(
     (adapter) => adapter.getSignals(day),
   );
-
-/** Facility count, used by the architecture page to describe the current shape. */
-export const PARTICIPATING_FACILITY_COUNT = HOSPITALS.length;
 
 /* ---------------------------------------------------------------- *
  * Federated surveillance — a future concept, not implemented.

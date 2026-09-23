@@ -49,15 +49,3 @@ export const HOSPITAL_BY_ID: Record<HospitalId, Hospital> = HOSPITALS.reduce(
   },
   {} as Record<HospitalId, Hospital>,
 );
-
-/**
- * Deterministic share of regional testing volume attributed to each site.
- * Fixed so that every derived per-site number is reproducible across reloads.
- */
-export const HOSPITAL_VOLUME_SHARE: Record<HospitalId, number> = {
-  'HOSP-A': 0.41,
-  'HOSP-B': 0.34,
-  'HOSP-C': 0.25,
-};
-
-export const getHospital = (id: HospitalId): Hospital => HOSPITAL_BY_ID[id];

@@ -155,16 +155,18 @@ export const getDayOverDayComparison = (currentDay: number): DayOverDayCompariso
       rose.length > 0 || fell.length > 0
         ? `The score ${direction} because ${list([...rose, ...fell])}.`
         : `The score ${direction}; no component input moved between these days.`;
-    const tail =
-      unchanged.length > 0
-        ? ` ${list(
-            unchanged.map((item) =>
-              item === 'facility' || item === 'geographic'
-                ? `${item} contributions`
-                : `${item} levels`,
-            ),
-          )} remained unchanged.`
-        : '';
+    // The tail is its own sentence, so it needs its own capital letter.
+    const tail = (() => {
+      if (unchanged.length === 0) return '';
+      const phrase = list(
+        unchanged.map((item) =>
+          item === 'facility' || item === 'geographic'
+            ? `${item} contributions`
+            : `${item} levels`,
+        ),
+      );
+      return ` ${phrase.charAt(0).toUpperCase()}${phrase.slice(1)} remained unchanged.`;
+    })();
     return `${head}${tail}`.replace(/\s+/g, ' ').trim();
   })();
 

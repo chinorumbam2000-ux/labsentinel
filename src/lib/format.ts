@@ -61,8 +61,6 @@ export const formatSignedPercent = (value: number, digits = 1): string =>
 export const formatPercentagePoints = (value: number, digits = 1): string =>
   `${value >= 0 ? '+' : ''}${value.toFixed(digits)} pp`;
 
-export const formatNumber = (value: number): string => value.toLocaleString('en-US');
-
 /** "10:42 AM" — used for last-updated and last-sync stamps. */
 export const formatClockTime = (date: Date): string =>
   date.toLocaleTimeString('en-US', {

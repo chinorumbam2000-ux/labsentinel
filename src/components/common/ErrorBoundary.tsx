@@ -11,7 +11,7 @@ interface State {
 
 /**
  * Catches render failures so a single broken page never blanks the whole
- * prototype during a classroom demonstration.
+ * prototype during a live demonstration.
  */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };

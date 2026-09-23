@@ -16,7 +16,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Charting and mapping are the two heavy dependencies; splitting them
-        // keeps the initial classroom load reasonable.
+        // keeps the initial load reasonable.
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           charts: ['recharts'],

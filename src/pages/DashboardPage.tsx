@@ -199,7 +199,7 @@ export default function DashboardPage() {
                   <p className="text-[11px] leading-snug text-muted">
                     Synthetic geographic visualization — demonstration only.
                   </p>
-                  <div className="flex shrink-0 gap-1.5">
+                  <div className="flex shrink-0 gap-2">
                     <button
                       type="button"
                       onClick={() => setResetToken((token) => token + 1)}

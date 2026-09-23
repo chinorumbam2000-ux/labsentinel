@@ -123,9 +123,6 @@ const BY_ACTION: Record<InvestigationAction, ActionDefinition> = ACTIONS.reduce(
   {} as Record<InvestigationAction, ActionDefinition>,
 );
 
-export const getActionDefinition = (action: InvestigationAction): ActionDefinition =>
-  BY_ACTION[action];
-
 export const requiresNote = (action: InvestigationAction): boolean =>
   BY_ACTION[action]?.requiresNote ?? false;
 

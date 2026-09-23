@@ -3,6 +3,11 @@
  *
  * DEMO ENVIRONMENT — Synthetic data only.
  *
+ * Feed-health values are deterministic synthetic demonstration data associated
+ * with fictional facilities. They do not represent or compare the real-world
+ * performance, maturity, reliability, or interoperability capabilities of Epic,
+ * Oracle Health, MEDITECH, or any other vendor.
+ *
  * This describes the OPERATIONAL health of each simulated data feed: how
  * recently it delivered, how much of it mapped cleanly to LOINC, how complete
  * the records were, and how many failed or duplicate events arrived.
@@ -23,6 +28,13 @@ import { HOSPITALS, HOSPITAL_BY_ID } from './hospitals';
 import { HOSPITAL_IDS, SIMULATION_DAYS, getSiteCounts } from './dataset';
 import { simulationDateFor } from './simulation';
 
+/**
+ * Shown wherever feed-health figures are presented, so the synthetic,
+ * non-comparative nature of the values is stated in the UI and not only here.
+ */
+export const FEED_HEALTH_DISCLAIMER =
+  'Feed-health values are deterministic synthetic demonstration data associated with fictional facilities. They do not represent or compare the real-world performance, maturity, reliability, or interoperability capabilities of Epic, Oracle Health, MEDITECH, or any other vendor.';
+
 /** Simulation-calendar time at which each day's feed health is assessed. */
 export const FEED_EVALUATED_CLOCK = '20:15';
 
@@ -39,7 +51,7 @@ export const FEED_THRESHOLDS = {
 } as const;
 
 interface FeedProfile {
-  /** Typical minutes between events for this vendor interface. */
+  /** Typical minutes between events for this fictional facility's feed. */
   baseMinutesSinceLastEvent: number;
   terminologyMappedPercent: number;
   completenessPercent: number;
@@ -50,9 +62,14 @@ interface FeedProfile {
 }
 
 /**
- * Per-vendor interface characteristics. Epic's interface engine is modelled as
- * the most mature, MEDITECH's the least — a plausible spread, not a judgement
- * about any real product.
+ * Per-facility demonstration characteristics.
+ *
+ * The three profiles differ only so that the UI has something to show: a
+ * healthy feed, a slightly noisier one, and one that can tip into DELAYED. The
+ * spread is an arbitrary property of these fictional facilities. It is not a
+ * statement about, and must not be read as a comparison of, the real-world
+ * performance, maturity, reliability, or interoperability capabilities of Epic,
+ * Oracle Health, MEDITECH, or any other vendor.
  */
 const FEED_PROFILE: Record<HospitalId, FeedProfile> = {
   'HOSP-A': {
@@ -102,7 +119,7 @@ const FEED_INCIDENTS: FeedIncident[] = [
     hospitalId: 'HOSP-C',
     minutesSinceLastEvent: 47,
     latencySeconds: 486,
-    note: 'Interface engine queue backed up; delivery running behind schedule.',
+    note: 'Simulated delivery backlog at this facility; events running behind schedule.',
   },
 ];
 
@@ -131,10 +148,6 @@ const timestampMinutesBefore = (day: number, minutes: number): string => {
   const safe = Math.max(total, 0);
   return `${simulationDateFor(day)}T${pad(Math.floor(safe / 60))}:${pad(safe % 60)}:00`;
 };
-
-/** Simulation-calendar timestamp at which the feeds were assessed. */
-export const getFeedEvaluatedAt = (day: number): string =>
-  `${simulationDateFor(day)}T${FEED_EVALUATED_CLOCK}:00`;
 
 /** Derives the feed status from the raw metrics, most severe condition first. */
 export const deriveFeedStatus = (metrics: {
@@ -239,9 +252,6 @@ export const getFacilityFeedHealth = (
 /** Feed health for every participating facility on the given day. */
 export const getAllFeedHealth = (day: number): FacilityFeedHealth[] =>
   HOSPITAL_IDS.map((id) => getFacilityFeedHealth(day, id));
-
-export const getReportingFacilityCount = (day: number): number =>
-  getAllFeedHealth(day).filter((feed) => feed.isReporting).length;
 
 export const TOTAL_FACILITIES = HOSPITALS.length;
 

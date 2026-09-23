@@ -85,7 +85,7 @@ export default function MapPage() {
           </select>
         </label>
 
-        <div className="flex w-full items-center gap-1.5 sm:ml-auto sm:w-auto">
+        <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
           <button
             type="button"
             onClick={() => setResetToken((token) => token + 1)}
@@ -211,7 +211,7 @@ export default function MapPage() {
                       type="button"
                       onClick={() => setSelectedZip(area.zipCode)}
                       aria-pressed={selectedZip === area.zipCode}
-                      className="rounded font-semibold tabular-nums text-brand hover:underline"
+                      className="-my-2 inline-flex items-center rounded py-2 font-semibold tabular-nums text-brand hover:underline"
                       aria-label={`Show details for surveillance area ${area.zipCode}, ${area.city}`}
                     >
                       {area.zipCode}

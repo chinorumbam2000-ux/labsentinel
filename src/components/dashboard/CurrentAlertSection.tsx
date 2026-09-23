@@ -47,12 +47,24 @@ export default function CurrentAlertSection({
   const styles = SEVERITY_STYLES[score.severity];
 
   if (score.composite === 0 || !alert) {
+    // A composite above zero means activity IS elevated; it simply has not
+    // reached the regional trigger yet, and lower-level alerts may already be
+    // open on /signals. Saying "at the expected baseline" here would be wrong.
+    const atBaseline = score.composite === 0;
     return (
       <div className="ls-card">
         <EmptyState
-          icon="✓"
-          title="No active outbreak signal"
-          message="Regional respiratory activity is at the expected baseline, so no alert has been raised. All three facilities are still reporting — this is an absence of signal, not an absence of data. Advance the simulation to watch a signal develop."
+          icon={atBaseline ? '✓' : '◷'}
+          title={
+            atBaseline
+              ? 'No active outbreak signal'
+              : 'No regional early-warning signal yet'
+          }
+          message={
+            atBaseline
+              ? 'Regional respiratory activity is at the expected baseline, so no alert has been raised. All three facilities are still reporting — this is an absence of signal, not an absence of data. Advance the simulation to watch a signal develop.'
+              : `Regional activity is elevated — the composite score is ${score.composite} of 100 (${score.severity}) — but it has not yet reached the threshold that raises a regional early-warning signal. Any volume, positivity or cluster alerts already open for this day are listed under Signals. All three facilities are still reporting.`
+          }
         />
       </div>
     );

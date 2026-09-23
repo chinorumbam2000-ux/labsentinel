@@ -78,7 +78,7 @@ export default function SignalTable({
                 ) : null}
               </td>
               <td className="ls-td">
-                <div className="flex items-center justify-end gap-1.5">
+                <div className="flex items-center justify-end gap-2">
                   {alert.investigable ? (
                     <button
                       type="button"

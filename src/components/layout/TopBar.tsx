@@ -29,7 +29,7 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
       <button
         type="button"
         onClick={onOpenNav}
-        className="ls-btn px-2.5 py-1.5 lg:hidden"
+        className="ls-btn min-w-[34px] px-2.5 py-1.5 lg:hidden"
         aria-label="Open navigation"
       >
         ☰
@@ -45,12 +45,12 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={previousDay}
           disabled={isFirstDay}
-          className="ls-btn px-2.5 py-1.5"
+          className="ls-btn min-w-[34px] px-2.5 py-1.5"
           aria-label="Previous simulation day"
           title={isFirstDay ? 'Already at Day 1' : 'Previous day'}
         >
@@ -60,7 +60,7 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
           type="button"
           onClick={nextDay}
           disabled={isLastDay}
-          className="ls-btn px-2.5 py-1.5"
+          className="ls-btn min-w-[34px] px-2.5 py-1.5"
           aria-label="Next simulation day"
           title={isLastDay ? 'Already at Day 5' : 'Next day'}
         >
@@ -84,7 +84,7 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
           <button
             type="button"
             onClick={refresh}
-            className="text-sm font-medium text-brand hover:underline"
+            className="-my-1.5 inline-flex items-center py-1.5 text-sm font-medium text-brand hover:underline"
             title="Refresh the session timestamp (real time, not simulation time)"
           >
             {formatClockTime(lastUpdated)}
@@ -103,7 +103,7 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
           <button
             type="button"
             onClick={() => setShowAlerts((open) => !open)}
-            className="ls-btn relative px-2.5 py-1.5"
+            className="ls-btn relative min-w-[34px] px-2.5 py-1.5"
             aria-label={`Notifications: ${unacknowledgedCount} ${
               unacknowledgedCount === 1 ? 'alert' : 'alerts'
             } awaiting acknowledgement`}
