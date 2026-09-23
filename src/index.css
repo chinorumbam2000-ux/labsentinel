@@ -68,6 +68,58 @@
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * Workspace backdrop
+ *
+ * Applied to #ls-main only, never to .bg-canvas: that same token tints
+ * tiles, table header rows and nested panels INSIDE cards, and a texture
+ * there would sit under body text.
+ *
+ * #ls-main is the scroll container, so a background on it stays anchored to
+ * its box while the content scrolls over it — no background-attachment, no
+ * extra DOM, no z-index changes.
+ *
+ * Four layers. CSS paints the first-listed on top, so reading the stack
+ * downwards is reading it front to back:
+ *   1. a flat legibility wash that caps the whole field's darkness
+ *   2. a cool wash at the top-right, where the signal cluster sits
+ *   3. a warm-neutral lift at the lower-left, to stop the field going flat
+ *   4. the vector surveillance field itself
+ * The page colour underneath stays the solid #F5F8FC inherited from the
+ * shell, so text contrast is measured against an unchanged base.
+ * ------------------------------------------------------------------ */
+#ls-main {
+  background-image:
+    /* Legibility wash, painted ON TOP of everything below it. Secondary text
+       (#5E6E84) clears AA on the bare canvas by only ~11 RGB points, so this
+       caps how far the backdrop may ever darken that budget. One number
+       scales the whole field. */
+    linear-gradient(rgba(245, 248, 252, 0.45), rgba(245, 248, 252, 0.45)),
+    radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.055) 0%, rgba(112, 146, 186, 0) 58%),
+    radial-gradient(100% 80% at 6% 96%, rgba(126, 156, 192, 0.045) 0%, rgba(126, 156, 192, 0) 62%),
+    url('./assets/surveillance-backdrop.svg');
+  background-position: center, center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: cover, cover, cover, cover;
+}
+
+/* Honour a reduced-transparency preference by dropping the vector field and
+   keeping only the flat wash. */
+@media (prefers-reduced-transparency: reduce) {
+  #ls-main {
+    background-image:
+      radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.06) 0%, rgba(112, 146, 186, 0) 58%);
+  }
+}
+
+/* High-contrast users get a plain canvas — atmosphere is never worth a
+   readability cost. */
+@media (prefers-contrast: more) {
+  #ls-main {
+    background-image: none;
+  }
+}
+
 /* Leaflet sits inside rounded cards; keep its canvas clipped and unobtrusive. */
 .leaflet-container {
   background: #e8eef6;

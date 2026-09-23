@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LabSentinel workspace backdrop.
+
+  Decorative only. Nothing here is data, and nothing here is a map in any
+  cartographic sense — the landmasses are deliberately abstract silhouettes
+  that suggest geographic structure without claiming to be one. Real
+  geography in this prototype lives on the Leaflet map, not here.
+
+  Pacific-centred, so the visual reads left-to-right as Asia/Oceania -> the
+  Pacific -> the Americas -> the Atlantic edge, matching the reference.
+
+  Every element carries its own low alpha so the whole thing sits a few
+  percent above the #F5F8FC canvas and never competes with page text.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1600 900"
+     preserveAspectRatio="xMidYMid slice"
+     width="1600" height="900">
+
+  <defs>
+    <!-- Soft falloff used by the pulse rings, so they fade outward rather
+         than ending on a hard edge. -->
+    <radialGradient id="pulse" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#5B7FA6" stop-opacity="0.055" />
+      <stop offset="55%"  stop-color="#5B7FA6" stop-opacity="0.018" />
+      <stop offset="100%" stop-color="#5B7FA6" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Landmasses sit slightly heavier at the top of the canvas and lift
+         toward the bottom, which keeps the lower half calm for content. -->
+    <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#7C9BBE" stop-opacity="0.058" />
+      <stop offset="100%" stop-color="#7C9BBE" stop-opacity="0.034" />
+    </linearGradient>
+
+    <!-- The silhouettes are crops of a much larger field, so their outlines
+         would otherwise read as hard vector polygons. A soft blur turns them
+         back into atmosphere. -->
+    <filter id="soften" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="6" />
+    </filter>
+  </defs>
+
+  <!-- ============================================================
+       1. Graticule — the faint measurement grid
+       ============================================================ -->
+  <g stroke="#8AA4C2" stroke-width="0.7" stroke-opacity="0.15" fill="none">
+    <path d="M100 0V900M200 0V900M300 0V900M400 0V900M500 0V900M600 0V900
+             M700 0V900M800 0V900M900 0V900M1000 0V900M1100 0V900M1200 0V900
+             M1300 0V900M1400 0V900M1500 0V900" />
+    <path d="M0 90H1600M0 180H1600M0 270H1600M0 360H1600M0 450H1600
+             M0 540H1600M0 630H1600M0 720H1600M0 810H1600" />
+  </g>
+
+  <!-- Two wider graticule curves, to hint at a projection rather than a
+       flat spreadsheet grid. -->
+  <g stroke="#7E9AB9" stroke-width="0.8" stroke-opacity="0.12" fill="none">
+    <path d="M0 250 Q 300 170 640 250 T 1280 250 T 1600 300" />
+    <path d="M0 640 Q 340 720 700 640 T 1340 650 T 1600 610" />
+  </g>
+
+  <!-- ============================================================
+       2. Abstract landmasses
+       ============================================================ -->
+  <g fill="url(#land)" filter="url(#soften)">
+    <!-- Asia, upper left -->
+    <path d="M-40 70 L110 48 L250 72 L330 60 L392 96 L360 150 L300 168
+             L318 214 L266 246 L196 236 L150 268 L92 250 L34 276 L-40 250 Z" />
+    <!-- Japan / island arc -->
+    <path d="M300 286 L330 300 L322 338 L296 330 Z" />
+    <path d="M248 366 L286 380 L272 412 L236 398 Z" />
+    <!-- South-east Asian archipelago -->
+    <path d="M176 440 L246 452 L292 486 L230 498 L168 476 Z" />
+    <path d="M316 470 L358 486 L340 516 L306 500 Z" />
+    <!-- Australia, lower left -->
+    <path d="M84 624 L196 606 L286 640 L306 706 L238 758 L138 750
+             L74 706 Z" />
+    <!-- New Zealand -->
+    <path d="M352 754 L382 768 L366 802 L340 788 Z" />
+
+    <!-- North America, upper right -->
+    <path d="M912 96 L1046 58 L1200 52 L1330 78 L1420 62 L1444 118
+             L1386 186 L1300 228 L1268 300 L1200 352 L1148 420
+             L1084 398 L1030 330 L996 250 L946 196 Z" />
+    <!-- Greenland edge -->
+    <path d="M1400 40 L1500 30 L1540 78 L1470 108 L1404 88 Z" />
+    <!-- Central America -->
+    <path d="M1148 424 L1210 452 L1254 508 L1300 566 L1268 588
+             L1212 524 L1164 470 Z" />
+    <!-- South America, lower right -->
+    <path d="M1300 572 L1394 552 L1466 596 L1482 680 L1430 778
+             L1372 860 L1330 838 L1346 740 L1304 664 Z" />
+    <!-- Africa / Europe, far-right edge -->
+    <path d="M1520 246 L1600 236 L1600 700 L1544 660 L1512 560
+             L1536 470 L1504 386 L1528 312 Z" />
+  </g>
+
+  <!-- ============================================================
+       3. Data-flow lines between contributing sites
+       ============================================================ -->
+  <g fill="none" stroke="#6E8CAE" stroke-linecap="round">
+    <!-- Solid arcs -->
+    <g stroke-opacity="0.22" stroke-width="0.9">
+      <path d="M496 188 Q 760 92 1084 248" />
+      <path d="M496 188 Q 700 300 972 492" />
+      <path d="M1084 248 Q 1210 330 1296 392" />
+      <path d="M1296 392 Q 1330 500 1246 604" />
+      <path d="M316 708 Q 640 812 972 492" />
+      <path d="M1084 248 Q 1400 300 1540 214" />
+    </g>
+    <!-- Dashed arcs — the same network, drawn lighter so the field has
+         depth instead of reading as one flat web. -->
+    <g stroke-opacity="0.17" stroke-width="0.8" stroke-dasharray="5 9">
+      <path d="M120 96 Q 420 20 700 68" />
+      <path d="M700 68 Q 900 220 816 300" />
+      <path d="M816 300 Q 700 470 424 536" />
+      <path d="M316 708 Q 560 660 848 786" />
+      <path d="M848 786 Q 1080 860 1246 604" />
+      <path d="M1540 214 Q 1470 420 1544 560" />
+      <path d="M972 492 Q 1120 560 1246 604" />
+    </g>
+  </g>
+
+  <!-- ============================================================
+       4. Restrained pulse rings — outbreak detection, not radar sweep
+       ============================================================ -->
+  <g>
+    <!-- Primary focus, North America -->
+    <circle cx="1084" cy="248" r="62" fill="url(#pulse)" />
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.13">
+      <circle cx="1084" cy="248" r="14" stroke-width="1" />
+      <circle cx="1084" cy="248" r="26" stroke-width="0.8" stroke-opacity="0.13" />
+      <circle cx="1084" cy="248" r="40" stroke-width="0.7" stroke-opacity="0.08" />
+    </g>
+
+    <!-- Secondary, eastern seaboard -->
+    <circle cx="1296" cy="392" r="46" fill="url(#pulse)" />
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.16">
+      <circle cx="1296" cy="392" r="11" stroke-width="0.9" />
+      <circle cx="1296" cy="392" r="22" stroke-width="0.7" stroke-opacity="0.10" />
+    </g>
+
+    <!-- Tertiary, Oceania -->
+    <circle cx="316" cy="708" r="44" fill="url(#pulse)" />
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.12">
+      <circle cx="316" cy="708" r="10" stroke-width="0.9" />
+      <circle cx="316" cy="708" r="20" stroke-width="0.7" stroke-opacity="0.09" />
+    </g>
+
+    <!-- Quiet ring, mid-Pacific -->
+    <g fill="none" stroke="#4F76A0" stroke-opacity="0.10">
+      <circle cx="972" cy="492" r="9" stroke-width="0.8" />
+      <circle cx="972" cy="492" r="18" stroke-width="0.6" stroke-opacity="0.07" />
+    </g>
+  </g>
+
+  <!-- ============================================================
+       5. Contributing sites — the nodes themselves
+       ============================================================ -->
+  <g fill="#5C7FA8">
+    <!-- Larger hubs -->
+    <g fill-opacity="0.20">
+      <circle cx="1084" cy="248" r="4" />
+      <circle cx="1296" cy="392" r="3.6" />
+      <circle cx="316" cy="708" r="3.6" />
+      <circle cx="496" cy="188" r="4" />
+      <circle cx="972" cy="492" r="3.6" />
+      <circle cx="1246" cy="604" r="4" />
+      <circle cx="1540" cy="214" r="3.8" />
+    </g>
+    <!-- Mid-weight sites -->
+    <g fill-opacity="0.17">
+      <circle cx="700" cy="68" r="3" />
+      <circle cx="816" cy="300" r="3" />
+      <circle cx="424" cy="536" r="2.8" />
+      <circle cx="848" cy="786" r="2.8" />
+      <circle cx="1544" cy="560" r="2.8" />
+      <circle cx="120" cy="96" r="2.6" />
+      <circle cx="1380" cy="112" r="2.6" />
+      <circle cx="1432" cy="330" r="2.6" />
+      <circle cx="1470" cy="470" r="2.6" />
+      <circle cx="196" cy="736" r="2.4" />
+    </g>
+    <!-- Background field — many small contributors -->
+    <g fill-opacity="0.12">
+      <circle cx="44" cy="126" r="2" /><circle cx="286" cy="60" r="2" />
+      <circle cx="300" cy="286" r="1.8" /><circle cx="52" cy="286" r="1.8" />
+      <circle cx="248" cy="366" r="1.8" /><circle cx="176" cy="440" r="1.8" />
+      <circle cx="358" cy="486" r="1.8" /><circle cx="108" cy="480" r="1.8" />
+      <circle cx="430" cy="106" r="1.8" /><circle cx="620" cy="212" r="1.8" />
+      <circle cx="668" cy="700" r="1.8" /><circle cx="620" cy="828" r="1.8" />
+      <circle cx="916" cy="140" r="1.8" /><circle cx="1030" cy="330" r="1.8" />
+      <circle cx="1148" cy="420" r="1.8" /><circle cx="1200" cy="352" r="1.8" />
+      <circle cx="1268" cy="300" r="1.8" /><circle cx="1330" cy="78" r="1.8" />
+      <circle cx="1444" cy="118" r="1.8" /><circle cx="1500" cy="30" r="1.8" />
+      <circle cx="1386" cy="440" r="1.8" /><circle cx="1466" cy="596" r="1.8" />
+      <circle cx="1372" cy="700" r="1.8" /><circle cx="1330" cy="838" r="1.8" />
+      <circle cx="1512" cy="700" r="1.8" /><circle cx="1576" cy="380" r="1.8" />
+      <circle cx="1576" cy="120" r="1.8" /><circle cx="1290" cy="176" r="1.8" />
+      <circle cx="1100" cy="560" r="1.8" /><circle cx="1180" cy="640" r="1.8" />
+      <circle cx="760" cy="420" r="1.6" /><circle cx="540" cy="640" r="1.6" />
+      <circle cx="352" cy="754" r="1.6" /><circle cx="196" cy="606" r="1.6" />
+      <circle cx="1046" cy="58" r="1.6" /><circle cx="1240" cy="60" r="1.6" />
+    </g>
+  </g>
+</svg>
