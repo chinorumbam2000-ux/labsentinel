@@ -9,10 +9,19 @@
     color-scheme: light;
   }
 
+  /*
+   * The document is never a scroll container. LabSentinel has exactly one
+   * page-content scroller, #ls-main, and locking the document here stops a
+   * stray out-of-flow box from turning the page itself into a second one.
+   * This is a backstop, not the fix: see #ls-main's `relative` below, which
+   * removes the reason such a box could escape in the first place.
+   */
   html,
   body,
   #root {
+    width: 100%;
     height: 100%;
+    overflow: hidden;
   }
 
   body {
@@ -27,6 +36,16 @@
 }
 
 @layer components {
+  /*
+   * The app shell is exactly one viewport tall. 100dvh tracks the visual
+   * viewport on mobile where the URL bar comes and goes; the 100vh line
+   * before it is the fallback for browsers without dvh.
+   */
+  .ls-shell {
+    height: 100vh;
+    height: 100dvh;
+  }
+
   .ls-card {
     @apply rounded-xl border border-hairline bg-white shadow-card;
   }

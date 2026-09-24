@@ -14,8 +14,11 @@ import BrandMark from '../components/common/BrandMark';
  * into the viewport.
  */
 export default function LandingPage() {
+  // Auto margins on the first and last child rather than justify-center: with
+  // the document locked, this keeps the content centred while still letting it
+  // scroll instead of being clipped on a very short viewport.
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-sidebar px-6 py-10 text-center text-white">
+    <main className="ls-shell flex flex-col items-center overflow-y-auto overscroll-y-contain bg-sidebar px-6 py-10 text-center text-white [&>:first-child]:mt-auto [&>:last-child]:mb-auto">
       {/* CSS sizing wins over the SVG width/height, keeping the original
           responsive step from 64px to 80px at the sm breakpoint. */}
       <BrandMark size={80} className="h-16 w-16 shrink-0 sm:h-20 sm:w-20" />

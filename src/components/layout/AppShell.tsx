@@ -23,7 +23,7 @@ export default function AppShell() {
   }, [location.pathname, location.search]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-canvas">
+    <div className="ls-shell flex flex-col overflow-hidden bg-canvas">
       <DemoBanner />
 
       <div className="flex min-h-0 flex-1">
@@ -47,11 +47,22 @@ export default function AppShell() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar onOpenNav={() => setNavOpen(true)} />
-          {/* `isolate` confines Leaflet's internal pane z-indexes to the
-              workspace, so the top bar and nav drawer always stay above the map. */}
+          {/*
+            `relative` is load-bearing, not cosmetic. An absolutely positioned
+            descendant with no positioned ancestor resolves against the initial
+            containing block, which means it is NOT clipped by this scroller and
+            its box extends the document's scroll area instead. Tailwind's
+            `sr-only` is exactly such a box, and every table caption uses it.
+            Making the scroller the containing block keeps those boxes inside it.
+
+            `isolate` confines Leaflet's internal pane z-indexes to the
+            workspace, so the top bar and nav drawer always stay above the map.
+            `overscroll-y-contain` stops wheel momentum chaining outward once
+            this scroller reaches its end.
+          */}
           <main
             id="ls-main"
-            className="isolate min-h-0 flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
+            className="relative isolate min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain scroll-smooth"
           >
             <div className="mx-auto w-full max-w-[1500px] px-4 py-6 lg:px-8">
               <Outlet />
