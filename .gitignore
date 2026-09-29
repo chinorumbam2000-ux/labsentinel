@@ -47,3 +47,13 @@ temp/
 
 # Editor workspace files
 *.code-workspace
+
+# Python backend (backend/)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/

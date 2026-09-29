@@ -8,6 +8,12 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 🔗 **Live demo:** https://chinorumbam2000-ux.github.io/labsentinel/
 📦 **Repository:** https://github.com/chinorumbam2000-ux/labsentinel
 
+> **Capstone development branch.** The `capstone-development` branch adds a
+> backend foundation (FastAPI, SQLAlchemy, PostgreSQL, Alembic) in
+> [`backend/`](backend/README.md), beside the unchanged React prototype. It is
+> not yet connected to the frontend. `main` and the `submission-v1.4` tag
+> remain the frozen stable prototype.
+
 ---
 
 ## Contents
