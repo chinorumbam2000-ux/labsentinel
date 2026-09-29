@@ -39,6 +39,10 @@ jobs:
 
       - name: Type-check and build
         run: npm run build
+        env:
+          # The public site is the standalone synthetic demo: it must never
+          # depend on a backend. Stated explicitly rather than left to the default.
+          VITE_DATA_SOURCE: local
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

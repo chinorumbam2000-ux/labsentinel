@@ -7,9 +7,20 @@
  *
  * DEMO ENVIRONMENT — Synthetic data only.
  */
-import type { ChangeDirection, DayOverDayComparison, DayOverDayMetric } from '../types';
+import type {
+  ChangeDirection,
+  DayOverDayComparison,
+  DayOverDayMetric,
+  SimulationScenario,
+} from '../types';
 import { getScenario } from '../data/simulation';
 import { getScoreForDay } from './selectors';
+
+/** One side of a comparison: a day's scenario and its composite score. */
+export interface DayOverDayInput {
+  scenario: SimulationScenario;
+  composite: number;
+}
 
 const directionOf = (delta: number): ChangeDirection => {
   if (delta > 0) return 'up';
@@ -40,11 +51,32 @@ const countMetric = (
 };
 
 /**
- * Builds the comparison for the given day. Day 1 has no previous surveillance
- * day, so it returns an unavailable comparison rather than inventing one.
+ * Builds the comparison for the given day from the prototype's own dataset.
+ * Day 1 has no previous surveillance day, so it returns an unavailable
+ * comparison rather than inventing one.
  */
-export const getDayOverDayComparison = (currentDay: number): DayOverDayComparison => {
-  if (currentDay <= 1) {
+export const getDayOverDayComparison = (currentDay: number): DayOverDayComparison =>
+  compareDays(
+    currentDay,
+    currentDay <= 1
+      ? null
+      : {
+          scenario: getScenario(currentDay - 1),
+          composite: getScoreForDay(currentDay - 1).composite,
+        },
+    { scenario: getScenario(currentDay), composite: getScoreForDay(currentDay).composite },
+  );
+
+/**
+ * Compares a day with the day before it, whichever data source supplied them.
+ * Pass `null` as `previousInput` when there is no previous surveillance day.
+ */
+export const compareDays = (
+  currentDay: number,
+  previousInput: DayOverDayInput | null,
+  currentInput: DayOverDayInput,
+): DayOverDayComparison => {
+  if (currentDay <= 1 || previousInput === null) {
     return {
       available: false,
       previousDay: null,
@@ -55,11 +87,11 @@ export const getDayOverDayComparison = (currentDay: number): DayOverDayCompariso
     };
   }
 
-  const previousDay = currentDay - 1;
-  const previous = getScenario(previousDay);
-  const current = getScenario(currentDay);
-  const previousScore = getScoreForDay(previousDay);
-  const currentScore = getScoreForDay(currentDay);
+  const previousDay = previousInput.scenario.day;
+  const previous = previousInput.scenario;
+  const current = currentInput.scenario;
+  const previousScore = { composite: previousInput.composite };
+  const currentScore = { composite: currentInput.composite };
 
   const testsDelta = current.totalTests - previous.totalTests;
   const positivityDelta = current.positivityRate - previous.positivityRate;

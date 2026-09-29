@@ -12,18 +12,14 @@ from sqlalchemy.orm import Session
 
 from app.api.signals import NOT_FOUND, SimulationDay
 from app.database import get_db
+from app.models import DemoSimulationDay
 from app.schemas.demo import DemoSummary
 from app.services import signal_service
 
 router = APIRouter(prefix="/api/demo", tags=["demo (capstone only)"])
 
 
-@router.get("/summary", response_model=DemoSummary, responses=NOT_FOUND)
-def demo_summary(day: SimulationDay, db: Session = Depends(get_db)) -> DemoSummary:
-    """Headline figures for one simulated day. Development/demonstration endpoint."""
-    demo_day = signal_service.get_demo_day(db, day)
-    if demo_day is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="No data seeded for that day.")
+def _summary(demo_day: DemoSimulationDay) -> DemoSummary:
     s = demo_day.signal
     return DemoSummary(
         day=demo_day.day,
@@ -48,3 +44,21 @@ def demo_summary(day: SimulationDay, db: Session = Depends(get_db)) -> DemoSumma
         ),
         data_confidence_level=s.data_confidence_level,
     )
+
+
+@router.get("/summary", response_model=DemoSummary, responses=NOT_FOUND)
+def demo_summary(day: SimulationDay, db: Session = Depends(get_db)) -> DemoSummary:
+    """Headline figures for one simulated day. Development/demonstration endpoint."""
+    demo_day = signal_service.get_demo_day(db, day)
+    if demo_day is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="No data seeded for that day.")
+    return _summary(demo_day)
+
+
+@router.get("/days", response_model=list[DemoSummary])
+def demo_days(db: Session = Depends(get_db)) -> list[DemoSummary]:
+    """
+    Every seeded simulated day, in order. Lets the demonstration show the
+    whole five-day storyline (stage names and progression) in one request.
+    """
+    return [_summary(demo_day) for demo_day in signal_service.list_demo_days(db)]

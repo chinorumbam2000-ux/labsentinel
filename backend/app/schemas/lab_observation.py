@@ -8,6 +8,8 @@ from app.schemas.common import LocalDateTime
 DEFAULT_LIMIT = 100
 MAX_LIMIT = 500
 
+SortKey = Literal["effective_datetime", "facility_name", "vendor", "patient_reference", "result", "test_name"]
+
 
 class ObservationFilters(BaseModel):
     """Query parameters accepted by ``GET /api/observations``."""
@@ -18,9 +20,26 @@ class ObservationFilters(BaseModel):
         le=LAST_DAY,
         description="Capstone simulation day (demo convenience filter).",
     )
+    through_day: int | None = Field(
+        default=None,
+        ge=FIRST_DAY,
+        le=LAST_DAY,
+        description="Capstone simulation days 1 through N inclusive (demo convenience filter).",
+    )
     facility_id: int | None = None
+    vendor: str | None = Field(default=None, max_length=100)
     loinc_code: str | None = Field(default=None, max_length=20)
     result: Literal["Positive", "Negative"] | None = None
+    q: str | None = Field(
+        default=None,
+        max_length=100,
+        description=(
+            "Case-insensitive text search across observation id, patient reference, "
+            "facility name, vendor, test name, LOINC code, geographic unit and result."
+        ),
+    )
+    sort: SortKey = "effective_datetime"
+    order: Literal["asc", "desc"] = "asc"
     limit: int = Field(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT)
     offset: int = Field(default=0, ge=0)
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
 import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
+import DataSourceIndicator from './DataSourceIndicator';
 
 export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   const {
@@ -72,6 +73,8 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
+        <DataSourceIndicator />
+
         <div className="hidden text-right lg:block">
           <p className="ls-label">Simulation date</p>
           <p className="text-sm font-medium text-ink">

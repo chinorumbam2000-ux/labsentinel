@@ -4,6 +4,7 @@
  *
  * DEMO ENVIRONMENT — Synthetic data only.
  */
+import type { SurveillanceDay } from '../types';
 import { SCENARIOS } from '../data/simulation';
 import { getScoreForDay } from './selectors';
 
@@ -20,13 +21,31 @@ export interface TrendPoint {
 
 /** The full progression up to and including the given day. */
 export const getTrendSeries = (currentDay: number): TrendPoint[] =>
-  SCENARIOS.filter((scenario) => scenario.day <= currentDay).map((scenario) => ({
-    day: scenario.day,
-    dayLabel: `Day ${scenario.day}`,
-    tests: scenario.totalTests,
-    positivity: scenario.positivityRate,
-    score: getScoreForDay(scenario.day).composite,
-    affectedZips: scenario.affectedZipCodes.length,
-    affectedHospitals: scenario.affectedHospitals.length,
-    stage: scenario.stage,
-  }));
+  buildTrendSeries(
+    SCENARIOS.map((scenario) => ({
+      scenario,
+      compositeScore: getScoreForDay(scenario.day).composite,
+    })),
+    currentDay,
+  );
+
+/**
+ * The same progression built from any data source's days. The score is the
+ * day's own composite score, as supplied; it is not recalculated here.
+ */
+export const buildTrendSeries = (
+  days: Array<Pick<SurveillanceDay, 'scenario' | 'compositeScore'>>,
+  currentDay: number,
+): TrendPoint[] =>
+  days
+    .filter(({ scenario }) => scenario.day <= currentDay)
+    .map(({ scenario, compositeScore }) => ({
+      day: scenario.day,
+      dayLabel: `Day ${scenario.day}`,
+      tests: scenario.totalTests,
+      positivity: scenario.positivityRate,
+      score: compositeScore,
+      affectedZips: scenario.affectedZipCodes.length,
+      affectedHospitals: scenario.affectedHospitals.length,
+      stage: scenario.stage,
+    }));

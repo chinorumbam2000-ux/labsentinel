@@ -516,3 +516,57 @@ export interface SurveillanceSourceDefinition {
 }
 
 export type ArchitectureStatus = 'IMPLEMENTED' | 'PROTOTYPE' | 'PLANNED' | 'FUTURE';
+
+/* ------------------------------------------------------------------------ *
+ * Phase 3 (capstone development) — data-source abstraction.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * One simulated surveillance day as the UI consumes it, whichever data source
+ * produced it. The composite score, severity and Data Confidence values are the
+ * persisted or source-of-truth values — never recalculated by the consumer.
+ */
+export interface SurveillanceDay {
+  scenario: SimulationScenario;
+  compositeScore: number;
+  severity: Severity;
+  dataConfidenceScore: number | null;
+  dataConfidenceLevel: ConfidenceLevel | null;
+}
+
+export type ObservationSortKey =
+  | 'effectiveDateTime'
+  | 'hospitalName'
+  | 'vendor'
+  | 'patientId'
+  | 'result'
+  | 'testName';
+
+/** Everything the Laboratory Data table asks for, in UI terms. */
+export interface ObservationQuery {
+  currentDay: SimulationDay;
+  scope: 'cumulative' | 'today';
+  search: string;
+  vendor: string | 'all';
+  hospitalId: HospitalId | 'all';
+  result: ObservationResult | 'all';
+  testName: string | 'all';
+  day: number | 'all';
+  sortKey: ObservationSortKey;
+  sortDirection: 'asc' | 'desc';
+  /** 1-based; clamped to the last page by the data source. */
+  page: number;
+  pageSize: number;
+}
+
+export interface ObservationPage {
+  rows: LabObservation[];
+  /** Rows matching every filter. */
+  total: number;
+  /** The page actually returned, after clamping. */
+  page: number;
+  totalPages: number;
+  /** Observations on the current day, and Day 1 through the current day. */
+  dayCount: number;
+  cumulativeCount: number;
+}

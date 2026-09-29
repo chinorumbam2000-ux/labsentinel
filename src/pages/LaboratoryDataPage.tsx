@@ -3,17 +3,25 @@ import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
-import { HOSPITALS } from '../data/hospitals';
 import { LAB_TESTS } from '../data/tests';
 import { formatDateTime } from '../lib/format';
-import type { LabObservation } from '../types';
+import { useDataSource } from '../data-access/DataSourceProvider';
+import { useDebouncedValue, useObservationPage } from '../data-access/hooks';
+import type {
+  HospitalId,
+  LabObservation,
+  ObservationQuery,
+  ObservationResult,
+  ObservationSortKey,
+} from '../types';
 
-type SortKey = 'effectiveDateTime' | 'hospitalName' | 'vendor' | 'patientId' | 'result' | 'testName';
+type SortKey = ObservationSortKey;
 type SortDirection = 'asc' | 'desc';
 
 const ROWS_PER_PAGE = 10;
-const VENDORS = ['Epic', 'Oracle Health', 'MEDITECH'] as const;
 const RESULTS = ['Positive', 'Negative'] as const;
+/** In API mode, wait for typing to pause before searching on the server. */
+const API_SEARCH_DEBOUNCE_MS = 300;
 
 const COLUMNS: Array<{ key: SortKey | null; label: string; className?: string }> = [
   { key: 'effectiveDateTime', label: 'Date/Time' },
@@ -28,14 +36,13 @@ const COLUMNS: Array<{ key: SortKey | null; label: string; className?: string }>
 ];
 
 export default function LaboratoryDataPage() {
-  const {
-    currentDay,
-    visibleObservations,
-    observationCounts,
-    isLoading,
-    error,
-    clearError,
-  } = useSimulation();
+  const { currentDay, facilities, isLoading, error, clearError } = useSimulation();
+  const source = useDataSource();
+  // Vendor options follow the participating facilities, in facility order.
+  const vendors = useMemo(
+    () => [...new Set(facilities.map((facility) => facility.vendor))],
+    [facilities],
+  );
 
   const [search, setSearch] = useState('');
   const [vendorFilter, setVendorFilter] = useState('all');
@@ -57,58 +64,48 @@ export default function LaboratoryDataPage() {
     }
   }, [currentDay, dayFilter]);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    const rows = visibleObservations.filter((observation) => {
-      if (scope === 'today' && observation.day !== currentDay) return false;
-      if (vendorFilter !== 'all' && observation.vendor !== vendorFilter) return false;
-      if (hospitalFilter !== 'all' && observation.hospitalId !== hospitalFilter) return false;
-      if (resultFilter !== 'all' && observation.result !== resultFilter) return false;
-      if (testFilter !== 'all' && observation.testName !== testFilter) return false;
-      if (dayFilter !== 'all' && observation.day !== Number(dayFilter)) return false;
-      if (!term) return true;
-      return [
-        observation.id,
-        observation.patientId,
-        observation.hospitalName,
-        observation.vendor,
-        observation.testName,
-        observation.loincCode,
-        observation.zipCode,
-        observation.result,
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(term);
-    });
-
-    const direction = sortDirection === 'asc' ? 1 : -1;
-    return [...rows].sort(
-      (a, b) => String(a[sortKey]).localeCompare(String(b[sortKey])) * direction,
-    );
-  }, [
-    visibleObservations,
-    scope,
-    currentDay,
-    search,
-    vendorFilter,
-    hospitalFilter,
-    resultFilter,
-    testFilter,
-    dayFilter,
-    sortKey,
-    sortDirection,
-  ]);
-
-  const scopeTotal =
-    scope === 'today' ? observationCounts.day : observationCounts.cumulative;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const pageRows = filtered.slice(
-    (safePage - 1) * ROWS_PER_PAGE,
-    safePage * ROWS_PER_PAGE,
+  // Filtering, search, sorting and paging are done by the data source: in the
+  // browser for local mode, on the server for API mode, with the same rules.
+  const debouncedSearch = useDebouncedValue(search, source.sync ? 0 : API_SEARCH_DEBOUNCE_MS);
+  const query = useMemo<ObservationQuery>(
+    () => ({
+      currentDay,
+      scope,
+      search: debouncedSearch,
+      vendor: vendorFilter,
+      hospitalId: hospitalFilter as HospitalId | 'all',
+      result: resultFilter as ObservationResult | 'all',
+      testName: testFilter,
+      day: dayFilter === 'all' ? 'all' : Number(dayFilter),
+      sortKey,
+      sortDirection,
+      page,
+      pageSize: ROWS_PER_PAGE,
+    }),
+    [
+      currentDay,
+      scope,
+      debouncedSearch,
+      vendorFilter,
+      hospitalFilter,
+      resultFilter,
+      testFilter,
+      dayFilter,
+      sortKey,
+      sortDirection,
+      page,
+    ],
   );
+  const observations = useObservationPage(query);
+  const pageData = observations.status === 'ready' ? observations.page : null;
+
+  const filteredTotal = pageData?.total ?? 0;
+  const dayCount = pageData?.dayCount ?? 0;
+  const cumulativeCount = pageData?.cumulativeCount ?? 0;
+  const scopeTotal = scope === 'today' ? dayCount : cumulativeCount;
+  const totalPages = pageData?.totalPages ?? 1;
+  const safePage = pageData?.page ?? 1;
+  const pageRows = pageData?.rows ?? [];
 
   const resetFilters = () => {
     setSearch('');
@@ -212,7 +209,7 @@ export default function LaboratoryDataPage() {
               }}
             >
               <option value="all">All hospitals</option>
-              {HOSPITALS.map((hospital) => (
+              {facilities.map((hospital) => (
                 <option key={hospital.id} value={hospital.id}>
                   {hospital.name}
                 </option>
@@ -232,7 +229,7 @@ export default function LaboratoryDataPage() {
               }}
             >
               <option value="all">All vendors</option>
-              {VENDORS.map((vendor) => (
+              {vendors.map((vendor) => (
                 <option key={vendor} value={vendor}>
                   {vendor}
                 </option>
@@ -312,19 +309,33 @@ export default function LaboratoryDataPage() {
       </Card>
 
       <Card
-        title={`${filtered.length.toLocaleString('en-US')} of ${scopeTotal.toLocaleString(
-          'en-US',
-        )} observations`}
-        subtitle={`${observationCounts.day.toLocaleString(
-          'en-US',
-        )} received on Day ${currentDay} · ${observationCounts.cumulative.toLocaleString(
-          'en-US',
-        )} cumulative through Day ${currentDay}. Synthetic FHIR Observation resources — scroll the table horizontally to see every column.`}
+        title={
+          pageData
+            ? `${filteredTotal.toLocaleString('en-US')} of ${scopeTotal.toLocaleString(
+                'en-US',
+              )} observations`
+            : 'Observations'
+        }
+        subtitle={
+          pageData
+            ? `${dayCount.toLocaleString(
+                'en-US',
+              )} received on Day ${currentDay} · ${cumulativeCount.toLocaleString(
+                'en-US',
+              )} cumulative through Day ${currentDay}. Synthetic FHIR Observation resources — scroll the table horizontally to see every column.`
+            : 'Synthetic FHIR Observation resources.'
+        }
         bodyClassName="p-0"
       >
-        {isLoading ? (
+        {observations.status === 'error' ? (
+          <ErrorState
+            title="Observations could not be loaded"
+            message={observations.message}
+            onRetry={observations.retry}
+          />
+        ) : isLoading || observations.status === 'loading' ? (
           <LoadingState label="Loading synthetic observations…" />
-        ) : filtered.length === 0 ? (
+        ) : filteredTotal === 0 ? (
           <EmptyState
             icon="≡"
             title="No observations match these filters"
@@ -343,7 +354,12 @@ export default function LaboratoryDataPage() {
           />
         ) : (
           <>
-            <div className="w-full overflow-x-auto">
+            <div
+              className={`w-full overflow-x-auto transition-opacity ${
+                observations.refreshing ? 'opacity-60' : ''
+              }`}
+              aria-busy={observations.refreshing}
+            >
               <table className="w-full min-w-[1080px] border-collapse">
                 <thead className="border-b border-hairline bg-canvas">
                   <tr>
@@ -414,7 +430,7 @@ export default function LaboratoryDataPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline px-4 py-3">
               <p className="text-xs text-muted">
                 Showing {(safePage - 1) * ROWS_PER_PAGE + 1}–
-                {Math.min(safePage * ROWS_PER_PAGE, filtered.length)} of {filtered.length}
+                {Math.min(safePage * ROWS_PER_PAGE, filteredTotal)} of {filteredTotal}
               </p>
               <div className="flex items-center gap-1.5">
                 <button

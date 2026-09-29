@@ -9,10 +9,21 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 📦 **Repository:** https://github.com/chinorumbam2000-ux/labsentinel
 
 > **Capstone development branch.** The `capstone-development` branch adds a
-> backend foundation (FastAPI, SQLAlchemy, PostgreSQL, Alembic) in
-> [`backend/`](backend/README.md), beside the unchanged React prototype. It is
-> not yet connected to the frontend. `main` and the `submission-v1.4` tag
-> remain the frozen stable prototype.
+> backend (FastAPI, SQLAlchemy, PostgreSQL, Alembic) in
+> [`backend/`](backend/README.md) and lets the React app read from it. The app
+> has two explicit data-source modes, chosen at build time with
+> `VITE_DATA_SOURCE`:
+>
+> - **`local` (default): Local Demo Mode.** The prototype's synthetic data,
+>   computed in the browser. No backend. The GitHub Pages site uses this mode.
+> - **`api`: API Capstone Mode.** React → FastAPI → PostgreSQL. API mode
+>   currently uses persisted synthetic demonstration data. Real FHIR ingestion
+>   has not yet been implemented.
+>
+> Both modes show identical values. See
+> [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
+> for how to run API mode. `main` and the `submission-v1.4` tag remain the
+> frozen stable prototype.
 
 ---
 

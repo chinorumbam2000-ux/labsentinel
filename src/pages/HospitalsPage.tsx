@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
-import { HOSPITALS } from '../data/hospitals';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import DataConfidenceCard from '../components/common/DataConfidenceCard';
@@ -45,6 +44,7 @@ export default function HospitalsPage() {
     currentScenario,
     signalScore,
     hospitalMetrics,
+    facilities,
     dataConfidence,
     feedHealth,
     lastUpdated,
@@ -54,10 +54,13 @@ export default function HospitalsPage() {
   } = useSimulation();
 
   const [activeId, setActiveId] = useState<HospitalId>('HOSP-A');
-  const activeHospital = HOSPITALS.find((hospital) => hospital.id === activeId) ?? HOSPITALS[0];
-  const metrics =
+  // Facility identity comes from the active data source. The per-day metrics
+  // are still built from the prototype's site counts, keyed by facility code.
+  const activeHospital = facilities.find((hospital) => hospital.id === activeId) ?? facilities[0];
+  const siteMetrics =
     hospitalMetrics.find((item) => item.hospital.id === activeHospital.id) ??
     hospitalMetrics[0];
+  const metrics = { ...siteMetrics, hospital: activeHospital };
   const theme = ENVIRONMENT_THEMES[activeHospital.id];
   const activeFeed =
     feedHealth.find((feed) => feed.hospitalId === activeHospital.id) ?? feedHealth[0];
@@ -92,7 +95,7 @@ export default function HospitalsPage() {
           aria-label="Simulated vendor environments"
           className="flex flex-wrap gap-2"
         >
-          {HOSPITALS.map((hospital) => {
+          {facilities.map((hospital) => {
             const isActive = hospital.id === activeHospital.id;
             return (
               <button

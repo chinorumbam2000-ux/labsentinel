@@ -19,9 +19,11 @@ observations, surveillance signals and audit events, managed by Alembic
 migrations.
 
 Phase 2 persists the prototype's existing synthetic dataset in PostgreSQL and
-serves it through read-only endpoints. The backend still runs **beside** the
-frontend and is not connected to it. The frontend is unchanged and still runs
-on its own with `npm run dev`.
+serves it through read-only endpoints. Phase 3 lets the React app read from
+them in **API Capstone Mode** (`VITE_DATA_SOURCE=api`, see
+[Full-stack development](#full-stack-development-api-capstone-mode)). The
+default **Local Demo Mode**, which the GitHub Pages site uses, still runs
+entirely in the browser with no backend.
 
 ## Technology stack
 
@@ -323,9 +325,14 @@ Responses are Pydantic schemas, never ORM objects.
 | Parameter | Meaning |
 |---|---|
 | `day` | Simulation day 1–5: that local calendar day |
+| `through_day` | Simulation days 1 through N inclusive (the Laboratory Data "cumulative" scope) |
 | `facility_id` | Facility id (from `/api/facilities`) |
+| `vendor` | Facility vendor label, exact, for example `MEDITECH` |
 | `loinc_code` | For example `92142-9` |
 | `result` | `Positive` or `Negative` (exact case) |
+| `q` | Case-insensitive text search, up to 100 characters. It matches a substring of the observation id, patient reference, facility name, vendor, test name, LOINC code, area and result, joined by spaces, exactly as the prototype's browser search does. `%` and `_` are matched literally |
+| `sort` | `effective_datetime` (default), `facility_name`, `vendor`, `patient_reference`, `result` or `test_name` |
+| `order` | `asc` (default) or `desc`. Rows with equal values always stay in source order |
 | `limit` | Page size. Default **100**, maximum **500** |
 | `offset` | Rows to skip. Default 0 |
 
@@ -346,6 +353,7 @@ curl "http://127.0.0.1:8000/api/signals/current?day=5"
 | Path | Returns |
 |---|---|
 | `/api/demo/summary?day=1..5` | Headline figures for one simulated day: day, date, stage, description, tests, positives, negatives, positivity, baselines, affected facilities and areas, persistence, Composite Outbreak Signal Score, severity, Data Confidence, and a synthetic-data notice |
+| `/api/demo/days` | The same summary for every seeded day, in order. The frontend's five-day storyline (stage names) in one request |
 
 It lives under `/api/demo` so it stays separate from the resource endpoints,
 and it is not a future production surveillance API. A missing or
@@ -409,7 +417,7 @@ pytest tests/integration
 
 They verify on PostgreSQL itself:
 
-- the migration reaches revision `0001`, and the live schema matches the ORM
+- the migration reaches the current head revision, and the live schema matches the ORM
   models, including server defaults
 - JSONB, BIGINT identities and `timestamptz` defaults
 - insert and read-back through the Facility → LabObservation relationship
@@ -430,6 +438,104 @@ They verify on PostgreSQL itself:
 
 With `LABSENTINEL_TEST_DATABASE_URL` set, a plain `pytest` runs both layers.
 
+## Full-stack development (API capstone mode)
+
+The React app reads its data through one interface
+(`src/data-access/`) with two explicit implementations, chosen at build time
+by `VITE_DATA_SOURCE`:
+
+| Mode | `VITE_DATA_SOURCE` | Data comes from | Used by |
+|---|---|---|---|
+| Local Demo Mode | `local` (default) | The prototype's TypeScript modules, in the browser | GitHub Pages, `npm run dev` |
+| API Capstone Mode | `api` | FastAPI → PostgreSQL at `VITE_API_BASE_URL` (default `http://127.0.0.1:8000`) | Full-stack development |
+
+API mode currently uses persisted synthetic demonstration data. Real FHIR
+ingestion has not yet been implemented.
+
+Any other `VITE_DATA_SOURCE` value stops the app with a configuration error.
+There is **no automatic fallback**. If the API is unreachable in API mode,
+the app shows "LabSentinel API is currently unavailable." with a Retry button,
+and shows no data rather than silently switching to local data. Otherwise
+there would be no way to prove the backend is really working.
+
+### Starting the full stack on Windows (PowerShell)
+
+Terminal 1, from the repository root:
+
+```powershell
+docker compose up -d db
+docker compose ps            # wait for "(healthy)"
+```
+
+Terminal 2, from `backend\`:
+
+```powershell
+.venv\Scripts\Activate.ps1
+alembic upgrade head
+python -m app.seed
+uvicorn app.main:app --reload --port 8000
+```
+
+Terminal 3, from the repository root:
+
+```powershell
+$env:VITE_DATA_SOURCE = "api"
+$env:VITE_API_BASE_URL = "http://127.0.0.1:8000"
+npm run dev
+# open http://localhost:5173/labsentinel/
+```
+
+Use `localhost:5173` or `127.0.0.1:5173`: those are the origins the API's CORS
+allows. The variables last only for that PowerShell window. To go back to
+local mode, open a new window, or run
+`Remove-Item Env:VITE_DATA_SOURCE, Env:VITE_API_BASE_URL`. You can also put
+the two lines in a git-ignored `.env.local` (see `.env.example` at the
+repository root).
+
+### Verifying that API mode really uses the API
+
+- The top bar shows **API ● Connected**, which becomes **Unavailable** if a
+  health check fails. It checks on load, about once a minute, and when
+  clicked. Local mode shows **Synthetic Demo Data** instead.
+- Browser developer tools, Network tab: requests go to `127.0.0.1:8000`, for
+  example `/api/demo/summary?day=3` each time the simulated day changes and
+  `/api/observations?...&limit=10` on the Laboratory Data page. In local mode
+  there are none.
+- Stop Uvicorn and reload. The app shows the unavailable screen, not data.
+- Parity with local mode, against the running API:
+
+  ```powershell
+  npx vite-node scripts/verify-api-parity.ts
+  ```
+
+  This compares both data sources on facilities, all five days (stage, tests,
+  positives, positivity, affected facilities and areas, persistence, score,
+  severity, Data Confidence), single observations and 21 Laboratory Data
+  queries, and exits non-zero on any difference. `--record` also refreshes
+  the recorded responses that `npm test` replays offline.
+
+### What is API-backed and what is still frontend-local
+
+| API-backed in API mode | Still frontend-local in both modes |
+|---|---|
+| Facilities (hospital tabs, sidecar identity, filter options) | The current simulation day and autoplay (demo state) |
+| Observations (Laboratory Data: filtering, search, sort and paging on the server) | Per-facility and per-area daily breakdowns (Outbreak Map, hospital dashboards, sidecar figures), which are not persisted yet |
+| Each day's signal: tests, positives, positivity, affected facilities and areas, persistence, Composite Outbreak Signal Score, severity, Data Confidence | Alert detection and alert snapshots |
+| Dashboard headline, Signals, Simulation page, Analytics trend, Day-over-Day | Feed-health simulation and the Data Confidence component breakdown |
+| Cumulative totals (summed from persisted days) | Human investigation workflow and acknowledgements (browser storage) |
+| | Simulated public-health reports (browser storage) |
+
+Frontend-local views are cross-checked, not trusted blindly. In API mode:
+- The app refuses to render if the API's facilities are not the prototype's.
+- It refuses to render if a persisted score does not match its own inputs.
+- It refuses to render if a persisted Data Confidence value does not match the
+  feed-health model.
+- It refuses to render if `/api/demo/summary` and `/api/signals` disagree.
+
+The score's explanatory breakdown is rebuilt from the persisted inputs with
+the prototype's unchanged scorer, and must reproduce the persisted composite
+score exactly.
+
 ## Current limitations
 
 - No FHIR ingestion, SMART on FHIR, or Epic, Oracle Health or MEDITECH
@@ -439,12 +545,16 @@ With `LABSENTINEL_TEST_DATABASE_URL` set, a plain `pytest` runs both layers.
 - No production security hardening, TLS or secrets management.
 - The data are synthetic capstone demonstration data from the prototype. FHIR
   ingestion is not yet implemented, and the seed is the only way data enters.
-- The API is read-only. There is no endpoint for audit events.
+- The API is read-only. There is no endpoint for audit events. Investigation
+  and report state stay in the browser.
 - No signal computation in the backend. Scores and Data Confidence are the
   prototype's own values, persisted as exported. Nothing is recalculated.
 - `received_datetime` is null for every seeded observation, because the
   prototype records no receipt time.
-- The frontend does not call this API yet. It still uses its own TypeScript
-  dataset.
+- The frontend calls this API only in API mode (`VITE_DATA_SOURCE=api`).
+  Per-facility and per-area daily breakdowns, alert detection and feed health
+  are still computed in the browser, because they are not persisted yet.
+- The API is not deployed anywhere. API mode is for local development, and
+  the public GitHub Pages site stays in local mode.
 - No statistical detection (CUSUM, EWMA) and no machine learning.
 - No real public-health reporting.

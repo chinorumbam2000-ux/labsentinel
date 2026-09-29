@@ -4,8 +4,6 @@ import PageMeta from '../components/common/PageMeta';
 import DayOverDayChange from '../components/common/DayOverDayChange';
 import { ErrorState } from '../components/common/States';
 import SeverityBadge from '../components/signals/SeverityBadge';
-import { SCENARIOS } from '../data/simulation';
-import { getScoreForDay } from '../lib/selectors';
 import { SEVERITY_STYLES } from '../lib/format';
 import { SCORE_DISCLAIMER } from '../lib/signalScore';
 
@@ -26,7 +24,10 @@ export default function SimulationPage() {
     resetSimulation,
     playSimulation,
     pauseSimulation,
+    surveillanceDays,
+    scoreForDay,
   } = useSimulation();
+  const scenarios = surveillanceDays.map((item) => item.scenario);
 
   if (error) {
     return (
@@ -100,10 +101,10 @@ export default function SimulationPage() {
 
           {/* Day-by-day progress rail: the isolated signal becoming regional. */}
           <ol className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-5">
-            {SCENARIOS.map((scenario) => {
+            {scenarios.map((scenario) => {
               const isCurrent = scenario.day === currentDay;
               const isReached = scenario.day <= currentDay;
-              const scenarioScore = getScoreForDay(scenario.day);
+              const scenarioScore = scoreForDay(scenario.day);
               return (
                 <li key={scenario.day}>
                   <button
@@ -238,9 +239,9 @@ export default function SimulationPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
-              {SCENARIOS.map((scenario) => {
+              {scenarios.map((scenario) => {
                 const isReached = scenario.day <= currentDay;
-                const scenarioScore = getScoreForDay(scenario.day);
+                const scenarioScore = scoreForDay(scenario.day);
                 return (
                   <tr
                     key={scenario.day}

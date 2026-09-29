@@ -1,5 +1,4 @@
 import { useSimulation } from '../../context/SimulationContext';
-import { HOSPITALS } from '../../data/hospitals';
 import {
   FEDERATED_NOTE,
   FUTURE_CONCEPT_LABEL,
@@ -19,7 +18,7 @@ import StatusBadge from './StatusBadge';
  * rendered from existing synthetic data purely to show the shape.
  */
 export default function FederatedConcept() {
-  const { currentDay } = useSimulation();
+  const { currentDay, facilities } = useSimulation();
   const payload = buildExampleAggregatePayload(currentDay, 'HOSP-A');
 
   return (
@@ -37,7 +36,7 @@ export default function FederatedConcept() {
 
         {/* Three parallel local pipelines feeding one regional layer. */}
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {HOSPITALS.map((hospital) => (
+          {facilities.map((hospital) => (
             <div
               key={hospital.id}
               className="rounded-xl border border-dashed border-muted/30 p-3"

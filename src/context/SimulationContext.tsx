@@ -25,6 +25,7 @@ import {
 } from 'react';
 import type {
   AcknowledgementRecord,
+  Hospital,
   DataConfidenceResult,
   DayOverDayComparison,
   FacilityFeedHealth,
@@ -38,21 +39,20 @@ import type {
   SignalScoreResult,
   SimulationDay,
   SimulationScenario,
+  SurveillanceDay,
   ZipMetrics,
 } from '../types';
 import {
   AUTOPLAY_INTERVAL_MS,
   FIRST_DAY,
   LAST_DAY,
-  getScenario,
   simulationTimestamp,
 } from '../data/simulation';
+import { HOSPITALS } from '../data/hospitals';
 import { getVisibleObservations } from '../data/observations';
 import {
   getAllHospitalMetrics,
-  getCumulativeTotals,
   getObservationCounts,
-  getScoreForDay,
   getZipMetrics,
 } from '../lib/selectors';
 import {
@@ -61,10 +61,19 @@ import {
   getRegionalAlert,
   getUnacknowledgedCount,
 } from '../lib/alerts';
-import { getTrendSeries, type TrendPoint } from '../lib/analytics';
+import { buildTrendSeries, type TrendPoint } from '../lib/analytics';
 import { getAllFeedHealth } from '../data/feedHealth';
-import { getDataConfidence } from '../lib/dataConfidence';
-import { getDayOverDayComparison } from '../lib/dayOverDay';
+import { compareDays } from '../lib/dayOverDay';
+import {
+  DataIntegrityError,
+  cumulativeTotalsFrom,
+  dataConfidenceFor,
+  findDay,
+  signalScoreFor,
+} from '../lib/surveillanceDays';
+import { useSurveillanceData } from '../data-access/hooks';
+import { useDataSourceContext } from '../data-access/DataSourceProvider';
+import DataUnavailable from '../components/common/DataUnavailable';
 import {
   applyInvestigationAction,
   createInvestigation,
@@ -85,7 +94,15 @@ export interface SimulationContextValue {
   simulationDate: string;
   visibleObservations: LabObservation[];
   observationCounts: { day: number; cumulative: number };
-  cumulativeTotals: ReturnType<typeof getCumulativeTotals>;
+  cumulativeTotals: ReturnType<typeof cumulativeTotalsFrom>;
+  /** Participating facilities, from the active data source. */
+  facilities: Hospital[];
+  /** Every simulated day from the active data source, Day 1 first. */
+  surveillanceDays: SurveillanceDay[];
+  /** A day's score, with composite and severity exactly as the source supplied. */
+  scoreForDay: (day: number) => SignalScoreResult;
+  /** 'local' (synthetic demo data in the browser) or 'api' (FastAPI + PostgreSQL). */
+  dataSourceMode: 'local' | 'api';
   signalScore: SignalScoreResult;
   zipMetrics: ZipMetrics[];
   hospitalMetrics: HospitalMetrics[];
@@ -167,6 +184,52 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   const loadingTimer = useRef<number | null>(null);
   const playTimer = useRef<number | null>(null);
+
+  const { source } = useDataSourceContext();
+  const data = useSurveillanceData(currentDay);
+
+  /**
+   * Everything the UI derives from the active data source's days. A
+   * data-integrity failure is captured here so it can be shown to the user;
+   * it is never replaced with other data.
+   */
+  const derived = useMemo(() => {
+    if (data.status !== 'ready') return null;
+    try {
+      const { current, days, facilities } = data;
+      // Per-facility and per-area daily views are still built from the
+      // prototype's own site counts (they are not persisted yet), so they are
+      // only valid while the source's facilities are the prototype's.
+      const expected = HOSPITALS.map((h) => `${h.id} ${h.zipCode}`).join(', ');
+      const received = facilities.map((h) => `${h.id} ${h.zipCode}`).join(', ');
+      if (received !== expected) {
+        throw new DataIntegrityError(
+          `The facilities received (${received}) are not the prototype's (${expected}).`,
+        );
+      }
+      const previous = currentDay > FIRST_DAY ? findDay(days, currentDay - 1) : null;
+      return {
+        ok: true as const,
+        facilities,
+        days,
+        currentScenario: current.scenario,
+        cumulativeTotals: cumulativeTotalsFrom(days, currentDay),
+        signalScore: signalScoreFor(current),
+        dataConfidence: dataConfidenceFor(current),
+        trendSeries: buildTrendSeries(days, currentDay),
+        dayOverDay: compareDays(
+          currentDay,
+          previous && { scenario: previous.scenario, composite: previous.compositeScore },
+          { scenario: current.scenario, composite: current.compositeScore },
+        ),
+      };
+    } catch (caught) {
+      if (caught instanceof DataIntegrityError) {
+        return { ok: false as const, message: `Surveillance data is inconsistent. ${caught.message}` };
+      }
+      throw caught;
+    }
+  }, [data, currentDay]);
 
   // Persist whenever either piece of session state changes.
   useEffect(() => {
@@ -311,12 +374,13 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         return 'Start a review before preparing a public-health report.';
       }
 
+      if (!derived?.ok) return 'Surveillance data is not available right now.';
       const report = createReport({
         alert,
         investigation,
-        scenario: getScenario(currentDay),
-        score: getScoreForDay(currentDay),
-        confidence: getDataConfidence(currentDay),
+        scenario: derived.currentScenario,
+        score: derived.signalScore,
+        confidence: derived.dataConfidence,
         analystNotes,
       });
 
@@ -324,7 +388,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       setWorkflowError(null);
       return null;
     },
-    [currentDay, acknowledgements, investigations],
+    [currentDay, acknowledgements, investigations, derived],
   );
 
   const runReportAction = useCallback(
@@ -396,16 +460,21 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   // Clean up the transition timer on unmount.
   useEffect(() => clearLoadingTimer, [clearLoadingTimer]);
 
-  const value = useMemo<SimulationContextValue>(() => {
-    const currentScenario = getScenario(currentDay);
+  const value = useMemo<SimulationContextValue | null>(() => {
+    if (!derived?.ok) return null;
+    const { currentScenario, days } = derived;
     return {
       currentDay,
       currentScenario,
       simulationDate: currentScenario.simulationDate,
       visibleObservations: getVisibleObservations(currentDay),
       observationCounts: getObservationCounts(currentDay),
-      cumulativeTotals: getCumulativeTotals(currentDay),
-      signalScore: getScoreForDay(currentDay),
+      cumulativeTotals: derived.cumulativeTotals,
+      facilities: derived.facilities,
+      surveillanceDays: days,
+      scoreForDay: (day: number) => signalScoreFor(findDay(days, day)),
+      dataSourceMode: source.mode,
+      signalScore: derived.signalScore,
       zipMetrics: getZipMetrics(currentDay),
       hospitalMetrics: getAllHospitalMetrics(currentDay),
       alerts: getAlerts(currentDay, acknowledgements),
@@ -413,10 +482,11 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       unacknowledgedCount: getUnacknowledgedCount(currentDay, acknowledgements),
       newTodayCount: getNewTodayCount(currentDay),
       acknowledgements,
-      trendSeries: getTrendSeries(currentDay),
-      dataConfidence: getDataConfidence(currentDay),
+      trendSeries: derived.trendSeries,
+      dataConfidence: derived.dataConfidence,
+      // Feed health is still a frontend-local simulation (not persisted).
       feedHealth: getAllFeedHealth(currentDay),
-      dayOverDay: getDayOverDayComparison(currentDay),
+      dayOverDay: derived.dayOverDay,
       investigations,
       reports,
       getInvestigation,
@@ -426,7 +496,8 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       updateReportNotes,
       lastUpdated,
       isPlaying,
-      isLoading,
+      // Includes waiting for the API's summary of a newly selected day.
+      isLoading: isLoading || (data.status === 'ready' && data.dayLoading),
       error: error ?? workflowError,
       isFirstDay: currentDay <= FIRST_DAY,
       isLastDay: currentDay >= LAST_DAY,
@@ -441,6 +512,9 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       clearError,
     };
   }, [
+    derived,
+    data,
+    source,
     currentDay,
     acknowledgements,
     investigations,
@@ -465,6 +539,17 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     refresh,
     clearError,
   ]);
+
+  if (value === null) {
+    // No other data is ever substituted: the user sees exactly why there is none.
+    const message =
+      data.status === 'error'
+        ? data.message
+        : derived && !derived.ok
+          ? derived.message
+          : null;
+    return <DataUnavailable mode={source.mode} label={source.label} message={message} onRetry={data.retry} />;
+  }
 
   return (
     <SimulationContext.Provider value={value}>{children}</SimulationContext.Provider>

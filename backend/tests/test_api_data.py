@@ -5,8 +5,12 @@ Runs on SQLite here and, via tests/integration/test_api_postgres.py, on
 PostgreSQL with the same test bodies.
 """
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
+
+from app.seed import DATASET_PATH
 
 OBSERVATIONS_TOTAL = 699
 
@@ -111,6 +115,97 @@ def test_day_filter_stays_inside_the_local_day(seeded_client: TestClient) -> Non
 )
 def test_invalid_observation_queries_are_rejected(seeded_client: TestClient, query: str) -> None:
     assert seeded_client.get(f"/api/observations?{query}").status_code == 422
+
+
+# Expected values for the Phase 3 query parameters are derived from the
+# committed frontend export, applying the prototype's own browser-side rules.
+_RAW = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
+_FACILITY = {f["code"]: f for f in _RAW["facilities"]}
+
+
+def _search_blob(o: dict) -> str:
+    f = _FACILITY[o["facilityCode"]]
+    return " ".join(
+        [o["id"], o["patientReference"], f["name"], f["vendor"], o["testName"],
+         o["loincCode"], o["zipCode"], o["result"]]
+    ).lower()
+
+
+def _expected(predicate) -> list[str]:
+    return [o["id"] for o in _RAW["observations"] if predicate(o)]
+
+
+@pytest.mark.parametrize(
+    ("query", "predicate"),
+    [
+        ("through_day=3", lambda o: o["day"] <= 3),
+        ("day=2&through_day=3", lambda o: o["day"] == 2),
+        ("day=4&through_day=3", lambda o: False),
+        ("vendor=Epic", lambda o: _FACILITY[o["facilityCode"]]["vendor"] == "Epic"),
+        ("vendor=Unknown", lambda o: False),
+        ("q=SYN-P0001", lambda o: "syn-p0001" in _search_blob(o)),
+        ("q=meditech", lambda o: "meditech" in _search_blob(o)),
+        ("q=01545", lambda o: "01545" in _search_blob(o)),
+        # A term spanning two fields matches, as in the browser search.
+        ("q=epic%20sars", lambda o: "epic sars" in _search_blob(o)),
+        # LIKE wildcards are matched literally.
+        ("q=%25", lambda o: "%" in _search_blob(o)),
+        ("q=_", lambda o: "_" in _search_blob(o)),
+        ("through_day=5&vendor=MEDITECH&result=Positive&q=rsv",
+         lambda o: _FACILITY[o["facilityCode"]]["vendor"] == "MEDITECH"
+         and o["result"] == "Positive" and "rsv" in _search_blob(o)),
+    ],
+)
+def test_phase3_observation_filters(seeded_client: TestClient, query: str, predicate) -> None:
+    page = get_json(seeded_client, f"/api/observations?{query}&limit=500")
+
+    assert page["total"] == len(_expected(predicate))
+    assert sorted(o["source_observation_id"] for o in page["items"]) == sorted(_expected(predicate))
+
+
+def _sort_value(o: dict, key: str) -> str:
+    f = _FACILITY[o["facilityCode"]]
+    return {
+        "effective_datetime": o["effectiveDateTime"],
+        "facility_name": f["name"],
+        "vendor": f["vendor"],
+        "patient_reference": o["patientReference"],
+        "result": o["result"],
+        "test_name": o["testName"],
+    }[key]
+
+
+@pytest.mark.parametrize(
+    "sort", ["effective_datetime", "facility_name", "vendor", "patient_reference", "result", "test_name"]
+)
+@pytest.mark.parametrize("order", ["asc", "desc"])
+def test_observation_sorting_keeps_source_order_on_ties(
+    seeded_client: TestClient, sort: str, order: str
+) -> None:
+    page = get_json(seeded_client, f"/api/observations?through_day=2&sort={sort}&order={order}&limit=500")
+
+    # The browser's stable sort: values in the requested direction, and rows
+    # with equal values kept in source order (ascending) either way.
+    groups: dict[str, list[str]] = {}
+    for o in (o for o in _RAW["observations"] if o["day"] <= 2):
+        groups.setdefault(_sort_value(o, sort), []).append(o["id"])
+    expected = [i for value in sorted(groups, reverse=order == "desc") for i in groups[value]]
+
+    assert [o["source_observation_id"] for o in page["items"]] == expected
+
+
+@pytest.mark.parametrize("query", ["sort=hospital", "order=up", "through_day=0", "through_day=6", "q=" + "x" * 101])
+def test_invalid_phase3_queries_are_rejected(seeded_client: TestClient, query: str) -> None:
+    assert seeded_client.get(f"/api/observations?{query}").status_code == 422
+
+
+def test_demo_days_lists_the_whole_storyline(seeded_client: TestClient) -> None:
+    days = get_json(seeded_client, "/api/demo/days")
+
+    assert [d["day"] for d in days] == [1, 2, 3, 4, 5]
+    assert [d["stage"] for d in days] == [d["stage"] for d in _RAW["days"]]
+    for day in days:
+        assert day == get_json(seeded_client, f"/api/demo/summary?day={day['day']}")
 
 
 def test_get_observation_and_404(seeded_client: TestClient) -> None:

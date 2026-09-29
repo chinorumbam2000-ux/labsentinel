@@ -9,8 +9,8 @@ import type {
 } from '../../types';
 import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../../lib/signalScore';
 import { SEVERITY_STYLES, formatSimulationDate, formatSimulationDateTime } from '../../lib/format';
-import { getScenario } from '../../data/simulation';
-import { getScoreForDay } from '../../lib/selectors';
+import { useSimulation } from '../../context/SimulationContext';
+import { findDay } from '../../lib/surveillanceDays';
 import SeverityBadge from './SeverityBadge';
 import WhyThisSignalPanel from './WhyThisSignalPanel';
 import DataConfidenceCard from '../common/DataConfidenceCard';
@@ -73,9 +73,10 @@ export default function SignalInvestigation({
     ? alert.detectedDay
     : currentDay;
 
-  const scenario = getScenario(day);
-  // The same shared scorer over the same authoritative dataset in both modes.
-  const score = getScoreForDay(day);
+  // The active data source's day, in both modes: live and at detection.
+  const { surveillanceDays, scoreForDay } = useSimulation();
+  const scenario = findDay(surveillanceDays, day).scenario;
+  const score = scoreForDay(day);
   const totalPoints = score.components.reduce(
     (sum, component) => sum + component.points,
     0,

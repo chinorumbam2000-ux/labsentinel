@@ -1,5 +1,6 @@
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import { SimulationProvider } from './context/SimulationContext';
+import { DataSourceProvider } from './data-access/DataSourceProvider';
 import AppShell from './components/layout/AppShell';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LandingPage from './pages/LandingPage';
@@ -29,29 +30,31 @@ function NotFoundPage() {
 
 export default function App() {
   return (
-    <SimulationProvider>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route
-          element={
-            <ErrorBoundary>
-              <AppShell />
-            </ErrorBoundary>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/map" element={<MapPage />} />
-          <Route path="/laboratory-data" element={<LaboratoryDataPage />} />
-          <Route path="/signals" element={<SignalsPage />} />
-          <Route path="/hospitals" element={<HospitalsPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/simulation" element={<SimulationPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/architecture" element={<ArchitecturePage />} />
-          <Route path="/index.html" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </SimulationProvider>
+    <DataSourceProvider>
+      <SimulationProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            element={
+              <ErrorBoundary>
+                <AppShell />
+              </ErrorBoundary>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/laboratory-data" element={<LaboratoryDataPage />} />
+            <Route path="/signals" element={<SignalsPage />} />
+            <Route path="/hospitals" element={<HospitalsPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/simulation" element={<SimulationPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/architecture" element={<ArchitecturePage />} />
+            <Route path="/index.html" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </SimulationProvider>
+    </DataSourceProvider>
   );
 }
