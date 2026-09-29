@@ -7,6 +7,9 @@
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
 
+> The data persisted in Phase 2 are synthetic capstone demonstration data.
+> FHIR ingestion is not yet implemented.
+
 ## Purpose
 
 The LabSentinel React prototype (in `../src`) computes everything in the
@@ -15,8 +18,10 @@ persistence: a FastAPI service with a PostgreSQL schema for facilities, lab
 observations, surveillance signals and audit events, managed by Alembic
 migrations.
 
-In this phase the backend runs **beside** the frontend and is not connected to
-it. The frontend is unchanged and still runs on its own with `npm run dev`.
+Phase 2 persists the prototype's existing synthetic dataset in PostgreSQL and
+serves it through read-only endpoints. The backend still runs **beside** the
+frontend and is not connected to it. The frontend is unchanged and still runs
+on its own with `npm run dev`.
 
 ## Technology stack
 
@@ -39,11 +44,14 @@ backend/
 │   ├── main.py            FastAPI app factory, CORS, router registration
 │   ├── config.py          environment-based settings
 │   ├── database.py        declarative Base, engine, session factory, get_db
-│   ├── api/health.py      GET /api/health, GET /api/health/database
+│   ├── api/               health, facilities, observations, signals, demo routes
 │   ├── core/vocabulary.py controlled vocabularies shared with the frontend
-│   ├── models/            Facility, LabObservation, SurveillanceSignal, AuditEvent
-│   ├── schemas/           Pydantic response models
-│   └── services/          empty; business logic arrives in later phases
+│   ├── core/simulation.py capstone simulation calendar and time zone
+│   ├── models/            Facility, LabObservation, SurveillanceSignal,
+│   │                      AuditEvent, DemoSimulationDay
+│   ├── schemas/           Pydantic response models (never ORM objects)
+│   ├── services/          query logic used by the routes
+│   └── seed/              dataset fixture, idempotent seed, parity check
 ├── alembic/               migration environment and versions/
 ├── tests/
 ├── alembic.ini
@@ -57,13 +65,14 @@ backend/
 ```
 facility 1 ──── * lab_observation
 
-surveillance_signal      (one syndrome on one date)
+surveillance_signal 1 ──── 0..1 demo_simulation_day   (capstone demo only)
 audit_event              (append-only event log)
 ```
 
 - **facility**: a participating organization. `vendor` is a descriptive
   platform label only and implies no ranking or comparison of vendors.
-  `facility_code` is unique.
+  `facility_code` is unique. `postal_code` and `subregion` (county, district
+  or equivalent) were added in revision 0002.
 - **lab_observation**: one normalized laboratory result. `patient_reference`
   is a synthetic, de-identified token. There are **no** columns for names,
   addresses, dates of birth, SSNs or MRNs, and `geographic_unit` is a
@@ -75,8 +84,92 @@ audit_event              (append-only event log)
   prototype. Severity, confidence level and review status are limited by CHECK
   constraints to the exact values the frontend uses. Data confidence may be
   NULL (unknown), and is never defaulted to a reassuring value.
+  `(syndrome, signal_date)` is unique.
 - **audit_event**: event type, entity and description. There is no actor
-  column yet because there are no users yet.
+  column yet because there are no users yet. Each seed run that changes data
+  records one event.
+- **demo_simulation_day**: **capstone demonstration only.** The stage name
+  and narrative for each of the five simulated days, pointing at that day's
+  signal. It is kept in its own table so the simulation-day concept never
+  enters the production-shaped `surveillance_signal` table.
+- `lab_observation.received_datetime` is nullable since 0002. The prototype
+  records no receipt time, so it is stored as unknown rather than invented.
+
+## Seeded synthetic dataset
+
+The seed loads the React prototype's **existing** synthetic dataset. The
+backend computes no surveillance value of its own.
+
+```
+src/data, src/lib (React prototype: the source of truth)
+   │  npx vite-node scripts/export-demo-dataset.ts
+   ▼
+backend/app/seed/data/labsentinel_demo_dataset.json (committed fixture)
+   │  python -m app.seed
+   ▼
+PostgreSQL  ──►  FastAPI (read-only)
+```
+
+The exporter runs the prototype's own modules, so the fixture holds exactly
+what the dashboard shows, including the Composite Outbreak Signal Scores
+(from the prototype's scorer) and the Data Confidence values. What is seeded:
+
+| Table | Rows | Content |
+|---|---|---|
+| `facility` | 3 | HOSP-A Worcester Central Medical Center (Epic, 01604) · HOSP-B Central Massachusetts Regional Hospital (Oracle Health, 01605) · HOSP-C Shrewsbury Community Medical Center (MEDITECH, 01545). All fictional. |
+| `lab_observation` | 699 | OBS-0001 to OBS-0699: 99 positive, 600 negative. LOINC 92142-9 Influenza A RNA, 94500-6 SARS-CoV-2 RNA, 85479-4 RSV RNA. Patient references SYN-P0001 to SYN-P0699 are placeholders. `source_system` is the facility's simulated environment, for example "Simulated Epic Environment". |
+| `surveillance_signal` | 5 | One per simulated day, Nov 3 to Nov 7, 2025 (below). |
+| `demo_simulation_day` | 5 | The stage name and description of each day. |
+
+| Day | Stage | Tests | Positive | Positivity | Facilities | Areas | Persistence | Score | Severity | Data Confidence |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Baseline | 100 | 8 | 8.00% | 0 | 0 | 0 | 0 | Low | 98 Very High |
+| 2 | Early Local Increase | 124 | 12 | 9.68% | 1 | 1 | 1 | 24 | Watch | 97 Very High |
+| 3 | Rising Positivity | 141 | 19 | 13.48% | 2 | 2 | 2 | 50 | Moderate | 94 Very High |
+| 4 | Multi-Site Cluster | 158 | 26 | 16.46% | 3 | 3 | 3 | 74 | High | 97 Very High |
+| 5 | Regional Early-Warning Signal | 176 | 34 | 19.32% | 3 | 3 | 4 | 87 | Critical | 97 Very High |
+
+Positivity is stored to two decimal places. The prototype displays it to one
+(8.0%, 9.7%, 13.5%, 16.5%, 19.3%), and the counts give the exact ratio.
+
+**Time zone.** The prototype stamps observations with a zone-less local time.
+Its facilities are in Worcester County, MA, so those times are read as
+America/New_York (EST, UTC−05:00, on Nov 3–7, 2025), stored in UTC, and
+returned as ISO-8601 with the offset, for example `2025-11-03T06:00:00-05:00`.
+
+### Seeding
+
+```bash
+python -m app.seed
+```
+
+The seed is **idempotent**. Each row is matched on the natural key the
+database enforces (`facility_code`; `source_system` plus
+`source_observation_id`; `syndrome` plus `signal_date`; `day`). A matching row
+is left alone, a differing row is corrected, and a missing one is inserted.
+A second run reports `0 inserted, 0 updated` and changes nothing. A signal's
+review `status` is never overwritten, because it belongs to analysts. The
+seed refuses to run with `APP_ENV=production`.
+
+### Keeping the backend in step with the frontend
+
+```bash
+# from the repository root: fail if the committed fixture is stale
+npx vite-node scripts/export-demo-dataset.ts --check
+
+# regenerate it after a deliberate change to the prototype's data
+npx vite-node scripts/export-demo-dataset.ts
+
+# from backend/: compare the database field for field with a fresh export
+python -m app.seed.verify              # re-exports from the TypeScript source
+python -m app.seed.verify --fixture    # compares with the committed fixture
+```
+
+`verify` checks the facilities and their vendors, every observation (facility,
+patient reference, test, LOINC, result, local effective time, area, status),
+the LOINC concepts, the positive and negative totals, and each day's values,
+score, severity, Data Confidence and stage. It exits non-zero on any
+difference.
 
 ## Setup
 
@@ -173,6 +266,12 @@ alembic downgrade base      # drop everything the migrations created
 Tables are created **only** through Alembic. The application never calls
 `create_all`.
 
+`alembic downgrade 0001` is refused while seeded observations exist. It would
+have to restore `NOT NULL` on `received_datetime`, and the seeded rows have no
+receipt time, so the migration fails and PostgreSQL rolls the whole downgrade
+back rather than inventing a value. On the disposable development database,
+empty the tables first, then reseed after upgrading.
+
 ### 5. Start the API
 
 ```bash
@@ -196,12 +295,69 @@ reports the problem.
 When the database check fails, the response and the server log contain only
 the exception class. No host, user, password or connection string is exposed.
 
+### Data endpoints (read-only)
+
+Every data endpoint is `GET`. `POST`, `PUT`, `PATCH` and `DELETE` return
+`405`. In this phase, data enters the database only through `python -m
+app.seed`; FHIR ingestion will later be the real way observations arrive.
+
+| Path | Returns | Errors |
+|---|---|---|
+| `/api/facilities` | All active facilities, ordered by code | none |
+| `/api/facilities/{id}` | One facility | `404` |
+| `/api/observations` | One page of observations, oldest first (see below) | `422` for invalid filters |
+| `/api/observations/{id}` | One observation | `404` |
+| `/api/signals` | Signal history, ordered by `signal_date` | none |
+| `/api/signals/current?day=1..5` | The signal for a capstone simulation day | `422` for a missing or out-of-range day |
+| `/api/signals/{id}` | One signal | `404` |
+
+`day` is a **capstone simulation control**, not a production concept. It
+lets the demonstration request "the current signal" as its simulated clock
+advances.
+
+Timestamps are ISO-8601 with an offset. Scores and rates are JSON numbers.
+Responses are Pydantic schemas, never ORM objects.
+
+**Observation filters and pagination.**
+
+| Parameter | Meaning |
+|---|---|
+| `day` | Simulation day 1–5: that local calendar day |
+| `facility_id` | Facility id (from `/api/facilities`) |
+| `loinc_code` | For example `92142-9` |
+| `result` | `Positive` or `Negative` (exact case) |
+| `limit` | Page size. Default **100**, maximum **500** |
+| `offset` | Rows to skip. Default 0 |
+
+The response is `{"items": [...], "total": N, "limit": L, "offset": O}`,
+where `total` counts every match. To page, repeat with
+`offset = offset + limit` while `offset < total`. The full dataset is never
+returned by default.
+
+```bash
+curl "http://127.0.0.1:8000/api/observations?day=5&result=Positive"          # total 34
+curl "http://127.0.0.1:8000/api/observations?loinc_code=92142-9&limit=50"
+curl "http://127.0.0.1:8000/api/observations?facility_id=3&limit=100&offset=100"
+curl "http://127.0.0.1:8000/api/signals/current?day=5"
+```
+
+### Demo endpoint (capstone demonstration only)
+
+| Path | Returns |
+|---|---|
+| `/api/demo/summary?day=1..5` | Headline figures for one simulated day: day, date, stage, description, tests, positives, negatives, positivity, baselines, affected facilities and areas, persistence, Composite Outbreak Signal Score, severity, Data Confidence, and a synthetic-data notice |
+
+It lives under `/api/demo` so it stays separate from the resource endpoints,
+and it is not a future production surveillance API. A missing or
+out-of-range `day` returns `422`.
+
 ## CORS
 
 Only explicitly listed origins are allowed. The defaults are the Vite
 development server (`http://localhost:5173`, `http://127.0.0.1:5173`) and
-`vite preview` (`:4173`). A wildcard `*` is rejected at startup. There is no
-production CORS configuration yet.
+`vite preview` (`:4173`). A wildcard `*` is rejected at startup, and only
+`GET` is allowed, since the API is read-only. There is no production CORS
+configuration yet.
 
 ## Running tests
 
@@ -265,6 +421,12 @@ They verify on PostgreSQL itself:
 - `GET /api/health/database` returning 200 with no connection details in the
   body
 - a `downgrade base` → `upgrade head` round trip
+- the whole seed suite (`tests/test_seed.py`) and read-only API contract
+  suite (`tests/test_api_data.py`), re-run on PostgreSQL through
+  `test_seed_postgres.py` and `test_api_postgres.py`. That covers exact
+  counts, a second seed run changing nothing, field-for-field parity with the
+  frontend, every endpoint, filters, pagination, `404`s and invalid-day
+  `422`s.
 
 With `LABSENTINEL_TEST_DATABASE_URL` set, a plain `pytest` runs both layers.
 
@@ -275,11 +437,14 @@ With `LABSENTINEL_TEST_DATABASE_URL` set, a plain `pytest` runs both layers.
 - No authentication, users or role-based access control. The API is for local
   development only.
 - No production security hardening, TLS or secrets management.
-- No endpoints yet for facilities, observations, signals or audit events.
-  Only the health checks exist.
-- No signal computation. The Composite Outbreak Signal Score and Data
-  Confidence Score are still computed by the frontend from its own synthetic
+- The data are synthetic capstone demonstration data from the prototype. FHIR
+  ingestion is not yet implemented, and the seed is the only way data enters.
+- The API is read-only. There is no endpoint for audit events.
+- No signal computation in the backend. Scores and Data Confidence are the
+  prototype's own values, persisted as exported. Nothing is recalculated.
+- `received_datetime` is null for every seeded observation, because the
+  prototype records no receipt time.
+- The frontend does not call this API yet. It still uses its own TypeScript
   dataset.
-- The frontend does not call this API yet.
 - No statistical detection (CUSUM, EWMA) and no machine learning.
 - No real public-health reporting.

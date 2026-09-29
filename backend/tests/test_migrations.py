@@ -18,13 +18,19 @@ from alembic import command
 from app.database import Base
 from tests.conftest import alembic_config, sqlite_engine, upgrade
 
-CORE_TABLES = {"facility", "lab_observation", "surveillance_signal", "audit_event"}
+CORE_TABLES = {
+    "facility",
+    "lab_observation",
+    "surveillance_signal",
+    "audit_event",
+    "demo_simulation_day",
+}
 
 
 def test_single_linear_head() -> None:
     script = ScriptDirectory.from_config(alembic_config())
 
-    assert script.get_heads() == ["0001"]
+    assert script.get_heads() == ["0002"]
 
 
 def test_upgrade_head_creates_core_tables(tmp_path: Path) -> None:
@@ -85,7 +91,7 @@ def test_offline_postgresql_sql_matches_model_intent() -> None:
         "REFERENCES facility (id) ON DELETE RESTRICT",
         "uq_lab_observation_source_record UNIQUE (source_system, source_observation_id)",
         "ck_surveillance_signal_severity_valid",
-        "INSERT INTO alembic_version (version_num) VALUES ('0001')",
+        "UPDATE alembic_version SET version_num='0002'",
     ):
         assert fragment in sql
 

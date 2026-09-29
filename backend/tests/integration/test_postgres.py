@@ -14,6 +14,7 @@ import psycopg.errors
 import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.runtime.migration import MigrationContext
+from alembic.script import ScriptDirectory
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, func, inspect, make_url, select, text
 from sqlalchemy.dialects.postgresql import JSONB
@@ -23,14 +24,18 @@ from sqlalchemy.orm import Session
 from app.database import Base
 from app.main import create_app
 from app.models import LabObservation, SurveillanceSignal
+from tests.conftest import alembic_config
 from tests.test_models import make_facility, make_observation, make_signal
 
 pytestmark = pytest.mark.postgres
 
 
 def test_migration_is_at_head(pg_engine: Engine) -> None:
+    # Read the head from the migration scripts so this never goes stale.
+    head = ScriptDirectory.from_config(alembic_config()).get_current_head()
+
     with pg_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0001"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == head
 
 
 def test_schema_matches_models(pg_engine: Engine) -> None:

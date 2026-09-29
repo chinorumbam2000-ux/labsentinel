@@ -20,11 +20,29 @@ from alembic import command
 from sqlalchemy import Engine, make_url, pool, text
 from sqlalchemy.orm import Session, sessionmaker
 
+from fastapi.testclient import TestClient
+from sqlalchemy import inspect
+
 from app.database import build_engine
-from tests.conftest import alembic_config
+from app.seed import load_dataset, seed_demo_dataset
+from tests.conftest import alembic_config, client_for
 
 TEST_URL_VARIABLE = "LABSENTINEL_TEST_DATABASE_URL"
-MANAGED_TABLES = ("audit_event", "surveillance_signal", "lab_observation", "facility")
+MANAGED_TABLES = (
+    "audit_event",
+    "demo_simulation_day",
+    "surveillance_signal",
+    "lab_observation",
+    "facility",
+)
+
+
+def truncate_all(engine: Engine) -> None:
+    present = set(inspect(engine).get_table_names())
+    tables = [t for t in MANAGED_TABLES if t in present]
+    if tables:
+        with engine.begin() as connection:
+            connection.execute(text(f"TRUNCATE {', '.join(tables)} RESTART IDENTITY CASCADE"))
 
 
 @pytest.fixture(scope="session")
@@ -58,7 +76,10 @@ def migrate(connection_engine: Engine, revision: str, *, down: bool = False) -> 
 @pytest.fixture(scope="session")
 def pg_engine(pg_url: str) -> Iterator[Engine]:
     engine = build_engine(pg_url, connect_timeout=5, poolclass=pool.NullPool)
-    # Start from a known-empty schema built purely by the migrations.
+    # Start from a known-empty schema built purely by the migrations. Rows
+    # left by an interrupted run are cleared first: 0002's downgrade cannot
+    # restore NOT NULL on received_datetime over rows that have none.
+    truncate_all(engine)
     migrate(engine, "base", down=True)
     migrate(engine, "head")
     yield engine
@@ -72,7 +93,24 @@ def pg_session(pg_engine: Engine) -> Iterator[Session]:
         yield session
     finally:
         session.close()
-        with pg_engine.begin() as connection:
-            connection.execute(
-                text(f"TRUNCATE {', '.join(MANAGED_TABLES)} RESTART IDENTITY CASCADE")
-            )
+        truncate_all(pg_engine)
+
+
+# Same fixture names as tests/conftest.py, so the shared seed and API contract
+# suites run against PostgreSQL unchanged.
+
+
+@pytest.fixture
+def empty_session(pg_session: Session) -> Session:
+    truncate_all(pg_session.get_bind())
+    return pg_session
+
+
+@pytest.fixture(scope="module")
+def seeded_client(pg_engine: Engine) -> Iterator[TestClient]:
+    truncate_all(pg_engine)
+    with Session(pg_engine) as session, session.begin():
+        seed_demo_dataset(session, load_dataset())
+    with client_for(pg_engine) as test_client:
+        yield test_client
+    truncate_all(pg_engine)

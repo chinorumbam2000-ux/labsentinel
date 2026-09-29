@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import JSON, CheckConstraint, Date, Index, Numeric, String
+from sqlalchemy import JSON, CheckConstraint, Date, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,7 +24,11 @@ class SurveillanceSignal(TimestampMixin, Base):
 
     __tablename__ = "surveillance_signal"
     __table_args__ = (
-        Index("ix_surveillance_signal_syndrome_date", "syndrome", "signal_date"),
+        # One regional signal per syndrome per date. Also the natural key the
+        # seed upserts on.
+        UniqueConstraint(
+            "syndrome", "signal_date", name="uq_surveillance_signal_syndrome_date"
+        ),
         CheckConstraint(sql_in("severity", SEVERITY_LEVELS), name="severity_valid"),
         CheckConstraint(sql_in("status", SIGNAL_STATUSES), name="status_valid"),
         CheckConstraint(

@@ -29,6 +29,12 @@ class Facility(TimestampMixin, Base):
     )
     facility_code: Mapped[str] = mapped_column(String(50), unique=True)
     city: Mapped[str] = mapped_column(String(100))
+    postal_code: Mapped[str | None] = mapped_column(
+        String(20), comment="Postal code of the facility's surveillance area (e.g. a ZIP)."
+    )
+    subregion: Mapped[str | None] = mapped_column(
+        String(100), comment="County, district or equivalent second-level area."
+    )
     region: Mapped[str] = mapped_column(
         String(100), comment="State, province or equivalent first-level region."
     )

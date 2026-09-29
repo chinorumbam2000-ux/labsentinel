@@ -65,7 +65,9 @@ class LabObservation(CreatedAtMixin, Base):
     effective_datetime: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), index=True
     )
-    received_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # Nullable: when the source does not say when a result was received, it is
+    # recorded as unknown rather than guessed.
+    received_datetime: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     geographic_unit: Mapped[str] = mapped_column(
         String(50),

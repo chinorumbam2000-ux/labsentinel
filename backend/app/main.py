@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api import health
+from app.api import demo, facilities, health, observations, signals
 from app.config import get_settings
 
 
@@ -33,11 +33,18 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        # Read-only API in this phase.
+        allow_methods=["GET"],
         allow_headers=["Content-Type", "Authorization"],
     )
 
+    # Read-only in this phase: every data router exposes GET only. Data enters
+    # the database through the controlled seed (python -m app.seed).
     app.include_router(health.router)
+    app.include_router(facilities.router)
+    app.include_router(observations.router)
+    app.include_router(signals.router)
+    app.include_router(demo.router)
     return app
 
 

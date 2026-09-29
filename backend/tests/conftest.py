@@ -19,8 +19,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
 from app.config import Settings, get_settings
-from app.database import get_engine, get_session_factory
+from app.database import get_db, get_engine, get_session_factory
 from app.main import create_app
+from app.seed import load_dataset, seed_demo_dataset
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
@@ -92,3 +93,40 @@ def db_session(migrated_engine: Engine) -> Iterator[Session]:
 def client() -> Iterator[TestClient]:
     with TestClient(create_app()) as test_client:
         yield test_client
+
+
+# ---------------------------------------------------------------------------
+# Seeded-dataset fixtures. tests/integration/conftest.py defines the same
+# names against PostgreSQL, so the seed and API contract suites run unchanged
+# on both databases.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def empty_session(db_session: Session) -> Session:
+    """A session on a freshly migrated, empty database."""
+    return db_session
+
+
+def client_for(engine: Engine) -> TestClient:
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+
+    def override_get_db() -> Iterator[Session]:
+        with factory() as session:
+            yield session
+
+    app = create_app()
+    app.dependency_overrides[get_db] = override_get_db
+    return TestClient(app)
+
+
+@pytest.fixture(scope="module")
+def seeded_client(tmp_path_factory: pytest.TempPathFactory) -> Iterator[TestClient]:
+    """Read-only API client over a database seeded with the full dataset."""
+    engine = sqlite_engine(tmp_path_factory.mktemp("seeded") / "seeded.db")
+    upgrade(engine)
+    with Session(engine) as session, session.begin():
+        seed_demo_dataset(session, load_dataset())
+    with client_for(engine) as test_client:
+        yield test_client
+    engine.dispose()
