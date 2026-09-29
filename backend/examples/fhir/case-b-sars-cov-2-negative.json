@@ -1,0 +1,61 @@
+{
+  "resourceType": "Observation",
+  "id": "lab-b-sars-0001",
+  "meta": {
+    "tag": [
+      {
+        "system": "urn:labsentinel:data",
+        "code": "synthetic",
+        "display": "Synthetic capstone data"
+      }
+    ]
+  },
+  "identifier": [
+    {
+      "system": "urn:labsentinel:synthetic:hosp-b:lab-result",
+      "value": "B-SARS-20260113-0001"
+    }
+  ],
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "94500-6",
+        "display": "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection"
+      }
+    ],
+    "text": "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection"
+  },
+  "subject": {
+    "reference": "Patient/syn-patient-0002"
+  },
+  "effectiveDateTime": "2026-01-13T19:05:00Z",
+  "performer": [
+    {
+      "reference": "Organization/org-central-mass-regional",
+      "display": "Central Massachusetts Regional Hospital (synthetic)"
+    }
+  ],
+  "valueCodeableConcept": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "260385009",
+        "display": "Negative"
+      }
+    ],
+    "text": "Negative"
+  }
+}

@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     database_connect_timeout: int = Field(default=5, ge=1, le=60)
     database_echo: bool = False
 
+    # FHIR ingestion (development only). Patient references are replaced by a
+    # salted one-way pseudonym before storage; change the salt per deployment.
+    fhir_pseudonym_salt: SecretStr = SecretStr("labsentinel-development-only-salt")
+    # Largest request body POST /api/fhir/ingest accepts, in bytes.
+    fhir_max_request_bytes: int = Field(default=5_000_000, ge=1_000, le=50_000_000)
+
     # Comma-separated in the environment, e.g.
     # CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
     cors_origins: Annotated[list[str], NoDecode] = Field(

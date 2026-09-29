@@ -15,6 +15,11 @@ SQLAlchemy>=2.0.30,<2.1
 psycopg[binary]>=3.2,<4.0
 alembic>=1.13,<2.0
 
+# FHIR R4B (4.3.0) resource models with Pydantic v2 validation. Pinned
+# exactly: FHIR model behaviour must not change underneath the ingester.
+fhir.resources==8.3.0
+fhir-core==1.1.11
+
 # IANA time zones for zoneinfo (Windows has no system tz database)
 tzdata>=2024.1
 

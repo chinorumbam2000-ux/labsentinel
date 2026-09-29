@@ -39,6 +39,9 @@ OBSERVATION_STATUSES = (
 # Which FHIR Observation.value[x] shape the stored result came from.
 RESULT_TYPES = ("coded", "quantity", "string", "boolean")
 
+# Whether an observation's LOINC code maps to a LabSentinel test and syndrome.
+TERMINOLOGY_STATUSES = ("mapped", "unmapped")
+
 
 def sql_in(column: str, values: tuple[str, ...]) -> str:
     """Render a CHECK constraint body restricting ``column`` to ``values``."""

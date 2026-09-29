@@ -30,7 +30,7 @@ CORE_TABLES = {
 def test_single_linear_head() -> None:
     script = ScriptDirectory.from_config(alembic_config())
 
-    assert script.get_heads() == ["0002"]
+    assert script.get_heads() == ["0003"]
 
 
 def test_upgrade_head_creates_core_tables(tmp_path: Path) -> None:
@@ -91,7 +91,7 @@ def test_offline_postgresql_sql_matches_model_intent() -> None:
         "REFERENCES facility (id) ON DELETE RESTRICT",
         "uq_lab_observation_source_record UNIQUE (source_system, source_observation_id)",
         "ck_surveillance_signal_severity_valid",
-        "UPDATE alembic_version SET version_num='0002'",
+        "UPDATE alembic_version SET version_num='0003'",
     ):
         assert fragment in sql
 

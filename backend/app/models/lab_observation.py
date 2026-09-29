@@ -1,16 +1,19 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from decimal import Decimal
+
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Numeric,
     String,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.vocabulary import OBSERVATION_STATUSES, RESULT_TYPES, sql_in
+from app.core.vocabulary import OBSERVATION_STATUSES, RESULT_TYPES, TERMINOLOGY_STATUSES, sql_in
 from app.database import Base
 from app.models.mixins import BigIntPK, CreatedAtMixin
 
@@ -38,6 +41,20 @@ class LabObservation(CreatedAtMixin, Base):
         ),
         CheckConstraint(sql_in("status", OBSERVATION_STATUSES), name="status_valid"),
         CheckConstraint(sql_in("result_type", RESULT_TYPES), name="result_type_valid"),
+        CheckConstraint(
+            sql_in("terminology_status", TERMINOLOGY_STATUSES), name="terminology_status_valid"
+        ),
+        # A syndrome is recorded exactly when the test is mapped: an unmapped
+        # code is never given a guessed syndrome.
+        CheckConstraint(
+            "(terminology_status = 'mapped' AND syndrome IS NOT NULL) OR "
+            "(terminology_status = 'unmapped' AND syndrome IS NULL)",
+            name="syndrome_matches_terminology",
+        ),
+        CheckConstraint(
+            "result_type <> 'quantity' OR result_numeric IS NOT NULL",
+            name="quantity_has_number",
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
@@ -55,12 +72,37 @@ class LabObservation(CreatedAtMixin, Base):
         ),
     )
 
-    syndrome: Mapped[str] = mapped_column(String(100), index=True)
+    # Null only for an unmapped LOINC code (see terminology_status).
+    syndrome: Mapped[str | None] = mapped_column(String(100), index=True)
     test_name: Mapped[str] = mapped_column(String(200))
     loinc_code: Mapped[str] = mapped_column(String(20), index=True)
+    terminology_status: Mapped[str] = mapped_column(
+        String(20),
+        default="mapped",
+        server_default="mapped",
+        comment="mapped: the LOINC code maps to a LabSentinel test and syndrome.",
+    )
+    code_display: Mapped[str | None] = mapped_column(
+        String(255), comment="The source's own display text for the LOINC code."
+    )
     result_type: Mapped[str] = mapped_column(String(20))
+    # Normalized result: 'Positive' / 'Negative' for qualitative tests, the
+    # source text for other coded or string results, the number for quantities.
     result_value: Mapped[str | None] = mapped_column(String(255))
     result_unit: Mapped[str | None] = mapped_column(String(50))
+    result_numeric: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+    result_unit_system: Mapped[str | None] = mapped_column(
+        String(100), comment="Unit code system, e.g. http://unitsofmeasure.org (UCUM)."
+    )
+    result_unit_code: Mapped[str | None] = mapped_column(String(50))
+    result_code_system: Mapped[str | None] = mapped_column(
+        String(100), comment="Code system of a coded result, e.g. SNOMED CT."
+    )
+    result_code: Mapped[str | None] = mapped_column(String(50))
+    source_report_id: Mapped[str | None] = mapped_column(
+        String(128), comment="Source DiagnosticReport that grouped this result, if any."
+    )
+    specimen_type: Mapped[str | None] = mapped_column(String(100))
 
     effective_datetime: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), index=True

@@ -45,10 +45,17 @@ def compare_with_frontend(session: Session, raw: dict[str, Any]) -> list[str]:
         ):
             check(f"{f['code']} {label}", got, want)
 
-    # Observations, one by one.
+    # Observations, one by one. Only the seeded records are the prototype's
+    # dataset; observations from other sources (FHIR ingestion) coexist and
+    # are deliberately not part of this comparison.
+    seed_systems = [f["environmentLabel"] for f in raw["facilities"]]
     stored_obs = {
         o.source_observation_id: o
-        for o in session.scalars(select(LabObservation).options(selectinload(LabObservation.facility)))
+        for o in session.scalars(
+            select(LabObservation)
+            .where(LabObservation.source_system.in_(seed_systems))
+            .options(selectinload(LabObservation.facility))
+        )
     }
     check("observation count", len(stored_obs), len(raw["observations"]))
     for o in raw["observations"]:

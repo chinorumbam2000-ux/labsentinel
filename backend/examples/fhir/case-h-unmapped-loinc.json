@@ -1,0 +1,60 @@
+{
+  "resourceType": "Observation",
+  "id": "lab-h-hbsag-0001",
+  "meta": {
+    "tag": [
+      {
+        "system": "urn:labsentinel:data",
+        "code": "synthetic",
+        "display": "Synthetic capstone data"
+      }
+    ]
+  },
+  "identifier": [
+    {
+      "system": "urn:labsentinel:synthetic:hosp-b:lab-result",
+      "value": "B-HBSAG-20260118-0001"
+    }
+  ],
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "5195-3",
+        "display": "Hepatitis B virus surface Ag [Presence] in Serum"
+      }
+    ],
+    "text": "Hepatitis B virus surface Ag [Presence] in Serum"
+  },
+  "subject": {
+    "reference": "Patient/syn-patient-0005"
+  },
+  "effectiveDateTime": "2026-01-18T13:00:00-05:00",
+  "performer": [
+    {
+      "reference": "Organization/org-central-mass-regional"
+    }
+  ],
+  "valueCodeableConcept": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "260385009",
+        "display": "Negative"
+      }
+    ],
+    "text": "Negative"
+  }
+}

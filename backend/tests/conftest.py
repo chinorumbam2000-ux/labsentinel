@@ -21,6 +21,7 @@ from alembic import command
 from app.config import Settings, get_settings
 from app.database import get_db, get_engine, get_session_factory
 from app.main import create_app
+from app.models import LabObservation
 from app.seed import load_dataset, seed_demo_dataset
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -121,12 +122,32 @@ def client_for(engine: Engine) -> TestClient:
 
 
 @pytest.fixture(scope="module")
-def seeded_client(tmp_path_factory: pytest.TempPathFactory) -> Iterator[TestClient]:
-    """Read-only API client over a database seeded with the full dataset."""
+def seeded_engine(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Engine]:
+    """A migrated database seeded with the full dataset, shared by a module."""
     engine = sqlite_engine(tmp_path_factory.mktemp("seeded") / "seeded.db")
     upgrade(engine)
     with Session(engine) as session, session.begin():
         seed_demo_dataset(session, load_dataset())
-    with client_for(engine) as test_client:
-        yield test_client
+    yield engine
     engine.dispose()
+
+
+@pytest.fixture(scope="module")
+def seeded_client(seeded_engine: Engine) -> Iterator[TestClient]:
+    """Read-only API client over the seeded database."""
+    with client_for(seeded_engine) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def fhir_env(seeded_engine: Engine) -> Iterator[tuple[TestClient, Engine]]:
+    """
+    A client for FHIR ingestion over the seeded database. Rows written by FHIR
+    ingestion are removed afterwards; the seeded dataset is never touched.
+    """
+    with client_for(seeded_engine) as test_client:
+        yield test_client, seeded_engine
+    with seeded_engine.begin() as connection:
+        connection.execute(
+            LabObservation.__table__.delete().where(LabObservation.source_system.like("fhir:%"))
+        )

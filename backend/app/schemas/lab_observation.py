@@ -27,6 +27,11 @@ class ObservationFilters(BaseModel):
         description="Capstone simulation days 1 through N inclusive (demo convenience filter).",
     )
     facility_id: int | None = None
+    source_system: str | None = Field(
+        default=None,
+        max_length=100,
+        description='Exact source system, e.g. "Simulated Epic Environment" (seed) or "fhir:..." (FHIR).',
+    )
     vendor: str | None = Field(default=None, max_length=100)
     loinc_code: str | None = Field(default=None, max_length=20)
     result: Literal["Positive", "Negative"] | None = None
@@ -51,12 +56,19 @@ class LabObservationRead(BaseModel):
     source_observation_id: str
     facility_id: int
     patient_reference: str = Field(description="Synthetic, de-identified reference only.")
-    syndrome: str
+    syndrome: str | None = Field(description="Null only when terminology_status is 'unmapped'.")
     test_name: str
     loinc_code: str
+    terminology_status: str
+    code_display: str | None
     result_type: str
     result_value: str | None
     result_unit: str | None
+    result_numeric: float | None
+    result_unit_system: str | None
+    result_unit_code: str | None
+    result_code_system: str | None
+    result_code: str | None
     effective_datetime: LocalDateTime
     received_datetime: LocalDateTime | None = Field(
         description="Null when the source did not record a receipt time."
@@ -64,4 +76,6 @@ class LabObservationRead(BaseModel):
     geographic_unit: str
     source_system: str
     status: str
+    source_report_id: str | None
+    specimen_type: str | None
     created_at: LocalDateTime

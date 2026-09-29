@@ -46,3 +46,10 @@ def as_simulation_local(value: datetime) -> datetime:
     if value.tzinfo is None:
         value = value.replace(tzinfo=UTC)
     return value.astimezone(SIMULATION_TIMEZONE)
+
+
+def demo_period_utc() -> tuple[datetime, datetime]:
+    """[start of Day 1, end of the last day) of the frozen demonstration, in UTC."""
+    start, _ = utc_bounds_for_day(FIRST_DAY)
+    _, end = utc_bounds_for_day(LAST_DAY)
+    return start, end

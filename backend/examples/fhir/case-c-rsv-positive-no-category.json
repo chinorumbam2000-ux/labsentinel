@@ -1,0 +1,52 @@
+{
+  "resourceType": "Observation",
+  "id": "lab-c-rsv-0001",
+  "meta": {
+    "tag": [
+      {
+        "system": "urn:labsentinel:data",
+        "code": "synthetic",
+        "display": "Synthetic capstone data"
+      }
+    ]
+  },
+  "identifier": [
+    {
+      "system": "urn:labsentinel:synthetic:hosp-c:lab-result",
+      "value": "C-RSV-20260114-0001"
+    }
+  ],
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "85479-4",
+        "display": "Respiratory syncytial virus RNA [Presence] in Respiratory system specimen by NAA with probe detection"
+      }
+    ],
+    "text": "Respiratory syncytial virus RNA [Presence] in Respiratory system specimen by NAA with probe detection"
+  },
+  "subject": {
+    "reference": "Patient/syn-patient-0003"
+  },
+  "effectiveDateTime": "2026-01-14T11:45:00-05:00",
+  "performer": [
+    {
+      "identifier": {
+        "system": "urn:labsentinel:facility-code",
+        "value": "HOSP-C"
+      }
+    }
+  ],
+  "valueCodeableConcept": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "10828004",
+        "display": "Positive"
+      }
+    ],
+    "text": "Positive"
+  }
+}

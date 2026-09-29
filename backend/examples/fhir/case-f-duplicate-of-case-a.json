@@ -1,0 +1,83 @@
+{
+  "resourceType": "Observation",
+  "id": "lab-a-flu-0001-resent",
+  "meta": {
+    "tag": [
+      {
+        "system": "urn:labsentinel:data",
+        "code": "synthetic",
+        "display": "Synthetic capstone data"
+      }
+    ]
+  },
+  "contained": [
+    {
+      "resourceType": "Specimen",
+      "id": "spec-a-0001",
+      "type": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "258500001",
+            "display": "Nasopharyngeal swab"
+          }
+        ],
+        "text": "Nasopharyngeal swab"
+      }
+    }
+  ],
+  "identifier": [
+    {
+      "system": "urn:labsentinel:synthetic:hosp-a:lab-result",
+      "value": "A-FLU-20260112-0001"
+    }
+  ],
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "92142-9",
+        "display": "Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection"
+      }
+    ],
+    "text": "Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection"
+  },
+  "subject": {
+    "reference": "Patient/syn-patient-0001"
+  },
+  "effectiveDateTime": "2026-01-12T09:30:00-05:00",
+  "performer": [
+    {
+      "identifier": {
+        "system": "urn:labsentinel:facility-code",
+        "value": "HOSP-A"
+      },
+      "display": "Worcester Central Medical Center (synthetic)"
+    }
+  ],
+  "valueCodeableConcept": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "260373001",
+        "display": "Detected"
+      }
+    ],
+    "text": "Detected"
+  },
+  "specimen": {
+    "reference": "#spec-a-0001"
+  }
+}

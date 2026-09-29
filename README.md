@@ -20,6 +20,11 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 >   currently uses persisted synthetic demonstration data. Real FHIR ingestion
 >   has not yet been implemented.
 >
+> The backend also has a **development-only FHIR R4 laboratory ingestion**
+> endpoint (`POST /api/fhir/ingest`), fed with synthetic resources. Ingested
+> results coexist with the seed without changing the frozen five-day
+> demonstration. There is no SMART on FHIR yet, and no live EHR connection.
+>
 > Both modes show identical values. See
 > [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
 > for how to run API mode. `main` and the `submission-v1.4` tag remain the

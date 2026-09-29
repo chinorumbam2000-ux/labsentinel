@@ -1,7 +1,7 @@
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
-from app.core.simulation import utc_bounds_for_day
+from app.core.simulation import FIRST_DAY, utc_bounds_for_day
 from app.models import Facility, LabObservation
 from app.schemas.lab_observation import ObservationFilters
 
@@ -46,10 +46,18 @@ def _filtered(filters: ObservationFilters) -> Select[tuple[LabObservation]]:
             LabObservation.effective_datetime < end,
         )
     if filters.through_day is not None:
+        # Days 1 through N of the simulation calendar — bounded on both sides,
+        # so data dated before Day 1 (e.g. FHIR ingestion) is not included.
+        start, _ = utc_bounds_for_day(FIRST_DAY)
         _, end = utc_bounds_for_day(filters.through_day)
-        query = query.where(LabObservation.effective_datetime < end)
+        query = query.where(
+            LabObservation.effective_datetime >= start,
+            LabObservation.effective_datetime < end,
+        )
     if filters.facility_id is not None:
         query = query.where(LabObservation.facility_id == filters.facility_id)
+    if filters.source_system is not None:
+        query = query.where(LabObservation.source_system == filters.source_system)
     if filters.vendor is not None:
         query = query.where(Facility.vendor == filters.vendor)
     if filters.loinc_code is not None:

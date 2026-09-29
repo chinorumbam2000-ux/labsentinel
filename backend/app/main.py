@@ -10,12 +10,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api import demo, facilities, health, observations, signals
+from app.api import demo, facilities, fhir, health, observations, signals
 from app.config import get_settings
+from app.core.logging import configure_logging
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_logging()
 
     app = FastAPI(
         title="LabSentinel API",
@@ -33,18 +35,22 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
-        # Read-only API in this phase.
+        # Browsers may only read. FHIR ingestion is a development tool used
+        # from the command line (PowerShell, curl), never a browser upload.
         allow_methods=["GET"],
         allow_headers=["Content-Type", "Authorization"],
     )
 
-    # Read-only in this phase: every data router exposes GET only. Data enters
-    # the database through the controlled seed (python -m app.seed).
+    # Every data router is GET-only. Data enters the database through the
+    # controlled seed (python -m app.seed) or development FHIR ingestion.
     app.include_router(health.router)
     app.include_router(facilities.router)
     app.include_router(observations.router)
     app.include_router(signals.router)
     app.include_router(demo.router)
+    # The one write path: development-only FHIR ingestion (404 unless
+    # APP_ENV=development). There are no generic POST/PUT/DELETE endpoints.
+    app.include_router(fhir.router)
     return app
 
 

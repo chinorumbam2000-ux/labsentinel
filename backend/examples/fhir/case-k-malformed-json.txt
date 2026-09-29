@@ -1,0 +1,5 @@
+{
+  "resourceType": "Observation",
+  "id": "lab-k-truncated",
+  "status": "final",
+  "code": {"coding": [{"system": "http://loinc.org", "code": "92142-9"

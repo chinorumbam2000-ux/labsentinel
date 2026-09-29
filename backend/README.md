@@ -1,14 +1,18 @@
 # LabSentinel API — backend foundation
 
 > This backend is the development foundation for the LabSentinel capstone.
-> FHIR ingestion, SMART on FHIR authentication, production security, and live
-> healthcare-system connectivity are not implemented in this phase.
+> SMART on FHIR authorization, production security, and live healthcare-system
+> connectivity are not implemented. FHIR R4 laboratory ingestion exists as a
+> **development-only** foundation for synthetic data (see
+> [FHIR R4 laboratory ingestion](#fhir-r4-laboratory-ingestion-development)).
 
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
 
 > The data persisted in Phase 2 are synthetic capstone demonstration data.
-> FHIR ingestion is not yet implemented.
+> Observations ingested through the Phase 4 development FHIR endpoint are
+> synthetic too, and coexist with the seed without altering the five-day
+> demonstration.
 
 ## Purpose
 
@@ -46,15 +50,19 @@ backend/
 │   ├── main.py            FastAPI app factory, CORS, router registration
 │   ├── config.py          environment-based settings
 │   ├── database.py        declarative Base, engine, session factory, get_db
-│   ├── api/               health, facilities, observations, signals, demo routes
+│   ├── api/               health, facilities, observations, signals, demo,
+│   │                      fhir (development ingestion) routes
+│   ├── fhir/              FHIR R4 parsing, validation, terminology, resolution,
+│   │                      normalization (no HTTP, no ORM)
 │   ├── core/vocabulary.py controlled vocabularies shared with the frontend
 │   ├── core/simulation.py capstone simulation calendar and time zone
 │   ├── models/            Facility, LabObservation, SurveillanceSignal,
 │   │                      AuditEvent, DemoSimulationDay
 │   ├── schemas/           Pydantic response models (never ORM objects)
-│   ├── services/          query logic used by the routes
+│   ├── services/          query logic and FHIR ingestion used by the routes
 │   └── seed/              dataset fixture, idempotent seed, parity check
 ├── alembic/               migration environment and versions/
+├── examples/fhir/         synthetic FHIR R4 fixtures (cases A-K)
 ├── tests/
 ├── alembic.ini
 ├── pytest.ini
@@ -207,6 +215,8 @@ cp .env.example .env        # PowerShell: Copy-Item .env.example .env
 | `DATABASE_CONNECT_TIMEOUT` | `5` | Seconds before a connection attempt fails |
 | `DATABASE_ECHO` | `false` | Log every SQL statement |
 | `CORS_ORIGINS` | Vite dev and preview origins | Comma-separated. `*` is rejected |
+| `FHIR_PSEUDONYM_SALT` | a development-only value | Salt for the one-way patient pseudonym in FHIR ingestion. Set your own; it is held as a `SecretStr` |
+| `FHIR_MAX_REQUEST_BYTES` | `5000000` | Largest body `POST /api/fhir/ingest` accepts |
 
 `.env` is git-ignored. The defaults are throwaway development values, not
 secrets. The database password is held as a `SecretStr`, so it never appears
@@ -300,8 +310,9 @@ the exception class. No host, user, password or connection string is exposed.
 ### Data endpoints (read-only)
 
 Every data endpoint is `GET`. `POST`, `PUT`, `PATCH` and `DELETE` return
-`405`. In this phase, data enters the database only through `python -m
-app.seed`; FHIR ingestion will later be the real way observations arrive.
+`405`. Data enters the database only through `python -m app.seed` or the
+development-only [FHIR ingestion endpoint](#fhir-r4-laboratory-ingestion-development).
+Observations from either path are returned identically.
 
 | Path | Returns | Errors |
 |---|---|---|
@@ -325,8 +336,9 @@ Responses are Pydantic schemas, never ORM objects.
 | Parameter | Meaning |
 |---|---|
 | `day` | Simulation day 1–5: that local calendar day |
-| `through_day` | Simulation days 1 through N inclusive (the Laboratory Data "cumulative" scope) |
+| `through_day` | Simulation days 1 through N inclusive (the Laboratory Data "cumulative" scope). Bounded on both sides: nothing dated before Day 1 |
 | `facility_id` | Facility id (from `/api/facilities`) |
+| `source_system` | Exact source system: a seeded facility environment (e.g. `Simulated Epic Environment`) or a FHIR source (`fhir:...`) |
 | `vendor` | Facility vendor label, exact, for example `MEDITECH` |
 | `loinc_code` | For example `92142-9` |
 | `result` | `Positive` or `Negative` (exact case) |
@@ -536,21 +548,329 @@ The score's explanatory breakdown is rebuilt from the persisted inputs with
 the prototype's unchanged scorer, and must reproduce the persisted composite
 score exactly.
 
+## FHIR R4 laboratory ingestion (development)
+
+> **This endpoint is a capstone development ingestion endpoint and is not
+> production-secured.** FHIR ingestion is development-only. There is no
+> SMART on FHIR authorization, no production authentication, and no live EHR
+> vendor connection (Epic, Oracle Health, MEDITECH or any other). It accepts
+> synthetic data only.
+
+```
+Synthetic FHIR R4 JSON (Observation, or a Bundle)
+   │  app/fhir/parser.py       JSON → each resource validated with fhir.resources
+   │  app/fhir/validator.py    status · laboratory category · LOINC · effective time
+   │  app/fhir/terminology.py  LOINC → test → syndrome · qualitative result codes
+   │  app/fhir/resolver.py     facility · geography · Specimen · DiagnosticReport
+   │  app/fhir/normalizer.py   result values · source identity · patient pseudonym
+   ▼
+app/services/fhir_ingestion.py  best effort per Observation, duplicate detection
+   ▼
+lab_observation (PostgreSQL)  ──►  GET /api/observations  ──►  React (unchanged)
+```
+
+Once normalized, an ingested observation is an ordinary `lab_observation` row.
+The read API and the frontend treat it exactly like a seeded one. FHIR logic
+lives only in `app/fhir/` and the ingestion service, never in route handlers
+or SQLAlchemy models.
+
+### FHIR library
+
+**`fhir.resources` 8.3.0** (with `fhir-core` 1.1.11), pinned exactly in
+`requirements.txt`. We use its **`fhir.resources.R4B`** models, FHIR 4.3.0.
+
+Why: it is the maintained FHIR model library built on Pydantic v2, which the
+rest of the backend already uses. It has no R4 (4.0.1) model set for
+Pydantic v2. The last R4 release (6.5.0) requires Pydantic v1 and cannot be
+installed alongside FastAPI and pydantic-settings. R4B is a technical-
+correction release of R4, and the resources LabSentinel reads (Observation,
+DiagnosticReport, Organization, Location, Specimen, Bundle, Patient) are
+wire-compatible with R4 for every element used here.
+
+The library validates structure and datatypes. It rejects unknown elements,
+wrong types, two `value[x]` at once, and a date-time with a time but no
+timezone. It does **not** enforce every required element or code binding (it
+accepts an explicit `"code": null` or `"status": "done"`), so LabSentinel
+checks those itself in `validator.py`. Library error text can echo input
+values, so it is never passed on: responses carry only the element path and
+the error type.
+
+### Supported resources
+
+| Resource | How it is used |
+|---|---|
+| **Observation** | Required. The laboratory result that is normalized and stored |
+| DiagnosticReport | Groups results. `result[]` links Observations to the report (stored as `source_report_id`), and its `performer` and `specimen` are fallbacks. Observations are never duplicated because a report lists them |
+| Organization | Resolves the performing facility |
+| Location | Cross-checks geography: its postal code must match the facility's area, otherwise a `GEOGRAPHY_MISMATCH` warning. Addresses are never stored |
+| Specimen | Its `type` is stored as `specimen_type` (for example "Nasopharyngeal swab"). Nothing else is kept |
+| Patient, ServiceRequest | Accepted in a Bundle as reference targets only, and **never read**. No Patient table exists |
+| Anything else | `UNSUPPORTED_RESOURCE` warning; ignored |
+
+A request is a single Observation, or a Bundle of type `collection`,
+`transaction` or `batch`. References resolve by `fullUrl`, by `Type/id` (also
+the tail of an absolute URL), and by `#id` for contained resources.
+LabSentinel ingests resources. It does not implement FHIR transaction, server
+or search semantics.
+
+### Observation rules
+
+Applied in this order. The first failure rejects the Observation with the
+code shown.
+
+| Rule | Rejected as |
+|---|---|
+| Structure and datatypes valid for FHIR (library) | `INVALID_FHIR` |
+| `status` is a FHIR status; only **final**, **amended** and **corrected** are ingested | `INVALID_FHIR` / `NON_FINAL_STATUS` |
+| **Laboratory.** If `category` is present, it must include `laboratory` (`http://terminology.hl7.org/CodeSystem/observation-category`), so vital signs, device and other clinical observations are refused. If `category` is absent, the Observation is accepted only when its code is a *mapped* LabSentinel laboratory LOINC; an unrecognized code without a category is not assumed to be laboratory | `NON_LAB_OBSERVATION` |
+| `code` has exactly one LOINC code (`system` = `http://loinc.org`), well formed (digits, hyphen, correct mod-10 check digit) | `INVALID_LOINC` |
+| Effective time: `effectiveDateTime`, `effectiveInstant` or `effectivePeriod.start`, a full date-time **with a timezone offset**, not in the future (5 minutes of clock skew allowed) | `MISSING_EFFECTIVE_TIME` / `INVALID_EFFECTIVE_TIME` |
+| The performing facility resolves (see below) | `UNRESOLVED_FACILITY` |
+| `identifier` (system and value) or `id` exists, so resubmissions can be recognized | `MISSING_IDENTIFIER` |
+| Effective time is **outside the frozen demonstration period** (Nov 3–7, 2025, America/New_York) | `DEMO_PERIOD_RESERVED` |
+| The result can be normalized (see below) | `INVALID_RESULT` |
+
+**Timezones.** Times are never guessed. A date-only or partial value
+(`2026-01-12`, `2026-01`) is rejected. A time without an offset is already
+invalid FHIR (the specification requires an offset whenever a time is given)
+and fails validation. Accepted times keep their instant, are stored in UTC,
+and are returned by the read API in the simulation zone with the offset.
+
+**`received_datetime`** is set by LabSentinel to the moment of ingestion
+(UTC), for every ingested observation. Seeded observations have none, because
+the prototype never recorded one.
+
+### Terminology (LOINC → test → syndrome)
+
+`app/fhir/terminology.py` is the only mapping, and a test pins it to the
+prototype's test catalogue:
+
+| LOINC | Test | Syndrome | Results |
+|---|---|---|---|
+| 92142-9 | Influenza A RNA | Respiratory Viral Syndrome | Positive / Negative |
+| 94500-6 | SARS-CoV-2 RNA | Respiratory Viral Syndrome | Positive / Negative |
+| 85479-4 | RSV RNA | Respiratory Viral Syndrome | Positive / Negative |
+
+**Unmapped LOINC.** A well-formed code that is not in the table is
+**stored**, with `terminology_status = 'unmapped'`, **no syndrome**, the
+source's display in `code_display`, and an `UNMAPPED_LOINC` warning. It is
+never given a guessed syndrome. A database CHECK enforces that a syndrome is
+present exactly when the code is mapped. Seeded rows are all `mapped`.
+Surveillance views filter by syndrome, so unmapped results wait for
+terminology review instead of skewing a signal.
+
+### Result normalization
+
+| `value[x]` | Mapped qualitative tests | Other (unmapped) tests |
+|---|---|---|
+| `valueCodeableConcept` | SNOMED CT 10828004 *Positive* / 260373001 *Detected* → **Positive**; 260385009 *Negative* / 260415000 *Not detected* → **Negative**. Otherwise its text or display, if it is exactly one of those words. Otherwise `INVALID_RESULT` | Same normalization when recognized, else the concept's text kept. The coding is stored in `result_code_system` / `result_code` |
+| `valueString` | Only those words (case- and space-insensitive) | Kept as given (≤ 255 characters) |
+| `valueQuantity` | `INVALID_RESULT` (a qualitative test cannot have a number) | `result_numeric`, `result_unit`, `result_unit_system` (e.g. UCUM `http://unitsofmeasure.org`), `result_unit_code`; a comparator is kept in `result_value` (`<5`). No unit conversion |
+| `valueBoolean` | `INVALID_RESULT` | `true` / `false` |
+| Range, Ratio, SampledData, Integer, Time, DateTime, Period, none | `INVALID_RESULT` | `INVALID_RESULT` (not supported yet) |
+
+### Facility resolution and geography
+
+Deterministic and configured (`app/fhir/resolver.py`), never inferred from
+free text or vendor names. For each `Observation.performer`:
+1. If it references an Organization in the submission (or contained), use
+   that Organization's identifier with system
+   **`urn:labsentinel:facility-code`** (value = facility code, e.g.
+   `HOSP-A`). Failing that, use its id from the development map:
+   `org-worcester-central` → HOSP-A, `org-central-mass-regional` → HOSP-B,
+   `org-shrewsbury-community` → HOSP-C.
+2. An unresolved `Organization/<id>` reference is looked up in the same map.
+3. A logical reference (`performer.identifier`) with that system is used as
+   given.
+
+If the Observation names no resolvable performer, the performer of the
+DiagnosticReport that lists it is tried. The result must be exactly one
+**active LabSentinel facility**. Anything else (none, conflicting, unknown
+code) is `UNRESOLVED_FACILITY`, and nothing is stored. Facilities are never
+created by ingestion.
+
+`geographic_unit` is the resolved facility's configured surveillance area
+(its postal code). No patient or street address is read or stored.
+
+### Privacy
+
+The data are synthetic, and the pipeline behaves as if they were not:
+- The subject becomes a **salted one-way pseudonym**, `FHIR-PT-<24 hex>`,
+  computed as HMAC-SHA256 over the source system and `subject.reference`, or
+  failing that `subject.identifier`. Set the salt with `FHIR_PSEUDONYM_SALT`.
+  The reference itself is never stored. `subject.display`, which can be a
+  name, is never read. With no subject, the pseudonym is `FHIR-NO-SUBJECT`.
+- Patient resources are never read, so their names, addresses, birth dates,
+  telecom and identifiers are never stored or logged. A test puts all of
+  these into a Bundle and confirms none appear in the database or the log.
+- Error messages and labels never include Patient ids or input values.
+- Logs record resource type and id, source id, facility, and outcome only.
+  Payloads are never logged.
+
+### Duplicates and transactions
+
+- **Idempotent.** The key is the existing unique pair
+  `(source_system, source_observation_id)`:
+  - When there is an identifier, it is `fhir:<identifier.system>` +
+    `identifier.value`. Resubmitting from anywhere is recognized.
+  - Otherwise it is `fhir:resource-id:<facility>` + `Observation/<id>`. A
+    server id is only unique within its source.
+
+  A resubmission is reported as `duplicate`, and nothing is written. If its
+  content differs, the response says so, but **amendments are not applied**
+  in this phase.
+- **Best effort, per Observation.** Each Observation is validated and
+  inserted in its own savepoint. Valid ones persist, rejected ones return
+  structured errors, and one failure never undoes another. The request
+  commits once at the end.
+- All FHIR `source_system` values start with `fhir:`, so ingested rows are
+  always distinguishable from the seed.
+
+### The frozen demonstration is protected
+
+- Effective times inside Nov 3–7, 2025 are rejected (`DEMO_PERIOD_RESERVED`).
+- `through_day` now means Day 1 through Day N (it is bounded below too), so
+  data dated before Day 1 cannot enter the demo's cumulative counts.
+- `python -m app.seed.verify` compares only seeded rows.
+- Signals, demo days and audit events are never written by ingestion.
+
+With FHIR data present, the frontend's API mode still matches local mode and
+the frozen `submission-v1.4` build on every screen.
+
+### Endpoint
+
+`POST /api/fhir/ingest`, Content-Type `application/fhir+json` (or
+`application/json`), maximum body `FHIR_MAX_REQUEST_BYTES` (default 5 MB).
+It **exists only with `APP_ENV=development`** and returns `404` otherwise.
+CORS lets browsers only read, so it is for command-line tools, not browser
+uploads. There are no other write endpoints: `POST`, `PUT` and `DELETE` on
+facilities and observations return `405`.
+
+Response (HTTP 200 whenever the request itself was readable):
+
+```json
+{
+  "resources_received": 8,
+  "observations_received": 3,
+  "observations_validated": 3,
+  "observations_created": 3,
+  "duplicates": 0,
+  "rejected": 0,
+  "errors": [],
+  "warnings": [],
+  "results": [
+    {"resource": "Observation/lab-e-flu", "outcome": "created", "observation_id": 701,
+     "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+     "source_observation_id": "C-PANEL-20260116-0001-FLUA", "message": null}
+  ]
+}
+```
+
+Each error or warning is `{code, message, resource, severity}`. There is
+never a stack trace, and `resource` is a safe label. Request-level failures
+use the same shape: `400` for invalid JSON or an unsupported top-level
+resource, `413` for a body that is too large, `415` for the wrong content
+type.
+
+| Code | Meaning |
+|---|---|
+| `INVALID_FHIR` | Not JSON, or not valid FHIR |
+| `UNSUPPORTED_RESOURCE` | A resource or Bundle type LabSentinel does not ingest |
+| `NON_LAB_OBSERVATION` | Not a laboratory result |
+| `NON_FINAL_STATUS` | Not final, amended or corrected |
+| `INVALID_LOINC` | No LOINC, conflicting LOINC, or malformed code |
+| `UNMAPPED_LOINC` | *Warning*: stored as unmapped |
+| `UNRESOLVED_FACILITY` | No single active facility |
+| `INVALID_RESULT` | Missing or uninterpretable value |
+| `MISSING_EFFECTIVE_TIME` / `INVALID_EFFECTIVE_TIME` | Missing, partial, offset-less or future time |
+| `DEMO_PERIOD_RESERVED` | Inside the frozen demonstration period |
+| `MISSING_IDENTIFIER` | Neither an identifier nor an id |
+| `UNRESOLVED_REFERENCE` | *Warning*: a Specimen or report result not in the submission |
+| `GEOGRAPHY_MISMATCH` | *Warning*: Location postal code differs from the facility's |
+| `DUPLICATE` | *Warning*: already ingested |
+
+### Manual demo (Windows PowerShell)
+
+With PostgreSQL and the API running (see
+[Full-stack development](#full-stack-development-api-capstone-mode)), from
+`backend\`:
+
+```powershell
+$base = "http://127.0.0.1:8000"
+function Ingest($file) {
+  $body = Get-Content -Raw -Encoding UTF8 $file
+  try { Invoke-RestMethod -Method Post -Uri "$base/api/fhir/ingest" -ContentType "application/fhir+json" -Body $body }
+  catch { $_.ErrorDetails.Message | ConvertFrom-Json }   # 400/413/415 bodies
+}
+
+# 1. A synthetic Influenza A Observation: created = 1
+Ingest examples\fhir\case-a-influenza-a-positive.json
+
+# 2. Read it back as a normalized LabObservation
+(Invoke-RestMethod "$base/api/observations?source_system=fhir:urn:labsentinel:synthetic:hosp-a:lab-result").items
+
+# 3. The same Observation again: duplicates = 1, created = 0
+Ingest examples\fhir\case-a-influenza-a-positive.json
+
+# 4. A Bundle with Organization, Location, Specimen, DiagnosticReport: created = 3
+Ingest examples\fhir\case-e-bundle-respiratory-panel.json
+
+# 5. Structured rejections
+Ingest examples\fhir\case-g-invalid-loinc.json              # INVALID_LOINC
+Ingest examples\fhir\case-j-vital-signs-not-laboratory.json # NON_LAB_OBSERVATION
+Ingest examples\fhir\case-k-malformed-json.txt              # INVALID_FHIR (HTTP 400)
+```
+
+The fixtures are described in [`examples/fhir/README.md`](examples/fhir/README.md).
+Ingested rows stay alongside the seed. To start a presentation from a clean
+slate, remove only the FHIR rows:
+
+```powershell
+docker compose exec db psql -U labsentinel -d labsentinel -c "DELETE FROM lab_observation WHERE source_system LIKE 'fhir:%'"
+```
+
+### Tests
+
+- `tests/test_fhir_rules.py` (70 tests, no database): parsing, safe error
+  text, status, laboratory detection, LOINC check digits, mapping, results,
+  timezones, source identity and pseudonyms.
+- `tests/test_fhir_ingestion.py` (29 tests), also re-run on PostgreSQL by
+  `tests/integration/test_fhir_postgres.py`. It covers the endpoint
+  end to end:
+  - every fixture, duplicates and changed resubmissions, Bundles, and
+    best-effort partial success
+  - `received_datetime`, and read-after-write through `GET /api/observations`
+  - the reserved demo period, and that the five-day demonstration's figures
+    are unchanged after ingesting every fixture
+  - content types, size limit, and 404 outside development
+  - privacy of the database and the log
+
 ## Current limitations
 
-- No FHIR ingestion, SMART on FHIR, or Epic, Oracle Health or MEDITECH
-  connectivity.
+- FHIR ingestion is development-only: no SMART on FHIR authorization, no
+  authentication, no rate limiting, and no live Epic, Oracle Health or MEDITECH
+  connection. Synthetic data only.
+- FHIR models are R4B (4.3.0) from `fhir.resources`. There is no strict R4
+  (4.0.1) profile validation, and no validation against US Core or other
+  implementation-guide profiles.
+- Only three LOINC codes are mapped. Other laboratory codes are kept as
+  unmapped. There is no terminology server, no unit conversion, and no
+  Range, Ratio or SampledData results.
+- Resubmitted amendments (same identifier, changed content) are reported,
+  not applied. Ingested rows are not yet aggregated into surveillance
+  signals: the five-day demonstration stays frozen.
 - No authentication, users or role-based access control. The API is for local
   development only.
 - No production security hardening, TLS or secrets management.
-- The data are synthetic capstone demonstration data from the prototype. FHIR
-  ingestion is not yet implemented, and the seed is the only way data enters.
-- The API is read-only. There is no endpoint for audit events. Investigation
-  and report state stay in the browser.
+- The data are synthetic capstone demonstration data. Only the seed and the
+  development FHIR endpoint write data.
+- Apart from FHIR ingestion, the API is read-only. There is no endpoint for
+  audit events. Investigation and report state stay in the browser.
 - No signal computation in the backend. Scores and Data Confidence are the
   prototype's own values, persisted as exported. Nothing is recalculated.
 - `received_datetime` is null for every seeded observation, because the
-  prototype records no receipt time.
+  prototype records no receipt time. FHIR-ingested observations always have
+  one.
 - The frontend calls this API only in API mode (`VITE_DATA_SOURCE=api`).
   Per-facility and per-area daily breakdowns, alert detection and feed health
   are still computed in the browser, because they are not persisted yet.

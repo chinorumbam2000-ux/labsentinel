@@ -17,15 +17,12 @@ from collections.abc import Iterator
 
 import pytest
 from alembic import command
-from sqlalchemy import Engine, make_url, pool, text
+from sqlalchemy import Engine, inspect, make_url, pool, text
 from sqlalchemy.orm import Session, sessionmaker
-
-from fastapi.testclient import TestClient
-from sqlalchemy import inspect
 
 from app.database import build_engine
 from app.seed import load_dataset, seed_demo_dataset
-from tests.conftest import alembic_config, client_for
+from tests.conftest import alembic_config
 
 TEST_URL_VARIABLE = "LABSENTINEL_TEST_DATABASE_URL"
 MANAGED_TABLES = (
@@ -107,10 +104,10 @@ def empty_session(pg_session: Session) -> Session:
 
 
 @pytest.fixture(scope="module")
-def seeded_client(pg_engine: Engine) -> Iterator[TestClient]:
+def seeded_engine(pg_engine: Engine) -> Iterator[Engine]:
+    """The PostgreSQL test database, seeded, for one module; emptied afterwards."""
     truncate_all(pg_engine)
     with Session(pg_engine) as session, session.begin():
         seed_demo_dataset(session, load_dataset())
-    with client_for(pg_engine) as test_client:
-        yield test_client
+    yield pg_engine
     truncate_all(pg_engine)
