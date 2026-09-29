@@ -39,6 +39,12 @@ OBSERVATION_STATUSES = (
 # Which FHIR Observation.value[x] shape the stored result came from.
 RESULT_TYPES = ("coded", "quantity", "string", "boolean")
 
+# participating: one of the surveillance network's facilities (shown by the
+# API and the dashboard). development: a fictional development source, such
+# as the SMART sandbox, reachable only through a configured development
+# mapping and never shown as a participating facility.
+FACILITY_PARTICIPATIONS = ("participating", "development")
+
 # Whether an observation's LOINC code maps to a LabSentinel test and syndrome.
 TERMINOLOGY_STATUSES = ("mapped", "unmapped")
 

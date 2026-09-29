@@ -487,3 +487,122 @@ def test_cors_allows_post_only_in_development(monkeypatch: pytest.MonkeyPatch) -
     get_settings.cache_clear()
     with TestClient(create_app()) as prod:
         assert prod.options("/api/fhir/ingest", headers=preflight).status_code == 400
+
+
+# --- Phase 6: SMART sandbox development source ---------------------------------------
+
+SANDBOX_ISSUER = "https://launch.smarthealthit.org/v/r4/fhir"
+
+
+def sandbox_observation(**changes) -> dict:
+    """A sandbox-style laboratory Observation as the SMART sidecar sends it."""
+    resource = {
+        "resourceType": "Observation",
+        "id": "sandbox-obs-0001",
+        "meta": {"source": SANDBOX_ISSUER, "lastUpdated": "2026-02-01T12:00:00Z"},
+        "status": "final",
+        "category": [{"coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory",
+        }]}],
+        "code": {"coding": [{"system": "http://loinc.org", "code": "94500-6", "display": "SARS-CoV-2 RNA"}]},
+        "subject": {"reference": "Patient/sandbox-patient-1"},
+        "effectiveDateTime": "2026-02-01T08:15:00-05:00",
+        "valueCodeableConcept": {"coding": [{"system": "http://snomed.info/sct", "code": "260373001"}]},
+    }
+    resource.update(changes)
+    return resource
+
+
+def provision_sandbox_facility(engine: Engine) -> None:
+    from app.models import Facility
+    from app.seed.smart_sandbox import CODE, VALUES
+
+    with Session(engine) as session, session.begin():
+        session.add(Facility(facility_code=CODE, **VALUES))
+
+
+def remove_sandbox_facility(engine: Engine) -> None:
+    from app.models import Facility
+
+    with engine.begin() as connection:
+        connection.execute(LabObservation.__table__.delete().where(LabObservation.source_system.like("fhir:%")))
+        connection.execute(Facility.__table__.delete().where(Facility.facility_code == "SMART-SANDBOX"))
+
+
+def test_sandbox_source_without_a_configured_facility_is_not_stored(fhir_env) -> None:
+    client, engine = fhir_env
+    response = post(client, sandbox_observation())
+
+    assert counts(response) == (0, 0, 0, 1)
+    assert response["results"][0]["issue_code"] == "UNRESOLVED_FACILITY"
+    assert "no LabSentinel facility mapping is configured" in response["errors"][0]["message"]
+    assert fhir_rows(engine) == []
+
+
+def test_sandbox_source_maps_only_to_the_development_facility(fhir_env) -> None:
+    client, engine = fhir_env
+    before = _demo_snapshot(client)
+    provision_sandbox_facility(engine)
+    try:
+        response = post(client, sandbox_observation())
+
+        assert counts(response) == (1, 1, 0, 0)
+        result = response["results"][0]
+        assert result["facility_code"] == "SMART-SANDBOX"
+        assert result["facility_resolution"] == "Configured development source (Observation.meta.source)"
+        row = fhir_rows(engine)[0]
+        assert (row.source_system, row.source_observation_id) == (
+            "fhir:resource-id:SMART-SANDBOX", "Observation/sandbox-obs-0001",
+        )
+        assert row.geographic_unit == "SANDBOX"
+        assert row.patient_reference.startswith("FHIR-PT-") and "sandbox-patient" not in row.patient_reference
+
+        # Not a participating facility: hidden from the network's facility list.
+        assert "SMART-SANDBOX" not in {f["facility_code"] for f in client.get("/api/facilities").json()}
+        everything = client.get("/api/facilities", params={"participation": "all"}).json()
+        assert {f["facility_code"]: f["participation"] for f in everything}["SMART-SANDBOX"] == "development"
+        # The five-day demonstration is untouched.
+        assert _demo_snapshot(client) == before
+    finally:
+        remove_sandbox_facility(engine)
+
+
+def test_development_facility_cannot_be_claimed_by_identifier(fhir_env) -> None:
+    client, engine = fhir_env
+    provision_sandbox_facility(engine)
+    try:
+        resource = example("case-a-influenza-a-positive.json")
+        resource["performer"] = [{"identifier": {"system": "urn:labsentinel:facility-code", "value": "SMART-SANDBOX"}}]
+        response = post(client, resource)
+        assert response["results"][0]["issue_code"] == "UNRESOLVED_FACILITY"
+        assert "development source" in response["errors"][0]["message"]
+    finally:
+        remove_sandbox_facility(engine)
+
+
+def test_other_meta_sources_are_not_mapped(fhir_env) -> None:
+    client, _ = fhir_env
+    resource = sandbox_observation(meta={"source": "https://fhir.example.org/r4"})
+    assert post(client, resource)["results"][0]["issue_code"] == "UNRESOLVED_FACILITY"
+
+
+def test_smart_sandbox_command_provisions_and_removes(seeded_engine, monkeypatch: pytest.MonkeyPatch) -> None:
+    from sqlalchemy.orm import sessionmaker
+
+    import app.seed.smart_sandbox as command
+    from app.models import Facility
+
+    monkeypatch.setattr(command, "get_session_factory", lambda: sessionmaker(bind=seeded_engine))
+    try:
+        assert command.main([]) == 0
+        assert command.main([]) == 0  # idempotent
+        with Session(seeded_engine) as session:
+            rows = session.scalars(select(Facility).where(Facility.facility_code == "SMART-SANDBOX")).all()
+            assert [(f.participation, f.country_code) for f in rows] == [("development", "ZZ")]
+        assert command.main(["--remove"]) == 0
+        with Session(seeded_engine) as session:
+            assert session.scalar(select(Facility).where(Facility.facility_code == "SMART-SANDBOX")) is None
+        monkeypatch.setattr(command, "get_settings", lambda: _settings_with(app_env="production"))
+        assert command.main([]) == 1
+    finally:
+        remove_sandbox_facility(seeded_engine)

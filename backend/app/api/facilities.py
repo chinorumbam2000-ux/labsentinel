@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -9,9 +11,16 @@ router = APIRouter(prefix="/api/facilities", tags=["facilities"])
 
 
 @router.get("", response_model=list[FacilityRead])
-def list_facilities(db: Session = Depends(get_db)) -> list[FacilityRead]:
-    """All active participating facilities."""
-    return [FacilityRead.model_validate(f) for f in facility_service.list_active_facilities(db)]
+def list_facilities(
+    participation: Literal["participating", "all"] = Query(
+        default="participating",
+        description="participating (default): the surveillance network. all: also development sources.",
+    ),
+    db: Session = Depends(get_db),
+) -> list[FacilityRead]:
+    """Active participating facilities (development sources with participation=all)."""
+    facilities = facility_service.list_active_facilities(db, include_development=participation == "all")
+    return [FacilityRead.model_validate(f) for f in facilities]
 
 
 @router.get(

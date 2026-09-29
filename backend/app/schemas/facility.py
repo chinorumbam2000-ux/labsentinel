@@ -21,5 +21,6 @@ class FacilityRead(BaseModel):
     region: str
     country_code: str
     active: bool
+    participation: str
     created_at: LocalDateTime
     updated_at: LocalDateTime

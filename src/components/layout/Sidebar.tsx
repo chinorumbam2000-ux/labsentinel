@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import BrandMark from '../common/BrandMark';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
+import { SMART_BUILD_CONFIG } from '../../smart/config';
 
 interface NavItem {
   to: string;
@@ -23,6 +24,10 @@ const PRIMARY_NAV: NavItem[] = [
 
 /** API capstone mode only: the development FHIR ingestion demonstration. */
 const API_MODE_NAV: NavItem[] = [{ to: '/fhir-ingestion', label: 'FHIR Ingestion', icon: '⇄' }];
+
+/** Only when the build enables the SMART sandbox (VITE_SMART_ENABLED=true). */
+const SMART_NAV: NavItem[] = [{ to: '/smart-demo', label: 'SMART Sandbox', icon: '⚿' }];
+const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled;
 
 const linkClasses = ({ isActive }: { isActive: boolean }): string =>
   [
@@ -47,7 +52,11 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { currentDay, signalScore, unacknowledgedCount } = useSimulation();
   const { source } = useDataSourceContext();
   // Local mode (the public GitHub Pages site) keeps its navigation unchanged.
-  const navItems = source.mode === 'api' ? [...PRIMARY_NAV, ...API_MODE_NAV] : PRIMARY_NAV;
+  const navItems = [
+    ...PRIMARY_NAV,
+    ...(source.mode === 'api' ? API_MODE_NAV : []),
+    ...(SMART_ENABLED ? SMART_NAV : []),
+  ];
 
   return (
     <nav

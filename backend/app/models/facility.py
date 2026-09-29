@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, CheckConstraint, String, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.vocabulary import FACILITY_PARTICIPATIONS, sql_in
 from app.database import Base
 from app.models.mixins import TimestampMixin
 
@@ -16,6 +17,7 @@ class Facility(TimestampMixin, Base):
     __tablename__ = "facility"
     __table_args__ = (
         CheckConstraint("length(country_code) = 2", name="country_code_length"),
+        CheckConstraint(sql_in("participation", FACILITY_PARTICIPATIONS), name="participation_valid"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -42,6 +44,12 @@ class Facility(TimestampMixin, Base):
         String(2), comment="ISO 3166-1 alpha-2 country code."
     )
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    participation: Mapped[str] = mapped_column(
+        String(20),
+        default="participating",
+        server_default="participating",
+        comment="participating (surveillance network) or development (fictional development source).",
+    )
 
     # passive_deletes="all": never NULL out children's facility_id on delete.
     # The database's ON DELETE RESTRICT decides, so a facility with

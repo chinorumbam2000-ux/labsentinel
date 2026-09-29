@@ -28,7 +28,10 @@ def compare_with_frontend(session: Session, raw: dict[str, Any]) -> list[str]:
             problems.append(f"{label}: database={stored!r} frontend={expected!r}")
 
     # Facilities and their vendor association.
-    facilities = {f.facility_code: f for f in session.scalars(select(Facility))}
+    facilities = {
+        f.facility_code: f
+        for f in session.scalars(select(Facility).where(Facility.participation == "participating"))
+    }
     check("facility codes", sorted(facilities), sorted(f["code"] for f in raw["facilities"]))
     for f in raw["facilities"]:
         stored = facilities.get(f["code"])

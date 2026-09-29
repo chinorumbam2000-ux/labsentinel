@@ -187,7 +187,8 @@ export const createFhirIngestionClient = (baseUrl: string, fetchImpl?: FetchLike
 
     /** Facility names and vendors by API id, for labelling results. */
     async facilities(signal?: AbortSignal): Promise<ApiFacilityLabel[]> {
-      const value = await client.getJson('/api/facilities', undefined, signal);
+      // participation=all: also label rows from development sources (e.g. the SMART sandbox).
+      const value = await client.getJson('/api/facilities', { participation: 'all' }, signal);
       if (
         !Array.isArray(value) ||
         !value.every((item) => isObject(item) && typeof item.id === 'number' && hasStrings(item, ['facility_code', 'name', 'vendor']))

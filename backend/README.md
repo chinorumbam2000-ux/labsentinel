@@ -1,10 +1,16 @@
 # LabSentinel API — backend foundation
 
 > This backend is the development foundation for the LabSentinel capstone.
-> SMART on FHIR authorization, production security, and live healthcare-system
-> connectivity are not implemented. FHIR R4 laboratory ingestion exists as a
-> **development-only** foundation for synthetic data (see
-> [FHIR R4 laboratory ingestion](#fhir-r4-laboratory-ingestion-development)).
+> Production security and live healthcare-system connectivity are not
+> implemented. FHIR R4 laboratory ingestion exists as a **development-only**
+> foundation for synthetic data (see
+> [FHIR R4 laboratory ingestion](#fhir-r4-laboratory-ingestion-development)),
+> and the frontend can be launched as a SMART on FHIR app against the public
+> SMART Health IT **sandbox** (see
+> [SMART on FHIR sandbox launch](#smart-on-fhir-sandbox-launch-development)).
+> SMART sandbox integration demonstrates standards-based launch and FHIR
+> access using synthetic data. It is not a live Epic, Oracle Health or
+> MEDITECH production connection.
 
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
@@ -316,7 +322,7 @@ Observations from either path are returned identically.
 
 | Path | Returns | Errors |
 |---|---|---|
-| `/api/facilities` | All active facilities, ordered by code | none |
+| `/api/facilities` | All active participating facilities, ordered by code. `?participation=all` also lists development facilities (the [SMART sandbox](#smart-on-fhir-sandbox-launch-development) facility) | `422` for another `participation` value |
 | `/api/facilities/{id}` | One facility | `404` |
 | `/api/observations` | One page of observations, oldest first (see below) | `422` for invalid filters |
 | `/api/observations/{id}` | One observation | `404` |
@@ -690,6 +696,13 @@ DiagnosticReport that lists it is tried. The result must be exactly one
 code) is `UNRESOLVED_FACILITY`, and nothing is stored. Facilities are never
 created by ingestion.
 
+Only when neither resolves, a configured **development source** rule
+applies: an `Observation.meta.source` starting with
+`https://launch.smarthealthit.org/` maps to the development facility
+`SMART-SANDBOX`, if it has been provisioned (see the
+[SMART → LabSentinel bridge](#smart--labsentinel-ingestion-bridge)). A
+development facility is never reachable as a performer.
+
 `geographic_unit` is the resolved facility's configured surveillance area
 (its postal code). No patient or street address is read or stored.
 
@@ -918,7 +931,7 @@ correctly, reported as a duplicate.
 - `tests/test_fhir_rules.py` (70 tests, no database): parsing, safe error
   text, status, laboratory detection, LOINC check digits, mapping, results,
   timezones, source identity and pseudonyms.
-- `tests/test_fhir_ingestion.py` (29 tests), also re-run on PostgreSQL by
+- `tests/test_fhir_ingestion.py` (44 tests), also re-run on PostgreSQL by
   `tests/integration/test_fhir_postgres.py`. It covers the endpoint
   end to end:
   - every fixture, duplicates and changed resubmissions, Bundles, and
@@ -928,12 +941,280 @@ correctly, reported as a duplicate.
     are unchanged after ingesting every fixture
   - content types, size limit, and 404 outside development
   - privacy of the database and the log
+  - the SMART sandbox development-source mapping (see below)
+
+## SMART on FHIR sandbox launch (development)
+
+> SMART sandbox integration demonstrates standards-based launch and FHIR
+> access using synthetic data. It is not a live Epic, Oracle Health or
+> MEDITECH production connection.
+
+LabSentinel can be launched as a real SMART on FHIR app against the public
+[SMART Health IT sandbox](https://launch.smarthealthit.org), following
+SMART App Launch 2.2.0. Everything it reads is synthetic sandbox data. It is
+off by default: the GitHub Pages site and a default local build contain no
+SMART controls and make no SMART requests.
+
+### Three different things
+
+| | Simulated vendor sidecar | Live SMART sandbox session | Future production integration |
+|---|---|---|---|
+| Where | `/hospitals` (Simulated Epic / Oracle Health / MEDITECH shells) | `/smart/sidecar`, launched by the SMART Health IT sandbox | A registered app inside a real EHR |
+| Authorization | None: a demonstration of placement | Real OAuth 2.0 authorization code flow with PKCE (public client) | Vendor app registration, organisation approval, confidential or asymmetric client auth as the vendor requires |
+| FHIR data | None | Synthetic sandbox Patients and Observations, read live | Real patient data under a data-use agreement |
+| Status | Unchanged prototype | Implemented (Phase 6, development only) | Not implemented |
+
+### Architecture
+
+```
+SMART Health IT launcher ──(iss + launch)──▶ /smart/launch
+        │                                         │ discovery: <iss>/.well-known/smart-configuration
+        │                                         ▼
+        │                          sandbox /auth/authorize (PKCE S256, scopes)
+        │                                         │ code + state
+        ▼                                         ▼
+  Standalone: /smart-demo button ──────────▶ /smart/callback ──token exchange──▶ /smart/sidecar
+                                                                                    │
+                        read-only: Observation?patient=…&category=laboratory ◀──────┤
+                                                                                    │ (API mode, on click)
+                        POST /api/fhir/ingest  (meta.source = issuer) ◀─────────────┘
+                              → the Phase 4 validator, resolver, normalizer, duplicate check
+```
+
+- **Client library:** [`fhirclient`](https://github.com/smart-on-fhir/client-js)
+  **3.0.0**, pinned exactly and loaded lazily (a separate ~34 KB chunk), so
+  a build with SMART disabled never downloads or runs it. 2.6.3 was not
+  used: it depends on `isomorphic-webcrypto`, which pulls the Expo toolchain
+  and ten moderate `npm audit` findings into the install. 3.0.0 ships
+  incomplete TypeScript declarations for its browser entry point, so
+  `src/smart/client.ts` wraps it in a small typed adapter. The only calls are
+  `authorize()` and `ready()`.
+- **Code:** `src/smart/` (configuration, launch parsing, the adapter,
+  display helpers and the bridge), `src/pages/smart/` (the four routes) and
+  `src/components/smart/`.
+- **Routes:** `/smart/launch` and `/smart/callback` are full-screen and
+  outside the application shell. `/smart/sidecar` is a compact full-screen
+  panel sized for an EHR side frame. `/smart-demo` is in the shell and is
+  listed in the navigation only when SMART is enabled.
+
+### Configuration
+
+Frontend build variables (see [`.env.example`](../.env.example)). None of
+them is secret, and none may ever hold a secret: every `VITE_*` value is
+compiled into the JavaScript the browser downloads.
+
+| Variable | Default | Notes |
+|---|---|---|
+| `VITE_SMART_ENABLED` | `false` | Only `true` / `false`. Anything else stops the app with a configuration error. |
+| `VITE_SMART_CLIENT_ID` | `labsentinel-capstone-sandbox` | The sandbox accepts any id for a public client. |
+| `VITE_SMART_SCOPES` | `openid fhirUser patient/Observation.rs` | Validated at startup (below). |
+| `VITE_SMART_REDIRECT_URI` | `<origin><base>smart/callback` | https, or http only on `localhost` / `127.0.0.1`. |
+| `VITE_SMART_STANDALONE_ISS` | SMART Health IT R4, patient standalone | The sandbox reads standalone launch options from the issuer path (`/v/r4/sim/<options>/fhir`); the default asks for its patient login and approval screens, public client, PKCE. Its plain R4 base rejects a standalone launch as "Invalid launch options". |
+
+**Local URLs** (Vite dev server):
+
+- Launch URL: `http://localhost:5173/labsentinel/smart/launch`
+- Redirect URL: `http://localhost:5173/labsentinel/smart/callback`
+
+### Security model
+
+- **Public client, PKCE.** There is no client secret anywhere in the
+  frontend. `fhirclient` uses PKCE S256 when the server advertises it
+  (`pkceMode: 'ifSupported'`), and the sandbox does.
+- **Least-privilege scopes.**
+
+  | Launch | Scopes requested | Why |
+  |---|---|---|
+  | EHR launch | `launch openid fhirUser patient/Observation.rs` | `launch` exchanges the EHR's launch token for its patient context; `openid fhirUser` identify the launching user (shown as a FHIR reference only); `patient/Observation.rs` reads and searches that patient's Observations, and nothing else. |
+  | Standalone | `launch/patient openid fhirUser patient/Observation.rs` | `launch/patient` asks the server to choose a patient. The rest is identical. |
+
+  There is no Patient read (no demographics are fetched or shown), no write
+  or `*` scope, and no `offline_access` (no refresh token is requested; the
+  sandbox issued none). Startup rejects a `VITE_SMART_SCOPES` containing any
+  of those, or a `launch` scope (it is added per launch type). The sandbox's
+  approval screen describes `launch/patient` as "Read all data about the
+  selected patient", but the granted scope, shown in the technical details,
+  is exactly the requested set.
+- **Tokens.** `fhirclient` keeps its state in `sessionStorage` (this tab
+  only, cleared when the tab closes). LabSentinel adds no token storage of
+  its own. The object the UI receives (`SmartSession`) has no field for an
+  access token, refresh token, ID token, authorization code or PKCE
+  verifier. The technical-details panel is a fixed whitelist. The
+  authorization code is removed from the address bar after the exchange.
+  **End SMART session** removes the library's state.
+- **Errors** are reduced to plain text: an OAuth error code and description
+  (tags stripped), never a stack trace or a server response body. Only
+  `access_denied` is shown as *Authorization Denied*. Any other OAuth error
+  (for example `invalid_request`, `invalid_scope`) is a *SMART Configuration
+  Error*.
+- **Nothing from the sandbox is persisted** except an Observation the user
+  explicitly sends through the bridge (below), and then only as the Phase 4
+  pipeline stores any Observation: pseudonymised patient reference, no
+  demographics, no Patient resource, no user identity.
+
+**Connection states:** Not Configured, Ready to Launch, Authorizing,
+Connected, Authorization Denied, FHIR Server Error, Session Expired, SMART
+Configuration Error. Each has an icon and a text label (never colour alone).
+
+### The sidecar
+
+After authorization, `/smart/sidecar` shows:
+
+- **SMART context:** connection state, FHIR server (host only), launch type,
+  the launching user as a FHIR reference (e.g. `Practitioner/…`), and the
+  patient context ID. No name, birth date or other demographics.
+- **Regional Respiratory Activity:** LabSentinel's own regional intelligence
+  (severity, Composite Outbreak Signal Score, Data Confidence) for the
+  current simulation day, with a link to the full view. It comes from the
+  existing data source (local or API) and is not derived from the sandbox.
+- **Sandbox laboratory Observations:** up to ten, read live with
+  `Observation?patient=<id>&category=laboratory&_sort=-date&_count=10`,
+  labelled "Sandbox FHIR data — not LabSentinel surveillance data."
+- **View SMART Technical Details:** SMART profile, FHIR base URL and
+  version, launch type, granted scopes, whether patient and user context
+  were supplied, PKCE (from the server's discovery document), authorization
+  status and token expiry time. Tokens are never displayed.
+
+### SMART → LabSentinel ingestion bridge
+
+In API mode, each sandbox Observation has **Send Eligible Lab Observation to
+LabSentinel**. It posts that one Observation to `POST /api/fhir/ingest`,
+unchanged except that `meta.source` is set to the SMART server's base URL.
+It goes through the **same** Phase 4 validation, facility resolution,
+terminology normalization and duplicate detection as any other submission:
+nothing is bypassed.
+
+**Facility mapping.** A sandbox Observation names no LabSentinel facility,
+and it must never be attributed to one of the three participating
+facilities (or to Epic, Oracle Health or MEDITECH). The resolver therefore
+has one extra, configured rule, tried only when no performer or
+DiagnosticReport performer resolves:
+
+| `Observation.meta.source` starts with | Facility |
+|---|---|
+| `https://launch.smarthealthit.org/` | `SMART-SANDBOX` (development) |
+
+`SMART-SANDBOX` is a fictional **development** facility
+(`participation = 'development'`, country `ZZ`, area `SANDBOX`). It is not
+created by migrations, seeding or ingestion. It exists only after:
+
+```powershell
+# from backend\
+python -m app.seed.smart_sandbox           # create it (refused when APP_ENV=production)
+python -m app.seed.smart_sandbox --remove  # delete it and its sandbox-ingested observations
+```
+
+- Without it, the bridge answers: *SMART source connected, but no
+  LabSentinel participating-facility mapping is configured.* Nothing is
+  stored.
+- With it, the Observation is validated and stored against `SMART-SANDBOX`.
+  Sending it again is reported as a duplicate. Laboratory codes outside the
+  three mapped respiratory tests are kept as `unmapped`, with no syndrome.
+- A development facility can be reached **only** through this rule: naming
+  `SMART-SANDBOX` as a performer (by identifier or reference) is rejected.
+- `GET /api/facilities` still returns only participating facilities
+  (`?participation=all` includes development ones), so API-mode parity, the
+  five-day demonstration and its scores (0, 24, 50, 74, 87) are unchanged.
+  Migration `0004` adds the `participation` column; every existing facility
+  is `participating`.
+
+### Running the sandbox demonstration (Windows PowerShell)
+
+```powershell
+# 1. Backend, as for API mode
+docker compose up -d db                       # from the repository root
+cd backend
+.venv\Scripts\Activate.ps1
+alembic upgrade head                          # includes 0004
+python -m app.seed                            # if not already seeded
+uvicorn app.main:app --reload --port 8000
+
+# 2. Frontend with SMART enabled (from the repository root, new terminal)
+$env:VITE_DATA_SOURCE = "api"
+$env:VITE_API_BASE_URL = "http://127.0.0.1:8000"
+$env:VITE_SMART_ENABLED = "true"
+npm run dev
+```
+
+Then open <http://localhost:5173/labsentinel/smart-demo>.
+
+- **EHR launch:** follow the page's *SMART Health IT launcher (prefilled)*
+  link. On the launcher choose *Provider EHR Launch*, pick a patient
+  (Synthea-generated patients have laboratory results) and a provider, and
+  press *Launch*. The launcher opens `/smart/launch?iss=…&launch=…`.
+- **Standalone launch:** press **Launch SMART Sandbox (Standalone)**, choose
+  a patient on the sandbox login page (any password), then **Approve**.
+
+The bridge needs API mode and, to store anything, `python -m app.seed.smart_sandbox`.
+
+#### Presentation story (about 5 minutes)
+
+1. Open **SMART on FHIR Sandbox** (`/smart-demo`). Read the disclaimer: synthetic
+   sandbox data, not a production vendor connection.
+2. Show the configuration: public client, no secret, the least-privilege
+   scopes, and the launch and redirect URLs.
+3. Open the prefilled SMART Health IT launcher and start a **Provider EHR
+   Launch** for a synthetic patient.
+4. LabSentinel receives `iss` + `launch`, fetches the server's SMART
+   configuration and redirects to its authorization endpoint with PKCE.
+5. Back at `/smart/callback`, the code is exchanged and removed from the
+   address bar. The sidecar opens **Connected**, showing the EHR launch type,
+   the practitioner reference and the patient context ID.
+6. Open **View SMART Technical Details**: granted scopes, PKCE S256, expiry.
+   No token appears anywhere on the page.
+7. Point at **Regional Respiratory Activity**: LabSentinel's regional
+   intelligence alongside the patient, the point of a sidecar.
+8. Scroll to the sandbox laboratory Observations, labelled as sandbox data.
+9. Press **Send Eligible Lab Observation to LabSentinel** before the sandbox
+   facility exists: *no participating-facility mapping is configured*, and
+   nothing is stored. Run `python -m app.seed.smart_sandbox`, send again: it
+   is validated, normalized and stored against `SMART-SANDBOX`. Send once
+   more: duplicate.
+10. Return to **Dashboard** or **Simulation**: the five-day scores are still 0,
+    24, 50, 74, 87. Close with the comparison table: simulated vendor sidecar,
+    live SMART sandbox session, future production integration.
+
+### Tests
+
+- Frontend, no network: `src/smart/__tests__/` (configuration and scope
+  validation, launch parsing, the adapter with `fhirclient` mocked, token
+  hygiene, bridge payload and outcomes) and `src/pages/smart/__tests__/`
+  (every route and state with SMART enabled and a mocked adapter; with SMART
+  disabled, that no route loads the library or makes a request).
+- Backend: the SMART tests in `tests/test_fhir_ingestion.py` (also run on
+  PostgreSQL): no mapping, mapping only to the development facility (hidden
+  from `/api/facilities`, demonstration unchanged), performer claims
+  rejected, other sources not mapped, and the provisioning command.
+- The live sandbox flow is **not** part of any automated suite. It was
+  verified manually (headless Edge) against launch.smarthealthit.org: EHR
+  and standalone launch, PKCE S256, granted scopes equal to the requested
+  scopes, no token in the page or console, and the bridge's
+  unmapped → created → duplicate sequence.
+
+### Sandbox limitations
+
+- Sandbox only. No Epic, Oracle Health or MEDITECH registration, and no
+  production SMART server has been used.
+- Public client only: no confidential or asymmetric (`private_key_jwt`)
+  client authentication, no backend services, no token refresh. An expired
+  session must be launched again.
+- The SMART Health IT sandbox is a shared public service: its data are
+  synthetic, can change, and include resources uploaded by other users.
+- One patient compartment and one resource type (`Observation`) are read.
+  The bridge sends one Observation at a time, on request. There is no
+  scheduled or bulk (`$export`) retrieval.
+- The launch and callback run in the browser. There is no server-side
+  session, no CDS Hooks, and no audit of who launched or what was sent
+  beyond the backend's ingestion audit.
 
 ## Current limitations
 
-- FHIR ingestion is development-only: no SMART on FHIR authorization, no
-  authentication, no rate limiting, and no live Epic, Oracle Health or MEDITECH
-  connection. Synthetic data only.
+- FHIR ingestion is development-only: no authentication of the caller, no
+  rate limiting, and no live Epic, Oracle Health or MEDITECH connection.
+  Synthetic data only.
+- SMART on FHIR is sandbox-only (SMART Health IT, public client). No vendor
+  registration, no production SMART server, no token refresh (see
+  [Sandbox limitations](#sandbox-limitations)).
 - FHIR models are R4B (4.3.0) from `fhir.resources`. There is no strict R4
   (4.0.1) profile validation, and no validation against US Core or other
   implementation-guide profiles.

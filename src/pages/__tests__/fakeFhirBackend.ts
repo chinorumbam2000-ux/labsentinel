@@ -44,7 +44,8 @@ export const fakeBackend = ({ down = false, disabled = false } = {}): FakeBacken
 
   const handler = async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input);
-    const path = url.slice(BASE.length);
+    // The recording predates the participation filter; the answer is the same.
+    const path = url.slice(BASE.length).replace('/api/facilities?participation=all', '/api/facilities');
     const method = init?.method ?? 'GET';
     calls.push(`${method} ${path}`);
     if (isDown) throw new TypeError('Failed to fetch');

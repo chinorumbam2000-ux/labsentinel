@@ -35,6 +35,15 @@ from app.models import Facility
 # Identifier system whose value is a LabSentinel facility code (e.g. HOSP-A).
 FACILITY_IDENTIFIER_SYSTEM = "urn:labsentinel:facility-code"
 
+# Development sources: an Observation whose meta.source starts with one of
+# these prefixes, and that names no resolvable performer, is attributed to
+# the given *development* facility — a fictional stand-in, never one of the
+# participating facilities. It takes effect only once that facility exists
+# (python -m app.seed.smart_sandbox); until then the Observation is rejected.
+DEVELOPMENT_SOURCE_FACILITIES: tuple[tuple[str, str], ...] = (
+    ("https://launch.smarthealthit.org/", "SMART-SANDBOX"),
+)
+
 # Development mapping of synthetic source Organization ids to facility codes.
 DEVELOPMENT_ORGANIZATION_IDS: dict[str, str] = {
     "org-worcester-central": "HOSP-A",
@@ -55,6 +64,7 @@ BY_ORGANIZATION_IDENTIFIER = f"Organization.identifier ({FACILITY_IDENTIFIER_SYS
 BY_DEVELOPMENT_ORGANIZATION_ID = "Configured development Organization id"
 BY_LOGICAL_IDENTIFIER = f"Performer logical identifier ({FACILITY_IDENTIFIER_SYSTEM})"
 VIA_REPORT = " via DiagnosticReport.performer"
+BY_DEVELOPMENT_SOURCE = "Configured development source (Observation.meta.source)"
 
 
 @dataclass(frozen=True)
@@ -145,6 +155,12 @@ def resolve_facility(
             ).items()
         }
     if not codes:
+        source = obs.meta.source if obs.meta is not None else None
+        for prefix, code in DEVELOPMENT_SOURCE_FACILITIES:
+            if source and source.startswith(prefix):
+                codes = {code: BY_DEVELOPMENT_SOURCE}
+                break
+    if not codes:
         raise IngestionError(
             IssueCode.UNRESOLVED_FACILITY,
             "No performer Organization could be resolved to a LabSentinel facility.",
@@ -158,10 +174,25 @@ def resolve_facility(
         )
     code, method = next(iter(codes.items()))
     facility = facilities.get(code)
+    if facility is None and method == BY_DEVELOPMENT_SOURCE:
+        raise IngestionError(
+            IssueCode.UNRESOLVED_FACILITY,
+            "The source is a known development source, but no LabSentinel facility mapping is "
+            f"configured for it (development facility {code} does not exist).",
+            label,
+        )
     if facility is None:
         raise IngestionError(
             IssueCode.UNRESOLVED_FACILITY,
             f"'{code}' is not an active LabSentinel facility.",
+            label,
+        )
+    # A development facility is reachable only through its configured source
+    # mapping — a submitter cannot simply claim it by identifier.
+    if facility.participation == "development" and method != BY_DEVELOPMENT_SOURCE:
+        raise IngestionError(
+            IssueCode.UNRESOLVED_FACILITY,
+            f"'{code}' is a development source and cannot be named as a performer.",
             label,
         )
     return ResolvedFacility(facility, method)

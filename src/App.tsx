@@ -1,4 +1,4 @@
-import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import { Link, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { SimulationProvider } from './context/SimulationContext';
 import { DataSourceProvider } from './data-access/DataSourceProvider';
 import AppShell from './components/layout/AppShell';
@@ -14,6 +14,10 @@ import SimulationPage from './pages/SimulationPage';
 import ReportsPage from './pages/ReportsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import FhirIngestionPage from './pages/FhirIngestionPage';
+import SmartLaunchPage from './pages/smart/SmartLaunchPage';
+import SmartCallbackPage from './pages/smart/SmartCallbackPage';
+import SmartSidecarPage from './pages/smart/SmartSidecarPage';
+import SmartDemoPage from './pages/smart/SmartDemoPage';
 
 function NotFoundPage() {
   return (
@@ -29,12 +33,29 @@ function NotFoundPage() {
   );
 }
 
+/** The simulation's state, shared by every route that shows LabSentinel data. */
+function SimulationLayout() {
+  return (
+    <SimulationProvider>
+      <Outlet />
+    </SimulationProvider>
+  );
+}
+
 export default function App() {
   return (
     <DataSourceProvider>
-      <SimulationProvider>
-        <Routes>
+      <Routes>
+        {/*
+          SMART launch and redirect URIs sit outside the simulation provider:
+          an OAuth round trip must not wait for (or depend on) LabSentinel's
+          own data source.
+        */}
+        <Route path="/smart/launch" element={<SmartLaunchPage />} />
+        <Route path="/smart/callback" element={<SmartCallbackPage />} />
+        <Route element={<SimulationLayout />}>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/smart/sidecar" element={<SmartSidecarPage />} />
           <Route
             element={
               <ErrorBoundary>
@@ -53,11 +74,13 @@ export default function App() {
             <Route path="/architecture" element={<ArchitecturePage />} />
             {/* Development FHIR ingestion demo. Local mode shows a notice only. */}
             <Route path="/fhir-ingestion" element={<FhirIngestionPage />} />
+            {/* SMART sandbox demo. Without VITE_SMART_ENABLED it shows a notice only. */}
+            <Route path="/smart-demo" element={<SmartDemoPage />} />
             <Route path="/index.html" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-        </Routes>
-      </SimulationProvider>
+        </Route>
+      </Routes>
     </DataSourceProvider>
   );
 }

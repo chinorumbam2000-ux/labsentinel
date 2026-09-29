@@ -24,9 +24,20 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 > endpoint (`POST /api/fhir/ingest`), fed with synthetic resources. In API
 > mode, a **FHIR Ingestion** page demonstrates it step by step. Ingested
 > results coexist with the seed without changing the frozen five-day
-> demonstration. This is a synthetic FHIR ingestion demonstration: there is
-> no SMART on FHIR yet, and no live Epic, Oracle Health or MEDITECH
-> connection.
+> demonstration. This is a synthetic FHIR ingestion demonstration, with no
+> live Epic, Oracle Health or MEDITECH connection.
+>
+> The app can also be launched as a real **SMART on FHIR** app (SMART App
+> Launch 2.2.0, EHR and standalone launch, public client with PKCE,
+> read-only `patient/Observation.rs` scope) against the public SMART Health
+> IT **sandbox**, when built with `VITE_SMART_ENABLED=true`: routes
+> `/smart-demo`, `/smart/launch`, `/smart/callback` and `/smart/sidecar`. It
+> is off by default, so the GitHub Pages site has no SMART controls and makes
+> no SMART requests. SMART sandbox integration demonstrates standards-based
+> launch and FHIR access using synthetic data. It is not a live Epic, Oracle
+> Health or MEDITECH production connection. The simulated vendor
+> environments on `/hospitals` are unchanged. See
+> [SMART on FHIR sandbox launch](backend/README.md#smart-on-fhir-sandbox-launch-development).
 >
 > Both modes show identical values. See
 > [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
