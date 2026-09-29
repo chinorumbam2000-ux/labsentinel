@@ -5,8 +5,12 @@ from app.core.simulation import FIRST_DAY, utc_bounds_for_day
 from app.models import Facility, LabObservation
 from app.schemas.lab_observation import ObservationFilters
 
+# Every FHIR-ingested observation's source_system starts with this.
+FHIR_SOURCE_PREFIX = "fhir:"
+
 SORT_COLUMNS = {
     "effective_datetime": LabObservation.effective_datetime,
+    "received_datetime": LabObservation.received_datetime,
     "facility_name": Facility.name,
     "vendor": Facility.vendor,
     "patient_reference": LabObservation.patient_reference,
@@ -58,6 +62,10 @@ def _filtered(filters: ObservationFilters) -> Select[tuple[LabObservation]]:
         query = query.where(LabObservation.facility_id == filters.facility_id)
     if filters.source_system is not None:
         query = query.where(LabObservation.source_system == filters.source_system)
+    if filters.origin == "fhir":
+        query = query.where(LabObservation.source_system.like(f"{FHIR_SOURCE_PREFIX}%"))
+    elif filters.origin == "seed":
+        query = query.where(~LabObservation.source_system.like(f"{FHIR_SOURCE_PREFIX}%"))
     if filters.vendor is not None:
         query = query.where(Facility.vendor == filters.vendor)
     if filters.loinc_code is not None:

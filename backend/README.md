@@ -338,12 +338,13 @@ Responses are Pydantic schemas, never ORM objects.
 | `day` | Simulation day 1–5: that local calendar day |
 | `through_day` | Simulation days 1 through N inclusive (the Laboratory Data "cumulative" scope). Bounded on both sides: nothing dated before Day 1 |
 | `facility_id` | Facility id (from `/api/facilities`) |
+| `origin` | `fhir`: FHIR-ingested observations (`source_system` starting `fhir:`); `seed`: the seeded dataset |
 | `source_system` | Exact source system: a seeded facility environment (e.g. `Simulated Epic Environment`) or a FHIR source (`fhir:...`) |
 | `vendor` | Facility vendor label, exact, for example `MEDITECH` |
 | `loinc_code` | For example `92142-9` |
 | `result` | `Positive` or `Negative` (exact case) |
 | `q` | Case-insensitive text search, up to 100 characters. It matches a substring of the observation id, patient reference, facility name, vendor, test name, LOINC code, area and result, joined by spaces, exactly as the prototype's browser search does. `%` and `_` are matched literally |
-| `sort` | `effective_datetime` (default), `facility_name`, `vendor`, `patient_reference`, `result` or `test_name` |
+| `sort` | `effective_datetime` (default), `received_datetime`, `facility_name`, `vendor`, `patient_reference`, `result` or `test_name` |
 | `order` | `asc` (default) or `desc`. Rows with equal values always stay in source order |
 | `limit` | Page size. Default **100**, maximum **500** |
 | `offset` | Rows to skip. Default 0 |
@@ -739,11 +740,16 @@ the frozen `submission-v1.4` build on every screen.
 
 ### Endpoint
 
+Also development-only: `GET /api/fhir/examples` lists the synthetic
+fixtures (id, title, description, kind, expected outcome), and
+`GET /api/fhir/examples/{id}` returns one fixture's content exactly as
+stored. No filesystem path is ever exposed.
+
 `POST /api/fhir/ingest`, Content-Type `application/fhir+json` (or
 `application/json`), maximum body `FHIR_MAX_REQUEST_BYTES` (default 5 MB).
 It **exists only with `APP_ENV=development`** and returns `404` otherwise.
-CORS lets browsers only read, so it is for command-line tools, not browser
-uploads. There are no other write endpoints: `POST`, `PUT` and `DELETE` on
+In development, CORS also allows `POST` for the FHIR Ingestion page (below).
+Everywhere else it is `GET`-only. There are no other write endpoints: `POST`, `PUT` and `DELETE` on
 facilities and observations return `405`.
 
 Response (HTTP 200 whenever the request itself was readable):
@@ -829,6 +835,84 @@ slate, remove only the FHIR rows:
 docker compose exec db psql -U labsentinel -d labsentinel -c "DELETE FROM lab_observation WHERE source_system LIKE 'fhir:%'"
 ```
 
+### FHIR Ingestion Demo page (API capstone mode)
+
+> This is a synthetic FHIR ingestion demonstration. No live Epic, Oracle
+> Health or MEDITECH connection exists.
+
+The React app has a **FHIR Ingestion** page (`/fhir-ingestion`) that makes
+this pipeline visible in class. It appears in the navigation **only in API
+Capstone Mode** (`VITE_DATA_SOURCE=api`) against a backend running with
+`APP_ENV=development`.
+
+In Local Demo Mode, which the GitHub Pages site uses, the navigation is
+unchanged. The route only shows *"FHIR ingestion requires LabSentinel API
+Capstone Mode."*, with no controls, and the page never builds an API client
+or sends a request.
+
+What the page shows, all from the backend's actual responses:
+
+| Section | Source |
+|---|---|
+| **FHIR Ingestion API / PostgreSQL / API** status | `GET /api/fhir/examples` (404 means "disabled: not development"), `/api/health`, `/api/health/database` |
+| **Example fixture** selector | `GET /api/fhir/examples` and `/api/fhir/examples/{id}`, served from `backend/examples/fhir` (development only; no paths exposed). Grouped as valid, Bundle and invalid |
+| **Synthetic FHIR JSON** editor | A plain monospaced text area, with **Format JSON**, **Reset** and **Load Example** |
+| **Ingest Synthetic FHIR** / **Ingest Again** | One `POST /api/fhir/ingest` each. While it runs, "Validating FHIR… Normalizing terminology… Resolving facility… Persisting observation…" describe what that single request does; they are not separate calls |
+| **Result summary** | Resources received, observations validated, created, duplicates, rejected. For a Bundle, also its contents by resource type and a note that processing is best effort per Observation |
+| **Pipeline** | FHIR R4 → Validation → Facility resolution → LOINC/result normalization → PostgreSQL → LabSentinel observation, in the backend's real order. Each stage shows *Success / Warning / Failed / Not reached* as text and icon (not color alone), from the result's `issue_code`, `warnings` and outcome. Nothing after a failure is shown as succeeded |
+| **Source FHIR vs Normalized LabSentinel record** | The submitted Observation next to the stored record, fetched with `GET /api/observations/{id}` |
+| **Terminology** card | The FHIR LOINC coding → the stored test and syndrome (or "not mapped") |
+| **Facility resolution** card | The configured rule the backend reports in `facility_resolution` → the fictional facility and its simulated environment |
+| **Effective vs received time** | When the synthetic event occurred vs when LabSentinel ingested it |
+| **Structured issues** | `code`, plain-language explanation and message. Never a stack trace |
+| **Recent FHIR ingestions** | `GET /api/observations?origin=fhir&sort=received_datetime&order=desc&limit=8`. Never the 699 seeded rows |
+
+Ingestion results carry `facility_code`, `facility_resolution`,
+`issue_code` and per-Observation `warnings`, so the page explains what the
+backend actually did instead of inferring it. In development the API's CORS
+allows `POST` for this page, and every other environment stays `GET`-only.
+
+**Laboratory Data is unchanged on purpose.** It is the frozen five-day
+simulation's view (Nov 3–7, 2025), and ingested observations are dated
+outside that window, so they do not appear there. That is what keeps the
+Day 1–Day 5 figures (scores 0, 24, 50, 74, 87) identical. Find ingested rows
+in the page's **Recent FHIR ingestions** table or with
+`GET /api/observations?origin=fhir`.
+
+#### Running the full-stack demonstration
+
+1. `docker compose up -d db` (repository root).
+2. From `backend\`: `.venv\Scripts\Activate.ps1`, `alembic upgrade head`,
+   `python -m app.seed`, then `uvicorn app.main:app --reload --port 8000`
+   (`APP_ENV` defaults to `development`).
+3. From the repository root, in PowerShell:
+   `$env:VITE_DATA_SOURCE = "api"; $env:VITE_API_BASE_URL = "http://127.0.0.1:8000"; npm run dev`
+4. Open <http://localhost:5173/labsentinel/fhir-ingestion>.
+
+To start a presentation from a clean slate, first remove earlier FHIR rows
+(the command above under *Manual demo*). Otherwise the first ingestion is,
+correctly, reported as a duplicate.
+
+#### Suggested presentation sequence (about 5 minutes)
+
+1. Point at the status row (API and PostgreSQL connected) and the
+   synthetic-data banner.
+2. **Influenza A positive Observation**: Load Example → Ingest. The result
+   is *Created 1*, with all stages *Success*. Walk through Source FHIR vs the
+   Normalized record, then the terminology, facility and time cards.
+3. **Ingest Again**: *Created 0, Duplicates 1*. PostgreSQL shows a warning
+   because the same source system + source observation ID was detected, so
+   nothing was written.
+4. **Multi-resource Bundle**: 8 resources received, 3 Observations created.
+   Choose each Observation from the selector, and show that the facility came
+   from the DiagnosticReport's performer.
+5. **Non-laboratory Observation**: *Rejected 1*, `NON_LAB_OBSERVATION`.
+   The pipeline stops at Validation and later stages show *Not reached*.
+   Optionally, **Unresolved facility** stops at Facility resolution, and
+   **Malformed FHIR JSON** is an HTTP 400.
+6. Show **Recent FHIR ingestions**, then open **Simulation** or **Dashboard**:
+   the five-day scores are still 0, 24, 50, 74, 87.
+
 ### Tests
 
 - `tests/test_fhir_rules.py` (70 tests, no database): parsing, safe error
@@ -856,6 +940,9 @@ docker compose exec db psql -U labsentinel -d labsentinel -c "DELETE FROM lab_ob
 - Only three LOINC codes are mapped. Other laboratory codes are kept as
   unmapped. There is no terminology server, no unit conversion, and no
   Range, Ratio or SampledData results.
+- The FHIR Ingestion page is a development demonstration: it runs only in
+  API mode against a development backend, and has no file upload,
+  authentication or audit of who ingested what.
 - Resubmitted amendments (same identifier, changed content) are reported,
   not applied. Ingested rows are not yet aggregated into surveillance
   signals: the five-day demonstration stays frozen.

@@ -13,6 +13,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import SimulationPage from './pages/SimulationPage';
 import ReportsPage from './pages/ReportsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
+import FhirIngestionPage from './pages/FhirIngestionPage';
 
 function NotFoundPage() {
   return (
@@ -50,6 +51,8 @@ export default function App() {
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
+            {/* Development FHIR ingestion demo. Local mode shows a notice only. */}
+            <Route path="/fhir-ingestion" element={<FhirIngestionPage />} />
             <Route path="/index.html" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

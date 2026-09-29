@@ -50,14 +50,31 @@ class ReportContext:
     source_id: str | None
 
 
-def _code_from_organization(org: FHIRAbstractModel) -> str | None:
+# How a facility was resolved, as shown to people (e.g. the ingestion demo).
+BY_ORGANIZATION_IDENTIFIER = f"Organization.identifier ({FACILITY_IDENTIFIER_SYSTEM})"
+BY_DEVELOPMENT_ORGANIZATION_ID = "Configured development Organization id"
+BY_LOGICAL_IDENTIFIER = f"Performer logical identifier ({FACILITY_IDENTIFIER_SYSTEM})"
+VIA_REPORT = " via DiagnosticReport.performer"
+
+
+@dataclass(frozen=True)
+class ResolvedFacility:
+    facility: Facility
+    #: Which configured rule matched, e.g. BY_ORGANIZATION_IDENTIFIER.
+    method: str
+
+
+def _code_from_organization(org: FHIRAbstractModel) -> tuple[str, str] | None:
     for identifier in getattr(org, "identifier", None) or []:
         if identifier.system == FACILITY_IDENTIFIER_SYSTEM and identifier.value:
-            return identifier.value
-    return DEVELOPMENT_ORGANIZATION_IDS.get(org.id or "")
+            return identifier.value, BY_ORGANIZATION_IDENTIFIER
+    code = DEVELOPMENT_ORGANIZATION_IDS.get(org.id or "")
+    return (code, BY_DEVELOPMENT_ORGANIZATION_ID) if code else None
 
 
-def _code_from_reference(reference, submission: Submission, context: FHIRAbstractModel) -> str | None:
+def _code_from_reference(
+    reference, submission: Submission, context: FHIRAbstractModel
+) -> tuple[str, str] | None:
     target = resolve_reference(reference.reference, submission, context)
     if target is not None:
         if target.get_resource_type() != "Organization":
@@ -66,19 +83,24 @@ def _code_from_reference(reference, submission: Submission, context: FHIRAbstrac
     if reference.reference:
         parts = reference.reference.rstrip("/").split("/")
         if len(parts) >= 2 and parts[-2] == "Organization":
-            return DEVELOPMENT_ORGANIZATION_IDS.get(parts[-1])
+            code = DEVELOPMENT_ORGANIZATION_IDS.get(parts[-1])
+            if code:
+                return code, BY_DEVELOPMENT_ORGANIZATION_ID
     identifier = reference.identifier
     if identifier is not None and identifier.system == FACILITY_IDENTIFIER_SYSTEM and identifier.value:
-        return identifier.value
+        return identifier.value, BY_LOGICAL_IDENTIFIER
     return None
 
 
-def _codes_from_performers(performers, submission: Submission, context: FHIRAbstractModel) -> set[str]:
-    codes = set()
+def _codes_from_performers(
+    performers, submission: Submission, context: FHIRAbstractModel
+) -> dict[str, str]:
+    """Facility code → the rule that produced it, for every resolvable performer."""
+    codes: dict[str, str] = {}
     for performer in performers or []:
-        code = _code_from_reference(performer, submission, context)
-        if code:
-            codes.add(code)
+        match = _code_from_reference(performer, submission, context)
+        if match:
+            codes.setdefault(match[0], match[1])
     return codes
 
 
@@ -113,10 +135,15 @@ def resolve_facility(
     submission: Submission,
     report: ReportContext | None,
     facilities: dict[str, Facility],
-) -> Facility:
+) -> ResolvedFacility:
     codes = _codes_from_performers(obs.performer, submission, obs)
     if not codes and report is not None:
-        codes = _codes_from_performers(report.report.performer, submission, report.report)
+        codes = {
+            code: method + VIA_REPORT
+            for code, method in _codes_from_performers(
+                report.report.performer, submission, report.report
+            ).items()
+        }
     if not codes:
         raise IngestionError(
             IssueCode.UNRESOLVED_FACILITY,
@@ -129,7 +156,7 @@ def resolve_facility(
             f"Performers resolve to different facilities ({', '.join(sorted(codes))}).",
             label,
         )
-    code = codes.pop()
+    code, method = next(iter(codes.items()))
     facility = facilities.get(code)
     if facility is None:
         raise IngestionError(
@@ -137,7 +164,7 @@ def resolve_facility(
             f"'{code}' is not an active LabSentinel facility.",
             label,
         )
-    return facility
+    return ResolvedFacility(facility, method)
 
 
 def specimen_type(
@@ -181,8 +208,8 @@ def check_locations(
         location = parsed.model
         if location is None or location.managingOrganization is None:
             continue
-        code = _code_from_reference(location.managingOrganization, submission, location)
-        facility = facilities_by_code.get(code or "")
+        match = _code_from_reference(location.managingOrganization, submission, location)
+        facility = facilities_by_code.get(match[0]) if match else None
         postal = location.address.postalCode if location.address else None
         if facility is not None and postal and postal != facility.postal_code:
             issues.append(

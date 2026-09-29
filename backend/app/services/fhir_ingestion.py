@@ -50,6 +50,13 @@ class ObservationOutcome:
     source_system: str | None = None
     source_observation_id: str | None = None
     message: str | None = None
+    #: The rejecting issue's code, for a rejected Observation.
+    issue_code: str | None = None
+    facility_code: str | None = None
+    #: Which configured rule resolved the facility (see app.fhir.resolver).
+    facility_resolution: str | None = None
+    #: Warning codes raised for this Observation (UNMAPPED_LOINC, DUPLICATE...).
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -76,21 +83,22 @@ def _normalize(
     received_at: datetime,
     salt: str,
     warnings: list[IngestionIssue],
-) -> tuple[NormalizedObservation, Facility]:
+) -> tuple[NormalizedObservation, resolver.ResolvedFacility]:
+    """
+    The pipeline, in the order the ingestion demo shows it:
+    validation → facility resolution → terminology/result normalization →
+    source identity (the key persistence uses).
+    """
     obs: Observation = parsed.model  # type: ignore[assignment]
     label = parsed.label
+
+    # 1. Validation.
     validator.check_status(obs, label)
     if obs.code is None:
         raise IngestionError(IssueCode.INVALID_FHIR, "Observation.code is required.", label)
     validator.check_laboratory(obs, label)
     loinc = validator.check_loinc(obs, label)
     effective = normalizer.to_utc(validator.effective_time(obs, label, received_at))
-
-    report = reports.get(id(obs))
-    facility = resolver.resolve_facility(obs, label, submission, report, facilities)
-    source_system, source_id = normalizer.source_identity(obs, facility.facility_code, label)
-    label = f"{label} ({source_id})" if label.startswith("entry[") else label
-
     start, end = demo_period_utc()
     if start <= effective < end:
         raise IngestionError(
@@ -100,11 +108,20 @@ def _normalize(
             label,
         )
 
+    # 2. Facility resolution.
+    report = reports.get(id(obs))
+    resolved = resolver.resolve_facility(obs, label, submission, report, facilities)
+    facility = resolved.facility
+
+    # 3. Terminology and result normalization.
     local_warnings: list[IngestionIssue] = []
     syndrome, test_name, status, display = normalizer.terminology_fields(obs, loinc, label, local_warnings)
     result = normalizer.normalize_result(obs, loinc, label)
     specimen = resolver.specimen_type(obs, label, submission, report, local_warnings)
     warnings.extend(local_warnings)
+
+    # 4. Source identity: the key persistence uses for duplicate detection.
+    source_system, source_id = normalizer.source_identity(obs, facility.facility_code, label)
 
     return (
         NormalizedObservation(
@@ -125,7 +142,7 @@ def _normalize(
             source_report_id=report.source_id if report else None,
             specimen_type=specimen,
         ),
-        facility,
+        resolved,
     )
 
 
@@ -174,26 +191,45 @@ def ingest_document(
         if parsed.model is None:
             # Structural validation already failed and was reported.
             report.rejected += 1
-            report.results.append(ObservationOutcome(parsed.label, "rejected", message="Invalid FHIR"))
+            report.results.append(
+                ObservationOutcome(
+                    parsed.label,
+                    "rejected",
+                    message="Not valid FHIR.",
+                    issue_code=IssueCode.INVALID_FHIR.value,
+                )
+            )
             logger.info("FHIR ingest: %s rejected (INVALID_FHIR)", parsed.label)
             continue
 
         warnings: list[IngestionIssue] = []
         try:
-            normalized, facility = _normalize(
+            normalized, resolved = _normalize(
                 parsed, submission, reports, facilities, received_at, salt, warnings
             )
         except IngestionError as error:
             report.rejected += 1
             report.add_issue(error.issue)
             report.results.append(
-                ObservationOutcome(parsed.label, "rejected", message=error.issue.code.value)
+                ObservationOutcome(
+                    parsed.label,
+                    "rejected",
+                    message=error.issue.message,
+                    issue_code=error.issue.code.value,
+                    warnings=[w.code.value for w in warnings],
+                )
             )
             logger.info("FHIR ingest: %s rejected (%s)", parsed.label, error.issue.code.value)
             continue
 
         for warning in warnings:
             report.add_issue(warning)
+        facility = resolved.facility
+        context = {
+            "facility_code": facility.facility_code,
+            "facility_resolution": resolved.method,
+            "warnings": [w.code.value for w in warnings],
+        }
         report.observations_validated += 1
         values = normalized.column_values()
         key = (normalized.source_system, normalized.source_observation_id)
@@ -223,7 +259,7 @@ def ingest_document(
             else:
                 report.observations_created += 1
                 report.results.append(
-                    ObservationOutcome(parsed.label, "created", row.id, key[0], key[1])
+                    ObservationOutcome(parsed.label, "created", row.id, key[0], key[1], **context)
                 )
                 logger.info(
                     "FHIR ingest: %s created as observation %s (facility %s, %s)",
@@ -239,8 +275,9 @@ def ingest_document(
             else "Already ingested; nothing written."
         )
         report.add_issue(IngestionIssue(IssueCode.DUPLICATE, message, parsed.label, "warning"))
+        context["warnings"].append(IssueCode.DUPLICATE.value)
         report.results.append(
-            ObservationOutcome(parsed.label, "duplicate", existing.id, key[0], key[1], message)
+            ObservationOutcome(parsed.label, "duplicate", existing.id, key[0], key[1], message, **context)
         )
         logger.info("FHIR ingest: %s duplicate of observation %s", parsed.label, existing.id)
 

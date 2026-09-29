@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import BrandMark from '../common/BrandMark';
 import { useSimulation } from '../../context/SimulationContext';
+import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 
 interface NavItem {
   to: string;
@@ -19,6 +20,9 @@ const PRIMARY_NAV: NavItem[] = [
   { to: '/simulation', label: 'Simulation', icon: '▶' },
   { to: '/architecture', label: 'Architecture', icon: '⊞' },
 ];
+
+/** API capstone mode only: the development FHIR ingestion demonstration. */
+const API_MODE_NAV: NavItem[] = [{ to: '/fhir-ingestion', label: 'FHIR Ingestion', icon: '⇄' }];
 
 const linkClasses = ({ isActive }: { isActive: boolean }): string =>
   [
@@ -41,6 +45,9 @@ function ActiveMarker({ isActive }: { isActive: boolean }) {
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { currentDay, signalScore, unacknowledgedCount } = useSimulation();
+  const { source } = useDataSourceContext();
+  // Local mode (the public GitHub Pages site) keeps its navigation unchanged.
+  const navItems = source.mode === 'api' ? [...PRIMARY_NAV, ...API_MODE_NAV] : PRIMARY_NAV;
 
   return (
     <nav
@@ -71,7 +78,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         <ul className="space-y-0.5">
-          {PRIMARY_NAV.map((item) => (
+          {navItems.map((item) => (
             <li key={item.to}>
               <NavLink to={item.to} className={linkClasses} onClick={onNavigate}>
                 {({ isActive }) => (

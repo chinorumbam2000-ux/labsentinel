@@ -3,6 +3,21 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+class FhirExampleSummary(BaseModel):
+    """A synthetic development fixture, described without its filesystem location."""
+
+    id: str
+    title: str
+    description: str
+    kind: Literal["valid", "bundle", "invalid"]
+    expected: str
+
+
+class FhirExampleContent(FhirExampleSummary):
+    #: The fixture exactly as stored — text, because one example is malformed JSON.
+    content: str
+
+
 class IngestionIssueRead(BaseModel):
     code: str = Field(description="Stable issue code, e.g. UNMAPPED_LOINC.")
     message: str
@@ -19,6 +34,12 @@ class ObservationOutcomeRead(BaseModel):
     source_system: str | None = None
     source_observation_id: str | None = None
     message: str | None = None
+    issue_code: str | None = Field(default=None, description="Code of the rejecting issue.")
+    facility_code: str | None = None
+    facility_resolution: str | None = Field(
+        default=None, description="Which configured rule resolved the performing facility."
+    )
+    warnings: list[str] = Field(default_factory=list, description="Warning codes for this Observation.")
 
 
 class IngestionResponse(BaseModel):

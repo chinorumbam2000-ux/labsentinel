@@ -8,7 +8,15 @@ from app.schemas.common import LocalDateTime
 DEFAULT_LIMIT = 100
 MAX_LIMIT = 500
 
-SortKey = Literal["effective_datetime", "facility_name", "vendor", "patient_reference", "result", "test_name"]
+SortKey = Literal[
+    "effective_datetime",
+    "received_datetime",
+    "facility_name",
+    "vendor",
+    "patient_reference",
+    "result",
+    "test_name",
+]
 
 
 class ObservationFilters(BaseModel):
@@ -31,6 +39,10 @@ class ObservationFilters(BaseModel):
         default=None,
         max_length=100,
         description='Exact source system, e.g. "Simulated Epic Environment" (seed) or "fhir:..." (FHIR).',
+    )
+    origin: Literal["seed", "fhir"] | None = Field(
+        default=None,
+        description="fhir: observations from FHIR ingestion (source_system 'fhir:...'); seed: the rest.",
     )
     vendor: str | None = Field(default=None, max_length=100)
     loinc_code: str | None = Field(default=None, max_length=20)

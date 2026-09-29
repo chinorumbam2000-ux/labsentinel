@@ -16,9 +16,10 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.fhir.examples import EXAMPLES, EXAMPLES_BY_ID
 from app.fhir.exceptions import IngestionIssue, IssueCode, RequestRejected
 from app.fhir.parser import parse_json
-from app.schemas.fhir import IngestionResponse
+from app.schemas.fhir import FhirExampleContent, FhirExampleSummary, IngestionResponse
 from app.services.fhir_ingestion import IngestionReport, ingest_document
 
 logger = logging.getLogger("app.fhir.ingestion")
@@ -37,6 +38,35 @@ router = APIRouter(
     tags=["FHIR ingestion (development only)"],
     dependencies=[Depends(require_development)],
 )
+
+
+def _summary(example) -> FhirExampleSummary:
+    return FhirExampleSummary(
+        id=example.id,
+        title=example.title,
+        description=example.description,
+        kind=example.kind,
+        expected=example.expected,
+    )
+
+
+@router.get("/examples", response_model=list[FhirExampleSummary])
+def list_examples() -> list[FhirExampleSummary]:
+    """The synthetic development fixtures (backend/examples/fhir), described."""
+    return [_summary(example) for example in EXAMPLES]
+
+
+@router.get(
+    "/examples/{example_id}",
+    response_model=FhirExampleContent,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "No such example."}},
+)
+def get_example(example_id: str) -> FhirExampleContent:
+    """One synthetic fixture's content, exactly as stored (it may be deliberately malformed)."""
+    example = EXAMPLES_BY_ID.get(example_id)
+    if example is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Example not found.")
+    return FhirExampleContent(**_summary(example).model_dump(), content=example.content())
 
 
 async def read_body(request: Request) -> bytes:

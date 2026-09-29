@@ -1,0 +1,546 @@
+{
+  "get": {
+    "/api/fhir/examples": [
+      {
+        "id": "influenza-a-positive",
+        "title": "Influenza A positive Observation",
+        "description": "Influenza A RNA (LOINC 92142-9), SNOMED CT 'Detected'. Facility from a logical identifier; contained nasopharyngeal Specimen.",
+        "kind": "valid",
+        "expected": "Created \u2014 normalized to Positive at Worcester Central Medical Center."
+      },
+      {
+        "id": "sars-cov-2-negative",
+        "title": "SARS-CoV-2 negative Observation",
+        "description": "SARS-CoV-2 RNA (LOINC 94500-6), SNOMED CT 'Negative'. Facility from a configured Organization id; effective time given in UTC.",
+        "kind": "valid",
+        "expected": "Created \u2014 normalized to Negative at Central Massachusetts Regional Hospital."
+      },
+      {
+        "id": "rsv-positive",
+        "title": "RSV positive Observation (no category)",
+        "description": "RSV RNA (LOINC 85479-4), SNOMED CT 'Positive', with no category: accepted because the LOINC code is a mapped laboratory test.",
+        "kind": "valid",
+        "expected": "Created \u2014 normalized to Positive at Shrewsbury Community Medical Center."
+      },
+      {
+        "id": "numeric-hemoglobin",
+        "title": "Numeric laboratory Observation",
+        "description": "Hemoglobin (LOINC 718-7), valueQuantity 13.2 g/dL (UCUM). Not a surveillance test.",
+        "kind": "valid",
+        "expected": "Created as unmapped: number and unit kept, no syndrome assigned."
+      },
+      {
+        "id": "respiratory-panel-bundle",
+        "title": "Multi-resource Bundle",
+        "description": "Collection Bundle: Organization, Location, Patient, Specimen, DiagnosticReport and three Observations. The facility comes from the DiagnosticReport's performer.",
+        "kind": "bundle",
+        "expected": "Three Observations created with report and specimen context; Patient not read."
+      },
+      {
+        "id": "unmapped-loinc",
+        "title": "Unmapped LOINC Observation",
+        "description": "Hepatitis B surface antigen (LOINC 5195-3): a valid code with no LabSentinel mapping.",
+        "kind": "valid",
+        "expected": "Created as unmapped with an UNMAPPED_LOINC warning; no syndrome guessed."
+      },
+      {
+        "id": "invalid-loinc",
+        "title": "Invalid LOINC coding",
+        "description": "LOINC 92142-8: the check digit is wrong.",
+        "kind": "invalid",
+        "expected": "Rejected \u2014 INVALID_LOINC."
+      },
+      {
+        "id": "unresolved-facility",
+        "title": "Unresolved facility",
+        "description": "Performer identifier HOSP-Z is not a LabSentinel facility.",
+        "kind": "invalid",
+        "expected": "Rejected \u2014 UNRESOLVED_FACILITY."
+      },
+      {
+        "id": "vital-signs",
+        "title": "Non-laboratory Observation",
+        "description": "Heart rate (LOINC 8867-4) with category vital-signs.",
+        "kind": "invalid",
+        "expected": "Rejected \u2014 NON_LAB_OBSERVATION."
+      },
+      {
+        "id": "malformed-json",
+        "title": "Malformed FHIR JSON",
+        "description": "Truncated JSON that cannot be parsed.",
+        "kind": "invalid",
+        "expected": "Request rejected \u2014 INVALID_FHIR (HTTP 400)."
+      }
+    ],
+    "/api/fhir/examples/influenza-a-positive": {
+      "id": "influenza-a-positive",
+      "title": "Influenza A positive Observation",
+      "description": "Influenza A RNA (LOINC 92142-9), SNOMED CT 'Detected'. Facility from a logical identifier; contained nasopharyngeal Specimen.",
+      "kind": "valid",
+      "expected": "Created \u2014 normalized to Positive at Worcester Central Medical Center.",
+      "content": "{\n  \"resourceType\": \"Observation\",\n  \"id\": \"lab-a-flu-0001\",\n  \"meta\": {\n    \"tag\": [\n      {\n        \"system\": \"urn:labsentinel:data\",\n        \"code\": \"synthetic\",\n        \"display\": \"Synthetic capstone data\"\n      }\n    ]\n  },\n  \"contained\": [\n    {\n      \"resourceType\": \"Specimen\",\n      \"id\": \"spec-a-0001\",\n      \"type\": {\n        \"coding\": [\n          {\n            \"system\": \"http://snomed.info/sct\",\n            \"code\": \"258500001\",\n            \"display\": \"Nasopharyngeal swab\"\n          }\n        ],\n        \"text\": \"Nasopharyngeal swab\"\n      }\n    }\n  ],\n  \"identifier\": [\n    {\n      \"system\": \"urn:labsentinel:synthetic:hosp-a:lab-result\",\n      \"value\": \"A-FLU-20260112-0001\"\n    }\n  ],\n  \"status\": \"final\",\n  \"category\": [\n    {\n      \"coding\": [\n        {\n          \"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\",\n          \"code\": \"laboratory\",\n          \"display\": \"Laboratory\"\n        }\n      ]\n    }\n  ],\n  \"code\": {\n    \"coding\": [\n      {\n        \"system\": \"http://loinc.org\",\n        \"code\": \"92142-9\",\n        \"display\": \"Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n      }\n    ],\n    \"text\": \"Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n  },\n  \"subject\": {\n    \"reference\": \"Patient/syn-patient-0001\"\n  },\n  \"effectiveDateTime\": \"2026-01-12T09:30:00-05:00\",\n  \"performer\": [\n    {\n      \"identifier\": {\n        \"system\": \"urn:labsentinel:facility-code\",\n        \"value\": \"HOSP-A\"\n      },\n      \"display\": \"Worcester Central Medical Center (synthetic)\"\n    }\n  ],\n  \"valueCodeableConcept\": {\n    \"coding\": [\n      {\n        \"system\": \"http://snomed.info/sct\",\n        \"code\": \"260373001\",\n        \"display\": \"Detected\"\n      }\n    ],\n    \"text\": \"Detected\"\n  },\n  \"specimen\": {\n    \"reference\": \"#spec-a-0001\"\n  }\n}\n"
+    },
+    "/api/fhir/examples/respiratory-panel-bundle": {
+      "id": "respiratory-panel-bundle",
+      "title": "Multi-resource Bundle",
+      "description": "Collection Bundle: Organization, Location, Patient, Specimen, DiagnosticReport and three Observations. The facility comes from the DiagnosticReport's performer.",
+      "kind": "bundle",
+      "expected": "Three Observations created with report and specimen context; Patient not read.",
+      "content": "{\n  \"resourceType\": \"Bundle\",\n  \"id\": \"bundle-e-0001\",\n  \"type\": \"collection\",\n  \"timestamp\": \"2026-01-16T10:40:00-05:00\",\n  \"entry\": [\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000001\",\n      \"resource\": {\n        \"resourceType\": \"Organization\",\n        \"id\": \"org-shrewsbury-community\",\n        \"identifier\": [\n          {\n            \"system\": \"urn:labsentinel:facility-code\",\n            \"value\": \"HOSP-C\"\n          }\n        ],\n        \"active\": true,\n        \"name\": \"Shrewsbury Community Medical Center (synthetic)\",\n        \"address\": [\n          {\n            \"city\": \"Shrewsbury\",\n            \"state\": \"MA\",\n            \"postalCode\": \"01545\",\n            \"country\": \"US\"\n          }\n        ]\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000002\",\n      \"resource\": {\n        \"resourceType\": \"Location\",\n        \"id\": \"loc-shrewsbury-lab\",\n        \"status\": \"active\",\n        \"name\": \"Core Laboratory (synthetic)\",\n        \"address\": {\n          \"city\": \"Shrewsbury\",\n          \"state\": \"MA\",\n          \"postalCode\": \"01545\"\n        },\n        \"managingOrganization\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000001\"\n        }\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000003\",\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"id\": \"syn-patient-0100\",\n        \"name\": [\n          {\n            \"family\": \"Synthetic\",\n            \"given\": [\n              \"Test\"\n            ]\n          }\n        ],\n        \"gender\": \"unknown\"\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000004\",\n      \"resource\": {\n        \"resourceType\": \"Specimen\",\n        \"id\": \"spec-e-0001\",\n        \"type\": {\n          \"coding\": [\n            {\n              \"system\": \"http://snomed.info/sct\",\n              \"code\": \"258500001\",\n              \"display\": \"Nasopharyngeal swab\"\n            }\n          ],\n          \"text\": \"Nasopharyngeal swab\"\n        },\n        \"subject\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000003\"\n        },\n        \"collection\": {\n          \"collectedDateTime\": \"2026-01-16T08:50:00-05:00\"\n        }\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000005\",\n      \"resource\": {\n        \"resourceType\": \"DiagnosticReport\",\n        \"id\": \"report-e-0001\",\n        \"identifier\": [\n          {\n            \"system\": \"urn:labsentinel:synthetic:hosp-c:report\",\n            \"value\": \"C-PANEL-20260116-0001\"\n          }\n        ],\n        \"status\": \"final\",\n        \"category\": [\n          {\n            \"coding\": [\n              {\n                \"system\": \"http://terminology.hl7.org/CodeSystem/v2-0074\",\n                \"code\": \"LAB\",\n                \"display\": \"Laboratory\"\n              }\n            ]\n          }\n        ],\n        \"code\": {\n          \"text\": \"Respiratory viral PCR panel (synthetic)\"\n        },\n        \"subject\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000003\"\n        },\n        \"effectiveDateTime\": \"2026-01-16T10:20:00-05:00\",\n        \"issued\": \"2026-01-16T10:35:00-05:00\",\n        \"performer\": [\n          {\n            \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000001\"\n          }\n        ],\n        \"specimen\": [\n          {\n            \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000004\"\n          }\n        ],\n        \"result\": [\n          {\n            \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000010\"\n          },\n          {\n            \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000011\"\n          },\n          {\n            \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000012\"\n          }\n        ]\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000010\",\n      \"resource\": {\n        \"resourceType\": \"Observation\",\n        \"id\": \"lab-e-flu\",\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"urn:labsentinel:data\",\n              \"code\": \"synthetic\",\n              \"display\": \"Synthetic capstone data\"\n            }\n          ]\n        },\n        \"identifier\": [\n          {\n            \"system\": \"urn:labsentinel:synthetic:hosp-c:lab-result\",\n            \"value\": \"C-PANEL-20260116-0001-FLUA\"\n          }\n        ],\n        \"status\": \"final\",\n        \"category\": [\n          {\n            \"coding\": [\n              {\n                \"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\",\n                \"code\": \"laboratory\",\n                \"display\": \"Laboratory\"\n              }\n            ]\n          }\n        ],\n        \"code\": {\n          \"coding\": [\n            {\n              \"system\": \"http://loinc.org\",\n              \"code\": \"92142-9\",\n              \"display\": \"Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n            }\n          ],\n          \"text\": \"Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n        },\n        \"subject\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000003\"\n        },\n        \"effectiveDateTime\": \"2026-01-16T10:20:00-05:00\",\n        \"valueCodeableConcept\": {\n          \"coding\": [\n            {\n              \"system\": \"http://snomed.info/sct\",\n              \"code\": \"260415000\",\n              \"display\": \"Not detected\"\n            }\n          ],\n          \"text\": \"Not detected\"\n        },\n        \"specimen\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000004\"\n        }\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000011\",\n      \"resource\": {\n        \"resourceType\": \"Observation\",\n        \"id\": \"lab-e-sars\",\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"urn:labsentinel:data\",\n              \"code\": \"synthetic\",\n              \"display\": \"Synthetic capstone data\"\n            }\n          ]\n        },\n        \"identifier\": [\n          {\n            \"system\": \"urn:labsentinel:synthetic:hosp-c:lab-result\",\n            \"value\": \"C-PANEL-20260116-0001-SARS\"\n          }\n        ],\n        \"status\": \"final\",\n        \"category\": [\n          {\n            \"coding\": [\n              {\n                \"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\",\n                \"code\": \"laboratory\",\n                \"display\": \"Laboratory\"\n              }\n            ]\n          }\n        ],\n        \"code\": {\n          \"coding\": [\n            {\n              \"system\": \"http://loinc.org\",\n              \"code\": \"94500-6\",\n              \"display\": \"SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n            }\n          ],\n          \"text\": \"SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n        },\n        \"subject\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000003\"\n        },\n        \"effectiveDateTime\": \"2026-01-16T10:20:00-05:00\",\n        \"valueCodeableConcept\": {\n          \"coding\": [\n            {\n              \"system\": \"http://snomed.info/sct\",\n              \"code\": \"260373001\",\n              \"display\": \"Detected\"\n            }\n          ],\n          \"text\": \"Detected\"\n        },\n        \"specimen\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000004\"\n        }\n      }\n    },\n    {\n      \"fullUrl\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000012\",\n      \"resource\": {\n        \"resourceType\": \"Observation\",\n        \"id\": \"lab-e-rsv\",\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"urn:labsentinel:data\",\n              \"code\": \"synthetic\",\n              \"display\": \"Synthetic capstone data\"\n            }\n          ]\n        },\n        \"identifier\": [\n          {\n            \"system\": \"urn:labsentinel:synthetic:hosp-c:lab-result\",\n            \"value\": \"C-PANEL-20260116-0001-RSV\"\n          }\n        ],\n        \"status\": \"final\",\n        \"category\": [\n          {\n            \"coding\": [\n              {\n                \"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\",\n                \"code\": \"laboratory\",\n                \"display\": \"Laboratory\"\n              }\n            ]\n          }\n        ],\n        \"code\": {\n          \"coding\": [\n            {\n              \"system\": \"http://loinc.org\",\n              \"code\": \"85479-4\",\n              \"display\": \"Respiratory syncytial virus RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n            }\n          ],\n          \"text\": \"Respiratory syncytial virus RNA [Presence] in Respiratory system specimen by NAA with probe detection\"\n        },\n        \"subject\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000003\"\n        },\n        \"effectiveDateTime\": \"2026-01-16T10:20:00-05:00\",\n        \"valueCodeableConcept\": {\n          \"coding\": [\n            {\n              \"system\": \"http://snomed.info/sct\",\n              \"code\": \"260415000\",\n              \"display\": \"Not detected\"\n            }\n          ],\n          \"text\": \"Not detected\"\n        },\n        \"specimen\": {\n          \"reference\": \"urn:uuid:5e1a0000-0000-4000-8000-000000000004\"\n        }\n      }\n    }\n  ]\n}\n"
+    },
+    "/api/fhir/examples/vital-signs": {
+      "id": "vital-signs",
+      "title": "Non-laboratory Observation",
+      "description": "Heart rate (LOINC 8867-4) with category vital-signs.",
+      "kind": "invalid",
+      "expected": "Rejected \u2014 NON_LAB_OBSERVATION.",
+      "content": "{\n  \"resourceType\": \"Observation\",\n  \"id\": \"vitals-j-0001\",\n  \"meta\": {\n    \"tag\": [\n      {\n        \"system\": \"urn:labsentinel:data\",\n        \"code\": \"synthetic\",\n        \"display\": \"Synthetic capstone data\"\n      }\n    ]\n  },\n  \"identifier\": [\n    {\n      \"system\": \"urn:labsentinel:synthetic:hosp-a:vitals\",\n      \"value\": \"A-HR-20260120-0001\"\n    }\n  ],\n  \"status\": \"final\",\n  \"category\": [\n    {\n      \"coding\": [\n        {\n          \"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\",\n          \"code\": \"vital-signs\",\n          \"display\": \"Vital Signs\"\n        }\n      ]\n    }\n  ],\n  \"code\": {\n    \"coding\": [\n      {\n        \"system\": \"http://loinc.org\",\n        \"code\": \"8867-4\",\n        \"display\": \"Heart rate\"\n      }\n    ],\n    \"text\": \"Heart rate\"\n  },\n  \"subject\": {\n    \"reference\": \"Patient/syn-patient-0006\"\n  },\n  \"effectiveDateTime\": \"2026-01-20T07:00:00-05:00\",\n  \"performer\": [\n    {\n      \"identifier\": {\n        \"system\": \"urn:labsentinel:facility-code\",\n        \"value\": \"HOSP-A\"\n      }\n    }\n  ],\n  \"valueQuantity\": {\n    \"value\": 72,\n    \"unit\": \"beats/minute\",\n    \"system\": \"http://unitsofmeasure.org\",\n    \"code\": \"/min\"\n  }\n}\n"
+    },
+    "/api/fhir/examples/malformed-json": {
+      "id": "malformed-json",
+      "title": "Malformed FHIR JSON",
+      "description": "Truncated JSON that cannot be parsed.",
+      "kind": "invalid",
+      "expected": "Request rejected \u2014 INVALID_FHIR (HTTP 400).",
+      "content": "{\n  \"resourceType\": \"Observation\",\n  \"id\": \"lab-k-truncated\",\n  \"status\": \"final\",\n  \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"92142-9\"\n"
+    },
+    "/api/facilities": [
+      {
+        "id": 1,
+        "facility_code": "HOSP-A",
+        "name": "Worcester Central Medical Center",
+        "vendor": "Epic",
+        "city": "Worcester",
+        "postal_code": "01604",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US",
+        "active": true,
+        "created_at": "2026-09-29T15:53:42-04:00",
+        "updated_at": "2026-09-29T15:53:42-04:00"
+      },
+      {
+        "id": 2,
+        "facility_code": "HOSP-B",
+        "name": "Central Massachusetts Regional Hospital",
+        "vendor": "Oracle Health",
+        "city": "Worcester",
+        "postal_code": "01605",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US",
+        "active": true,
+        "created_at": "2026-09-29T15:53:42-04:00",
+        "updated_at": "2026-09-29T15:53:42-04:00"
+      },
+      {
+        "id": 3,
+        "facility_code": "HOSP-C",
+        "name": "Shrewsbury Community Medical Center",
+        "vendor": "MEDITECH",
+        "city": "Shrewsbury",
+        "postal_code": "01545",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US",
+        "active": true,
+        "created_at": "2026-09-29T15:53:42-04:00",
+        "updated_at": "2026-09-29T15:53:42-04:00"
+      }
+    ],
+    "/api/observations/700": {
+      "id": 700,
+      "source_observation_id": "A-FLU-20260112-0001",
+      "facility_id": 1,
+      "patient_reference": "FHIR-PT-f51e0f75fd94cc6d8c3afced",
+      "syndrome": "Respiratory Viral Syndrome",
+      "test_name": "Influenza A RNA",
+      "loinc_code": "92142-9",
+      "terminology_status": "mapped",
+      "code_display": "Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+      "result_type": "coded",
+      "result_value": "Positive",
+      "result_unit": null,
+      "result_numeric": null,
+      "result_unit_system": null,
+      "result_unit_code": null,
+      "result_code_system": "http://snomed.info/sct",
+      "result_code": "260373001",
+      "effective_datetime": "2026-01-12T09:30:00-05:00",
+      "received_datetime": "2026-09-29T15:53:43.216289-04:00",
+      "geographic_unit": "01604",
+      "source_system": "fhir:urn:labsentinel:synthetic:hosp-a:lab-result",
+      "status": "final",
+      "source_report_id": null,
+      "specimen_type": "Nasopharyngeal swab",
+      "created_at": "2026-09-29T15:53:43-04:00"
+    },
+    "/api/observations/701": {
+      "id": 701,
+      "source_observation_id": "C-PANEL-20260116-0001-FLUA",
+      "facility_id": 3,
+      "patient_reference": "FHIR-PT-fe78bcd2e735b7877b1dbf5a",
+      "syndrome": "Respiratory Viral Syndrome",
+      "test_name": "Influenza A RNA",
+      "loinc_code": "92142-9",
+      "terminology_status": "mapped",
+      "code_display": "Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+      "result_type": "coded",
+      "result_value": "Negative",
+      "result_unit": null,
+      "result_numeric": null,
+      "result_unit_system": null,
+      "result_unit_code": null,
+      "result_code_system": "http://snomed.info/sct",
+      "result_code": "260415000",
+      "effective_datetime": "2026-01-16T10:20:00-05:00",
+      "received_datetime": "2026-09-29T15:53:43.347553-04:00",
+      "geographic_unit": "01545",
+      "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+      "status": "final",
+      "source_report_id": "C-PANEL-20260116-0001",
+      "specimen_type": "Nasopharyngeal swab",
+      "created_at": "2026-09-29T15:53:43-04:00"
+    },
+    "/api/observations/702": {
+      "id": 702,
+      "source_observation_id": "C-PANEL-20260116-0001-SARS",
+      "facility_id": 3,
+      "patient_reference": "FHIR-PT-fe78bcd2e735b7877b1dbf5a",
+      "syndrome": "Respiratory Viral Syndrome",
+      "test_name": "SARS-CoV-2 RNA",
+      "loinc_code": "94500-6",
+      "terminology_status": "mapped",
+      "code_display": "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+      "result_type": "coded",
+      "result_value": "Positive",
+      "result_unit": null,
+      "result_numeric": null,
+      "result_unit_system": null,
+      "result_unit_code": null,
+      "result_code_system": "http://snomed.info/sct",
+      "result_code": "260373001",
+      "effective_datetime": "2026-01-16T10:20:00-05:00",
+      "received_datetime": "2026-09-29T15:53:43.347553-04:00",
+      "geographic_unit": "01545",
+      "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+      "status": "final",
+      "source_report_id": "C-PANEL-20260116-0001",
+      "specimen_type": "Nasopharyngeal swab",
+      "created_at": "2026-09-29T15:53:43-04:00"
+    },
+    "/api/observations/703": {
+      "id": 703,
+      "source_observation_id": "C-PANEL-20260116-0001-RSV",
+      "facility_id": 3,
+      "patient_reference": "FHIR-PT-fe78bcd2e735b7877b1dbf5a",
+      "syndrome": "Respiratory Viral Syndrome",
+      "test_name": "RSV RNA",
+      "loinc_code": "85479-4",
+      "terminology_status": "mapped",
+      "code_display": "Respiratory syncytial virus RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+      "result_type": "coded",
+      "result_value": "Negative",
+      "result_unit": null,
+      "result_numeric": null,
+      "result_unit_system": null,
+      "result_unit_code": null,
+      "result_code_system": "http://snomed.info/sct",
+      "result_code": "260415000",
+      "effective_datetime": "2026-01-16T10:20:00-05:00",
+      "received_datetime": "2026-09-29T15:53:43.347553-04:00",
+      "geographic_unit": "01545",
+      "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+      "status": "final",
+      "source_report_id": "C-PANEL-20260116-0001",
+      "specimen_type": "Nasopharyngeal swab",
+      "created_at": "2026-09-29T15:53:43-04:00"
+    },
+    "/api/observations?origin=fhir&sort=received_datetime&order=desc&limit=8": {
+      "items": [
+        {
+          "id": 701,
+          "source_observation_id": "C-PANEL-20260116-0001-FLUA",
+          "facility_id": 3,
+          "patient_reference": "FHIR-PT-fe78bcd2e735b7877b1dbf5a",
+          "syndrome": "Respiratory Viral Syndrome",
+          "test_name": "Influenza A RNA",
+          "loinc_code": "92142-9",
+          "terminology_status": "mapped",
+          "code_display": "Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+          "result_type": "coded",
+          "result_value": "Negative",
+          "result_unit": null,
+          "result_numeric": null,
+          "result_unit_system": null,
+          "result_unit_code": null,
+          "result_code_system": "http://snomed.info/sct",
+          "result_code": "260415000",
+          "effective_datetime": "2026-01-16T10:20:00-05:00",
+          "received_datetime": "2026-09-29T15:53:43.347553-04:00",
+          "geographic_unit": "01545",
+          "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+          "status": "final",
+          "source_report_id": "C-PANEL-20260116-0001",
+          "specimen_type": "Nasopharyngeal swab",
+          "created_at": "2026-09-29T15:53:43-04:00"
+        },
+        {
+          "id": 702,
+          "source_observation_id": "C-PANEL-20260116-0001-SARS",
+          "facility_id": 3,
+          "patient_reference": "FHIR-PT-fe78bcd2e735b7877b1dbf5a",
+          "syndrome": "Respiratory Viral Syndrome",
+          "test_name": "SARS-CoV-2 RNA",
+          "loinc_code": "94500-6",
+          "terminology_status": "mapped",
+          "code_display": "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+          "result_type": "coded",
+          "result_value": "Positive",
+          "result_unit": null,
+          "result_numeric": null,
+          "result_unit_system": null,
+          "result_unit_code": null,
+          "result_code_system": "http://snomed.info/sct",
+          "result_code": "260373001",
+          "effective_datetime": "2026-01-16T10:20:00-05:00",
+          "received_datetime": "2026-09-29T15:53:43.347553-04:00",
+          "geographic_unit": "01545",
+          "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+          "status": "final",
+          "source_report_id": "C-PANEL-20260116-0001",
+          "specimen_type": "Nasopharyngeal swab",
+          "created_at": "2026-09-29T15:53:43-04:00"
+        },
+        {
+          "id": 703,
+          "source_observation_id": "C-PANEL-20260116-0001-RSV",
+          "facility_id": 3,
+          "patient_reference": "FHIR-PT-fe78bcd2e735b7877b1dbf5a",
+          "syndrome": "Respiratory Viral Syndrome",
+          "test_name": "RSV RNA",
+          "loinc_code": "85479-4",
+          "terminology_status": "mapped",
+          "code_display": "Respiratory syncytial virus RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+          "result_type": "coded",
+          "result_value": "Negative",
+          "result_unit": null,
+          "result_numeric": null,
+          "result_unit_system": null,
+          "result_unit_code": null,
+          "result_code_system": "http://snomed.info/sct",
+          "result_code": "260415000",
+          "effective_datetime": "2026-01-16T10:20:00-05:00",
+          "received_datetime": "2026-09-29T15:53:43.347553-04:00",
+          "geographic_unit": "01545",
+          "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+          "status": "final",
+          "source_report_id": "C-PANEL-20260116-0001",
+          "specimen_type": "Nasopharyngeal swab",
+          "created_at": "2026-09-29T15:53:43-04:00"
+        },
+        {
+          "id": 700,
+          "source_observation_id": "A-FLU-20260112-0001",
+          "facility_id": 1,
+          "patient_reference": "FHIR-PT-f51e0f75fd94cc6d8c3afced",
+          "syndrome": "Respiratory Viral Syndrome",
+          "test_name": "Influenza A RNA",
+          "loinc_code": "92142-9",
+          "terminology_status": "mapped",
+          "code_display": "Influenza virus A RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+          "result_type": "coded",
+          "result_value": "Positive",
+          "result_unit": null,
+          "result_numeric": null,
+          "result_unit_system": null,
+          "result_unit_code": null,
+          "result_code_system": "http://snomed.info/sct",
+          "result_code": "260373001",
+          "effective_datetime": "2026-01-12T09:30:00-05:00",
+          "received_datetime": "2026-09-29T15:53:43.216289-04:00",
+          "geographic_unit": "01604",
+          "source_system": "fhir:urn:labsentinel:synthetic:hosp-a:lab-result",
+          "status": "final",
+          "source_report_id": null,
+          "specimen_type": "Nasopharyngeal swab",
+          "created_at": "2026-09-29T15:53:43-04:00"
+        }
+      ],
+      "total": 4,
+      "limit": 8,
+      "offset": 0
+    }
+  },
+  "ingest": {
+    "influenza-first": {
+      "status": 200,
+      "body": {
+        "resources_received": 1,
+        "observations_received": 1,
+        "observations_validated": 1,
+        "observations_created": 1,
+        "duplicates": 0,
+        "rejected": 0,
+        "errors": [],
+        "warnings": [],
+        "results": [
+          {
+            "resource": "Observation/lab-a-flu-0001",
+            "outcome": "created",
+            "observation_id": 700,
+            "source_system": "fhir:urn:labsentinel:synthetic:hosp-a:lab-result",
+            "source_observation_id": "A-FLU-20260112-0001",
+            "message": null,
+            "issue_code": null,
+            "facility_code": "HOSP-A",
+            "facility_resolution": "Performer logical identifier (urn:labsentinel:facility-code)",
+            "warnings": []
+          }
+        ]
+      }
+    },
+    "influenza-again": {
+      "status": 200,
+      "body": {
+        "resources_received": 1,
+        "observations_received": 1,
+        "observations_validated": 1,
+        "observations_created": 0,
+        "duplicates": 1,
+        "rejected": 0,
+        "errors": [],
+        "warnings": [
+          {
+            "code": "DUPLICATE",
+            "message": "Already ingested; nothing written.",
+            "resource": "Observation/lab-a-flu-0001",
+            "severity": "warning"
+          }
+        ],
+        "results": [
+          {
+            "resource": "Observation/lab-a-flu-0001",
+            "outcome": "duplicate",
+            "observation_id": 700,
+            "source_system": "fhir:urn:labsentinel:synthetic:hosp-a:lab-result",
+            "source_observation_id": "A-FLU-20260112-0001",
+            "message": "Already ingested; nothing written.",
+            "issue_code": null,
+            "facility_code": "HOSP-A",
+            "facility_resolution": "Performer logical identifier (urn:labsentinel:facility-code)",
+            "warnings": [
+              "DUPLICATE"
+            ]
+          }
+        ]
+      }
+    },
+    "bundle": {
+      "status": 200,
+      "body": {
+        "resources_received": 8,
+        "observations_received": 3,
+        "observations_validated": 3,
+        "observations_created": 3,
+        "duplicates": 0,
+        "rejected": 0,
+        "errors": [],
+        "warnings": [],
+        "results": [
+          {
+            "resource": "Observation/lab-e-flu",
+            "outcome": "created",
+            "observation_id": 701,
+            "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+            "source_observation_id": "C-PANEL-20260116-0001-FLUA",
+            "message": null,
+            "issue_code": null,
+            "facility_code": "HOSP-C",
+            "facility_resolution": "Organization.identifier (urn:labsentinel:facility-code) via DiagnosticReport.performer",
+            "warnings": []
+          },
+          {
+            "resource": "Observation/lab-e-sars",
+            "outcome": "created",
+            "observation_id": 702,
+            "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+            "source_observation_id": "C-PANEL-20260116-0001-SARS",
+            "message": null,
+            "issue_code": null,
+            "facility_code": "HOSP-C",
+            "facility_resolution": "Organization.identifier (urn:labsentinel:facility-code) via DiagnosticReport.performer",
+            "warnings": []
+          },
+          {
+            "resource": "Observation/lab-e-rsv",
+            "outcome": "created",
+            "observation_id": 703,
+            "source_system": "fhir:urn:labsentinel:synthetic:hosp-c:lab-result",
+            "source_observation_id": "C-PANEL-20260116-0001-RSV",
+            "message": null,
+            "issue_code": null,
+            "facility_code": "HOSP-C",
+            "facility_resolution": "Organization.identifier (urn:labsentinel:facility-code) via DiagnosticReport.performer",
+            "warnings": []
+          }
+        ]
+      }
+    },
+    "vital-signs": {
+      "status": 200,
+      "body": {
+        "resources_received": 1,
+        "observations_received": 1,
+        "observations_validated": 0,
+        "observations_created": 0,
+        "duplicates": 0,
+        "rejected": 1,
+        "errors": [
+          {
+            "code": "NON_LAB_OBSERVATION",
+            "message": "Observation category (vital-signs) is not 'laboratory'.",
+            "resource": "Observation/vitals-j-0001",
+            "severity": "error"
+          }
+        ],
+        "warnings": [],
+        "results": [
+          {
+            "resource": "Observation/vitals-j-0001",
+            "outcome": "rejected",
+            "observation_id": null,
+            "source_system": null,
+            "source_observation_id": null,
+            "message": "Observation category (vital-signs) is not 'laboratory'.",
+            "issue_code": "NON_LAB_OBSERVATION",
+            "facility_code": null,
+            "facility_resolution": null,
+            "warnings": []
+          }
+        ]
+      }
+    },
+    "malformed": {
+      "status": 400,
+      "body": {
+        "resources_received": 0,
+        "observations_received": 0,
+        "observations_validated": 0,
+        "observations_created": 0,
+        "duplicates": 0,
+        "rejected": 0,
+        "errors": [
+          {
+            "code": "INVALID_FHIR",
+            "message": "The request body is not valid JSON.",
+            "resource": null,
+            "severity": "error"
+          }
+        ],
+        "warnings": [],
+        "results": []
+      }
+    }
+  }
+}

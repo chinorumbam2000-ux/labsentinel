@@ -381,3 +381,109 @@ def test_successful_ingestion_does_not_touch_signals_or_audit(fhir_env) -> None:
     with Session(engine) as session:
         assert session.scalar(select(func.count()).select_from(SurveillanceSignal)) == signals
         assert session.scalar(select(func.count()).select_from(AuditEvent)) == audits
+
+
+# --- Phase 5: demonstration support ----------------------------------------------
+
+
+def test_examples_catalogue_describes_fixtures_without_paths(fhir_env) -> None:
+    client, _ = fhir_env
+    examples = client.get("/api/fhir/examples").json()
+
+    assert len(examples) == 10
+    assert {e["kind"] for e in examples} == {"valid", "bundle", "invalid"}
+    listing = json.dumps(examples)
+    for leak in ("examples/fhir", ".json", ".txt", "\\\\", "C:"):
+        assert leak not in listing
+    detail = client.get(f"/api/fhir/examples/{examples[0]['id']}").json()
+    assert json.loads(detail["content"]) == example("case-a-influenza-a-positive.json")
+    assert client.get("/api/fhir/examples/no-such-example").status_code == 404
+    assert client.get("/api/fhir/examples/..%2F..%2Fapp%2Fconfig.py").status_code == 404
+
+
+def test_every_example_behaves_as_its_catalogue_entry_says(fhir_env) -> None:
+    client, engine = fhir_env
+    for summary in client.get("/api/fhir/examples").json():
+        content = client.get(f"/api/fhir/examples/{summary['id']}").json()["content"]
+        response = client.post("/api/fhir/ingest", content=content, headers=FHIR_JSON)
+        body = response.json()
+        if summary["kind"] == "invalid":
+            assert body["observations_created"] == 0, summary["id"]
+            assert body["errors"], summary["id"]
+            assert body["errors"][0]["code"] in summary["expected"], summary["id"]
+        else:
+            assert response.status_code == 200 and body["observations_created"] >= 1, summary["id"]
+
+
+def test_examples_do_not_exist_outside_development(fhir_env, monkeypatch: pytest.MonkeyPatch) -> None:
+    client, _ = fhir_env
+    monkeypatch.setattr("app.api.fhir.get_settings", lambda: _settings_with(app_env="production"))
+    assert client.get("/api/fhir/examples").status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("fixture", "facility", "resolution"),
+    [
+        ("case-a-influenza-a-positive.json", "HOSP-A", "Performer logical identifier (urn:labsentinel:facility-code)"),
+        ("case-b-sars-cov-2-negative.json", "HOSP-B", "Configured development Organization id"),
+        (
+            "case-e-bundle-respiratory-panel.json",
+            "HOSP-C",
+            "Organization.identifier (urn:labsentinel:facility-code) via DiagnosticReport.performer",
+        ),
+    ],
+)
+def test_results_explain_facility_resolution(fhir_env, fixture: str, facility: str, resolution: str) -> None:
+    client, _ = fhir_env
+    for result in post(client, example(fixture))["results"]:
+        assert (result["facility_code"], result["facility_resolution"]) == (facility, resolution)
+
+
+def test_results_carry_issue_codes_and_warnings(fhir_env) -> None:
+    client, _ = fhir_env
+    rejected = post(client, example("case-j-vital-signs-not-laboratory.json"))["results"][0]
+    assert (rejected["outcome"], rejected["issue_code"]) == ("rejected", "NON_LAB_OBSERVATION")
+    assert "not 'laboratory'" in rejected["message"]
+    assert rejected["facility_code"] is None
+
+    unmapped = post(client, example("case-h-unmapped-loinc.json"))["results"][0]
+    assert (unmapped["outcome"], unmapped["warnings"]) == ("created", ["UNMAPPED_LOINC"])
+    again = post(client, example("case-h-unmapped-loinc.json"))["results"][0]
+    assert (again["outcome"], again["warnings"]) == ("duplicate", ["UNMAPPED_LOINC", "DUPLICATE"])
+
+
+def test_demo_period_is_checked_before_facility_resolution(fhir_env) -> None:
+    client, _ = fhir_env
+    resource = example("case-i-unresolvable-facility.json")
+    resource["effectiveDateTime"] = "2025-11-05T12:00:00-05:00"
+    assert post(client, resource)["results"][0]["issue_code"] == "DEMO_PERIOD_RESERVED"
+
+
+def test_origin_filter_and_received_time_sort(fhir_env) -> None:
+    client, _ = fhir_env
+    post(client, example("case-b-sars-cov-2-negative.json"))
+    post(client, example("case-a-influenza-a-positive.json"))
+
+    fhir = client.get("/api/observations", params={"origin": "fhir", "sort": "received_datetime", "order": "desc"}).json()
+    assert fhir["total"] == 2
+    assert [o["source_observation_id"] for o in fhir["items"]] == ["A-FLU-20260112-0001", "B-SARS-20260113-0001"]
+    assert client.get("/api/observations", params={"origin": "seed", "limit": 1}).json()["total"] == SEED_OBSERVATIONS
+    assert client.get("/api/observations", params={"origin": "other"}).status_code == 422
+
+
+def test_cors_allows_post_only_in_development(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config import get_settings
+    from app.main import create_app
+
+    preflight = {
+        "Origin": "http://localhost:5173",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+    }
+    with TestClient(create_app()) as dev:
+        assert dev.options("/api/fhir/ingest", headers=preflight).status_code == 200
+
+    monkeypatch.setenv("APP_ENV", "production")
+    get_settings.cache_clear()
+    with TestClient(create_app()) as prod:
+        assert prod.options("/api/fhir/ingest", headers=preflight).status_code == 400

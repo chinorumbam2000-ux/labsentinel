@@ -35,9 +35,10 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
-        # Browsers may only read. FHIR ingestion is a development tool used
-        # from the command line (PowerShell, curl), never a browser upload.
-        allow_methods=["GET"],
+        # Browsers may only read — except, in development, POST for the FHIR
+        # ingestion demonstration page (the only POST route, itself 404
+        # outside development). Other environments allow GET only.
+        allow_methods=["GET", "POST"] if settings.app_env == "development" else ["GET"],
         allow_headers=["Content-Type", "Authorization"],
     )
 
