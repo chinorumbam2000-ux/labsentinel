@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.vocabulary import (
+    CUSUM_ALERT_STATES,
     STATISTICAL_ALERT_STATES,
     STATISTICAL_METHODS,
     STATISTICAL_METRICS,
@@ -21,7 +22,7 @@ Value = Numeric(12, 4)
 
 class StatisticalSignal(TimestampMixin, Base):
     """
-    One day of a secondary statistical detector (EWMA today) for one metric.
+    One day of a secondary statistical detector (EWMA or CUSUM) for one metric.
 
     EXPERIMENTAL STATISTICAL SURVEILLANCE: a prototype statistical detector,
     not clinically or epidemiologically validated. Stored apart from the
@@ -42,14 +43,32 @@ class StatisticalSignal(TimestampMixin, Base):
         CheckConstraint(
             "alert_state IS NULL OR " + sql_in("alert_state", STATISTICAL_ALERT_STATES), name="alert_state_valid"
         ),
-        # A monitored day always has its EWMA, limits and state.
+        # CUSUM has no WATCH state.
         CheckConstraint(
-            "calculation_status <> 'CALCULATED' OR (observed_value IS NOT NULL AND ewma_value IS NOT NULL "
-            "AND upper_control_limit IS NOT NULL AND warning_limit IS NOT NULL AND alert_state IS NOT NULL)",
+            "method <> 'CUSUM' OR alert_state IS NULL OR " + sql_in("alert_state", CUSUM_ALERT_STATES),
+            name="cusum_alert_state_valid",
+        ),
+        # A monitored day always has its method's values, limits and state.
+        CheckConstraint(
+            "calculation_status <> 'CALCULATED' OR (observed_value IS NOT NULL AND alert_state IS NOT NULL AND ("
+            "(method = 'EWMA' AND ewma_value IS NOT NULL AND upper_control_limit IS NOT NULL "
+            "AND warning_limit IS NOT NULL) OR "
+            "(method = 'CUSUM' AND z_score IS NOT NULL AND previous_cusum IS NOT NULL AND cusum_value IS NOT NULL)))",
             name="calculated_is_complete",
         ),
-        CheckConstraint("lambda_value > 0 AND lambda_value <= 1", name="lambda_range"),
-        CheckConstraint("k_value > 0", name="k_positive"),
+        # Each method always records its own parameters.
+        CheckConstraint(
+            "(method <> 'EWMA' OR (lambda_value IS NOT NULL AND k_value IS NOT NULL)) AND "
+            "(method <> 'CUSUM' OR (cusum_k IS NOT NULL AND cusum_h IS NOT NULL))",
+            name="parameters_present",
+        ),
+        CheckConstraint("lambda_value IS NULL OR (lambda_value > 0 AND lambda_value <= 1)", name="lambda_range"),
+        CheckConstraint("k_value IS NULL OR k_value > 0", name="k_positive"),
+        CheckConstraint(
+            "(cusum_value IS NULL OR cusum_value >= 0) AND (previous_cusum IS NULL OR previous_cusum >= 0) "
+            "AND (cusum_k IS NULL OR cusum_k >= 0) AND (cusum_h IS NULL OR cusum_h > 0)",
+            name="cusum_values_valid",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -67,8 +86,15 @@ class StatisticalSignal(TimestampMixin, Base):
     ewma_value: Mapped[Decimal | None] = mapped_column(Value)
     upper_control_limit: Mapped[Decimal | None] = mapped_column(Value)
     warning_limit: Mapped[Decimal | None] = mapped_column(Value)
-    lambda_value: Mapped[Decimal] = mapped_column(Numeric(4, 3))
-    k_value: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    # EWMA parameters (null on CUSUM rows).
+    lambda_value: Mapped[Decimal | None] = mapped_column(Numeric(4, 3))
+    k_value: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), comment="EWMA control-limit multiplier.")
+    # CUSUM (null on EWMA rows).
+    z_score: Mapped[Decimal | None] = mapped_column(Value, comment="(observed - mean) / SD.")
+    previous_cusum: Mapped[Decimal | None] = mapped_column(Value)
+    cusum_value: Mapped[Decimal | None] = mapped_column(Value, comment="C_t = max(0, C_(t-1) + z_t - k).")
+    cusum_k: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), comment="CUSUM reference (slack) value k.")
+    cusum_h: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), comment="CUSUM decision limit h.")
     alert_state: Mapped[str | None] = mapped_column(String(30))
 
     calculated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

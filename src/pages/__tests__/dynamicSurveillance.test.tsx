@@ -277,3 +277,106 @@ describe('Statistical Surveillance (EWMA) — API Capstone Mode', () => {
     expect(await screen.findByText('EWMA has not been calculated yet')).toBeTruthy();
   });
 });
+
+describe('CUSUM and the three-method comparison — API Capstone Mode', () => {
+  const cusumSection = async () => {
+    await screen.findByRole('heading', { name: 'CUSUM Surveillance' });
+    return screen.getByRole('heading', { name: 'CUSUM Surveillance' }).closest('section')!;
+  };
+  const fact = (panel: HTMLElement, label: string) =>
+    within(panel).getByText(label, { selector: 'dt' }).nextElementSibling?.textContent;
+  const comparison = async () => {
+    await screen.findByRole('heading', { name: 'Three-Method Comparison' });
+    return screen.getByRole('heading', { name: 'Three-Method Comparison' }).closest('section')!;
+  };
+
+  it('explains each CUSUM metric for the selected date', async () => {
+    renderPage();
+    const cusum = await cusumSection();
+    expect(within(cusum).getByText(/CUSUM is an experimental statistical surveillance method in this capstone/)).toBeTruthy();
+    const positivity = await within(cusum).findByRole('region', { name: 'Positivity CUSUM' });
+    expect(within(positivity).getByText('Statistical Alert')).toBeTruthy();
+    expect(fact(positivity, 'Observed today')).toBe('37.7%');
+    expect(fact(positivity, 'Historical mean')).toBe('7.5%');
+    expect(fact(positivity, 'Standard deviation')).toBe('4.2%');
+    expect(fact(positivity, 'Standardized deviation (z)')).toBe('7.18 7.18 SD above the mean');
+    expect(fact(positivity, 'Previous CUSUM')).toBe('14.95');
+    expect(fact(positivity, 'Added today (z − k)')).toBe('+6.68 then floored at zero');
+    expect(fact(positivity, 'Current CUSUM')).toBe('21.63');
+    expect(fact(positivity, 'Decision limit h')).toBe('5.0');
+    expect(fact(positivity, 'Crossed the limit?')).toBe('Yes — 16.63 past h');
+    expect(fact(positivity, 'Reference value k')).toBe('0.50');
+    expect(fact(positivity, 'Historical period')).toBe('2025-11-27 to 2025-12-24 (28 days)');
+    expect(within(positivity).getByText(/accumulated enough sustained upward deviation/)).toBeTruthy();
+  });
+
+  it('counts the methods that signal, without combining them', async () => {
+    renderPage();
+    await cusumSection();
+    fireEvent.change(screen.getByLabelText('Surveillance date'), { target: { value: '2026-01-17' } });
+    await screen.findByText('3 OF 3 METHODS SIGNAL');
+    const panel = await comparison();
+    expect(within(panel).getByLabelText('Composite: signalling')).toBeTruthy();
+    expect(within(panel).getByLabelText('EWMA: signalling')).toBeTruthy();
+    expect(within(panel).getByLabelText('CUSUM: signalling')).toBeTruthy();
+    const cusumColumn = within(panel).getByRole('region', { name: 'CUSUM method' });
+    expect(fact(cusumColumn, 'Volume')).toBe('Normal');
+    expect(fact(cusumColumn, 'Positivity')).toBe('Statistical Alert');
+    const ewmaColumn = within(panel).getByRole('region', { name: 'EWMA method' });
+    expect(fact(ewmaColumn, 'Volume')).toBe('Watch');
+    expect(within(panel).getByText(/The count is descriptive, not a score\./)).toBeTruthy();
+
+    const methods = within(panel).getByRole('table', { name: /What each surveillance method measures/ });
+    for (const name of ['Composite Outbreak Signal', 'EWMA', 'CUSUM']) {
+      const row = within(methods).getByRole('rowheader', { name }).closest('tr')!;
+      expect(row.textContent).toContain('Sat, Jan 17, 2026'); // every method's first alert
+    }
+    expect(within(methods).getByText('High — 80')).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('Surveillance date'), { target: { value: '2026-01-16' } });
+    expect(await screen.findByText('NO METHODS SIGNAL')).toBeTruthy();
+    expect(calls).toContain('GET /api/statistics/comparison?date=2026-01-16');
+  });
+
+  it('shows CUSUM detection timing and the false-alert check', async () => {
+    const cusum = await (async () => { renderPage(); return cusumSection(); })();
+    const timing = within(cusum).getByRole('table', { name: /First CUSUM alert per metric/ });
+    const volume = within(timing).getByText('Volume CUSUM — Statistical Alert').closest('tr')!;
+    expect(volume.textContent).toContain('Sun, Jan 18, 2026');
+    expect(volume.textContent).toContain('1 day later'); // vs composite High (Jan 17)
+    const positivity = within(timing).getByText('Positivity CUSUM — Statistical Alert').closest('tr')!;
+    expect(positivity.textContent).toContain('Sat, Jan 17, 2026');
+    expect(positivity.textContent).toContain('1 day earlier'); // vs composite Critical (Jan 18)
+    expect(within(cusum).getByText(/volume 0 alert days \(highest sum 1\.68\), positivity 0 alert days \(highest sum 3\.00\)/)).toBeTruthy();
+  });
+
+  it('switches the CUSUM chart between metrics, with an accessible table', async () => {
+    renderPage();
+    const cusum = await cusumSection();
+    const table = (name: RegExp) => within(cusum).getByRole('table', { name });
+    expect(within(table(/Positivity CUSUM: cumulative sum/)).getAllByRole('row')).toHaveLength(21);
+    fireEvent.click(within(cusum).getByRole('radio', { name: 'Volume CUSUM' }));
+    const volume = table(/Test Volume CUSUM: cumulative sum/);
+    expect(within(volume).getByText('7.25')).toBeTruthy(); // Jan 18: 3.46 + 4.28 - 0.5
+  });
+
+  it('recalculates CUSUM on request (development)', async () => {
+    renderPage();
+    const cusum = await cusumSection();
+    fireEvent.click(within(cusum).getByRole('button', { name: 'Recalculate CUSUM' }));
+    expect(await screen.findByText('CUSUM recalculated: 0 created, 0 updated, 110 unchanged.')).toBeTruthy();
+    expect(calls).toContain('POST /api/statistics/cusum/recalculate');
+  });
+
+  it('keeps the composite and EWMA when CUSUM fails, and explains when it is not calculated', async () => {
+    useBackend({ cusumDown: true });
+    renderPage();
+    expect(await screen.findByText('CUSUM results are unavailable')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Statistical Surveillance' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Three-Method Comparison' })).toBeNull();
+    cleanup();
+    useBackend({ cusumEmpty: true });
+    renderPage();
+    expect(await screen.findByText('CUSUM has not been calculated yet')).toBeTruthy();
+  });
+});

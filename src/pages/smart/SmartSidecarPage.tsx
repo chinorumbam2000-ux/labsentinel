@@ -16,6 +16,7 @@ import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 import { createFhirIngestionClient } from '../../data-access/fhirIngestion';
 import { createDynamicSurveillanceClient, type DynamicSignal } from '../../data-access/dynamicSurveillance';
 import { createEwmaClient, type EwmaState } from '../../data-access/ewma';
+import { createCusumClient, type CusumState } from '../../data-access/cusum';
 import { DYNAMIC_LABEL, INSUFFICIENT_BASELINE_TEXT, NO_DATA_TEXT, formatSurveillanceDate } from '../../lib/dynamicSurveillance';
 import { describeDataError } from '../../data-access/hooks';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
@@ -105,11 +106,13 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 function DynamicRegional({ baseUrl }: { baseUrl: string }) {
   const client = useMemo(() => createDynamicSurveillanceClient(baseUrl), [baseUrl]);
   const ewmaClient = useMemo(() => createEwmaClient(baseUrl), [baseUrl]);
+  const cusumClient = useMemo(() => createCusumClient(baseUrl), [baseUrl]);
   const [state, setState] = useState<
     { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; signal: DynamicSignal | null }
   >({ status: 'loading' });
   // The EWMA detector's overall state for the same date: a compact indicator only.
   const [detector, setDetector] = useState<EwmaState | null | 'unavailable'>(null);
+  const [cusumDetector, setCusumDetector] = useState<CusumState | null | 'unavailable'>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,11 +126,15 @@ function DynamicRegional({ baseUrl }: { baseUrl: string }) {
             .day(signal.signal_date, controller.signal)
             .then((day) => !controller.signal.aborted && setDetector(day?.overall_state ?? 'unavailable'))
             .catch(() => !controller.signal.aborted && setDetector('unavailable'));
+          cusumClient
+            .day(signal.signal_date, controller.signal)
+            .then((day) => !controller.signal.aborted && setCusumDetector(day?.overall_state ?? 'unavailable'))
+            .catch(() => !controller.signal.aborted && setCusumDetector('unavailable'));
         }
       })
       .catch((error) => !controller.signal.aborted && setState({ status: 'error', message: describeDataError(error) }));
     return () => controller.abort();
-  }, [client, ewmaClient]);
+  }, [client, ewmaClient, cusumClient]);
 
   const intro = (
     <p className="mt-1 text-xs text-muted">
@@ -180,7 +187,7 @@ function DynamicRegional({ baseUrl }: { baseUrl: string }) {
         <Row label="Last calculated">
           {signal.calculated_at ? new Date(signal.calculated_at).toLocaleString('en-US') : '—'}
         </Row>
-        <Row label="Statistical Detector">
+        <Row label="Statistical detector: EWMA">
           {detector === null
             ? 'Loading…'
             : detector === 'unavailable'
@@ -191,6 +198,15 @@ function DynamicRegional({ baseUrl }: { baseUrl: string }) {
                   ? 'EWMA Watch'
                   : 'EWMA Normal'}
         </Row>
+        <Row label="Statistical detector: CUSUM">
+          {cusumDetector === null
+            ? 'Loading…'
+            : cusumDetector === 'unavailable'
+              ? 'Not available'
+              : cusumDetector === 'STATISTICAL_ALERT'
+                ? 'CUSUM Alert'
+                : 'CUSUM Normal'}
+        </Row>
       </dl>
       {signal.calculation_status !== 'CALCULATED' ? (
         <p className="mt-1 text-xs text-muted">
@@ -198,7 +214,7 @@ function DynamicRegional({ baseUrl }: { baseUrl: string }) {
         </p>
       ) : null}
       <p className="mt-1 text-[11px] text-muted">
-        The statistical detector is experimental: an EWMA alert is not a confirmed outbreak.
+        The statistical detectors are experimental: an EWMA or CUSUM alert is not a confirmed outbreak.
       </p>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
         <Link to="/dynamic-surveillance" className="text-xs font-medium text-brand hover:underline">

@@ -31,7 +31,7 @@ CORE_TABLES = {
 def test_single_linear_head() -> None:
     script = ScriptDirectory.from_config(alembic_config())
 
-    assert script.get_heads() == ["0006"]
+    assert script.get_heads() == ["0007"]
 
 
 def test_upgrade_head_creates_core_tables(tmp_path: Path) -> None:
@@ -92,7 +92,7 @@ def test_offline_postgresql_sql_matches_model_intent() -> None:
         "REFERENCES facility (id) ON DELETE RESTRICT",
         "uq_lab_observation_source_record UNIQUE (source_system, source_observation_id)",
         "ck_surveillance_signal_severity_valid",
-        "UPDATE alembic_version SET version_num='0006'",
+        "UPDATE alembic_version SET version_num='0007'",
         "uq_surveillance_signal_mode_syndrome_date UNIQUE (mode, syndrome, signal_date)",
         "calculation_metadata JSONB",
     ):
@@ -162,4 +162,49 @@ def test_0005_keeps_demo_rows_and_refuses_to_drop_dynamic_ones(tmp_path: Path) -
         config.attributes["connection"] = connection
         command.downgrade(config, "0004")
     assert "mode" not in {c["name"] for c in inspect(engine).get_columns("surveillance_signal")}
+    engine.dispose()
+
+
+def test_0007_admits_cusum_rows_beside_ewma_and_guards_the_downgrade(tmp_path: Path) -> None:
+    import pytest
+    from sqlalchemy import text
+    from sqlalchemy.exc import IntegrityError
+
+    engine = sqlite_engine(tmp_path / "0007.db")
+    upgrade(engine)
+    common = (
+        "INSERT INTO statistical_signal (mode, method, syndrome, signal_date, metric, calculation_status, "
+        "observed_value, alert_state, calculated_at, {cols}) VALUES ('dynamic', '{method}', 'R', '2026-01-17', "
+        "'positivity', 'CALCULATED', 23.29, '{state}', '2026-01-17', {vals})"
+    )
+    ewma_row = common.format(method="EWMA", state="STATISTICAL_ALERT",
+                             cols="ewma_value, upper_control_limit, warning_limit, lambda_value, k_value",
+                             vals="13.93, 12.26, 10.67, 0.25, 3")
+    cusum_row = common.format(method="CUSUM", state="STATISTICAL_ALERT",
+                              cols="z_score, previous_cusum, cusum_value, cusum_k, cusum_h", vals="3.75, 2.29, 5.54, 0.5, 5")
+    with engine.begin() as connection:
+        connection.execute(text(ewma_row))
+        connection.execute(text(cusum_row))  # same date and metric, different method
+    rejected = {
+        "CUSUM with a WATCH state": cusum_row.replace("'STATISTICAL_ALERT'", "'WATCH'").replace("2026-01-17'", "2026-01-18'", 1),
+        "CUSUM without its value": cusum_row.replace("5.54, 0.5", "NULL, 0.5").replace("2026-01-17'", "2026-01-19'", 1),
+        "negative CUSUM": cusum_row.replace("5.54, 0.5", "-1, 0.5").replace("2026-01-17'", "2026-01-20'", 1),
+        "EWMA without lambda": ewma_row.replace("0.25, 3", "NULL, 3").replace("2026-01-17'", "2026-01-21'", 1),
+        "unknown method": cusum_row.replace("'CUSUM'", "'SHEWHART'"),
+    }
+    for case, statement in rejected.items():
+        with pytest.raises(IntegrityError), engine.begin() as connection:
+            connection.execute(text(statement))
+            pytest.fail(f"accepted: {case}")
+
+    config = alembic_config()
+    with pytest.raises(RuntimeError, match="CUSUM result"), engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.downgrade(config, "0006")
+    with engine.begin() as connection:
+        connection.execute(text("DELETE FROM statistical_signal WHERE method = 'CUSUM'"))
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.downgrade(config, "0006")
+    assert "cusum_value" not in {c["name"] for c in inspect(engine).get_columns("statistical_signal")}
     engine.dispose()

@@ -104,6 +104,10 @@ describe('SMART sidecar regional panel in API mode', () => {
       '/dynamic-surveillance#statistical-surveillance',
     );
     expect(calls).toContain('GET /api/statistics/ewma/current?date=2026-01-20');
+    // CUSUM: one compact line too, and no CUSUM mathematics.
+    expect(await within(regional).findByText('CUSUM Alert')).toBeTruthy();
+    expect(within(regional).queryByText(/decision limit|cumulative|z-score/i)).toBeNull();
+    expect(calls).toContain('GET /api/statistics/cusum/current?date=2026-01-20');
     expect(within(regional).queryByText('Demo Surveillance', { selector: 'strong' })).toBeNull();
     expect(calls).toContain('GET /api/surveillance/dynamic/signals/current');
   });

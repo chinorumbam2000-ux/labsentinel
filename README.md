@@ -68,6 +68,19 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 > epidemiological decision-making. See
 > [EWMA statistical detector](backend/README.md#ewma-statistical-detector-experimental).
 >
+> A third and final method for the capstone comparison, an **experimental
+> CUSUM detector**, runs beside them:
+> - a standardized one-sided upper CUSUM, C_t = max(0, C_(t-1) + z_t − k),
+>   with k 0.5 and h 5;
+> - the same 28-day reference period as EWMA.
+>
+> A **Three-Method Comparison** shows the Composite, EWMA and CUSUM side by
+> side, with a descriptive agreement count (for example *3 OF 3 METHODS
+> SIGNAL*). The methods are never combined into one score. CUSUM is an
+> experimental statistical surveillance method in this capstone and has not
+> been epidemiologically validated for production decision-making. See
+> [CUSUM](backend/README.md#cusum-statistical-detector-and-three-method-comparison-experimental).
+>
 > Both modes show identical values. See
 > [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
 > for how to run API mode. `main` and the `submission-v1.4` tag remain the

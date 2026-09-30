@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api import demo, facilities, fhir, health, observations, signals, statistics, surveillance
+from app.api import cusum, demo, facilities, fhir, health, observations, signals, statistics, surveillance
 from app.config import get_settings
 from app.core.logging import configure_logging
 
@@ -36,7 +36,7 @@ def create_app() -> FastAPI:
         allow_origins=settings.cors_origins,
         allow_credentials=False,
         # Browsers may only read — except, in development, POST for the FHIR
-        # ingestion demonstration and the dynamic-surveillance and EWMA
+        # ingestion demonstration and the dynamic-surveillance, EWMA and CUSUM
         # recalculations (the only POST routes, all 404 outside development).
         # Other environments allow GET only.
         allow_methods=["GET", "POST"] if settings.app_env == "development" else ["GET"],
@@ -56,6 +56,9 @@ def create_app() -> FastAPI:
     # Experimental EWMA statistical detector: GET-only reads, plus a
     # development-only recalculation (it accepts no values).
     app.include_router(statistics.router)
+    # Experimental CUSUM detector and the three-method comparison: GET-only
+    # reads, plus a development-only recalculation (it accepts no values).
+    app.include_router(cusum.router)
     # The one write path: development-only FHIR ingestion (404 unless
     # APP_ENV=development). There are no generic POST/PUT/DELETE endpoints.
     app.include_router(fhir.router)

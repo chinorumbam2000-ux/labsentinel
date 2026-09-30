@@ -16,6 +16,8 @@ import { EmptyState, ErrorState, LoadingState } from '../components/common/State
 import DynamicProvenance from '../components/dynamic/DynamicProvenance';
 import DynamicWhyThisSignal from '../components/dynamic/DynamicWhyThisSignal';
 import StatisticalSurveillance, { type EwmaRecalc } from '../components/dynamic/StatisticalSurveillance';
+import CusumSurveillance, { type CusumRecalc } from '../components/dynamic/CusumSurveillance';
+import MethodComparison from '../components/dynamic/MethodComparison';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { useDataSourceContext } from '../data-access/DataSourceProvider';
 import { isAbortError } from '../data-access/apiClient';
@@ -27,6 +29,13 @@ import {
   type RecalculateResult,
 } from '../data-access/dynamicSurveillance';
 import { createEwmaClient, type EwmaDay, type EwmaPoint, type EwmaSummary } from '../data-access/ewma';
+import {
+  createCusumClient,
+  type CusumDay,
+  type CusumPoint,
+  type CusumSummary,
+  type MethodComparison as Comparison,
+} from '../data-access/cusum';
 import { describeDataError } from '../data-access/hooks';
 import {
   DYNAMIC_DISCLAIMER,
@@ -137,6 +146,53 @@ function DynamicWorkspace() {
       });
     return () => controller.abort();
   }, [ewmaClient, ewma, date]);
+
+  // Experimental CUSUM detector and the three-method comparison: loaded on
+  // their own, so neither can hide the composite or EWMA.
+  const cusumClient = useMemo(() => createCusumClient(config.apiBaseUrl), [config.apiBaseUrl]);
+  const [cusumAttempt, setCusumAttempt] = useState(0);
+  const [cusum, setCusum] = useState<
+    { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; summary: CusumSummary; history: CusumPoint[] }
+  >({ status: 'loading' });
+  const [cusumDay, setCusumDay] = useState<{ date: string; day: CusumDay | null; comparison: Comparison | null } | null>(null);
+  const [cusumRecalc, setCusumRecalc] = useState<CusumRecalc>({ status: 'idle' });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setCusum({ status: 'loading' });
+    Promise.all([cusumClient.summary(controller.signal), cusumClient.history(controller.signal)])
+      .then(([summary, history]) => !controller.signal.aborted && setCusum({ status: 'ready', summary, history }))
+      .catch((error) => {
+        if (!controller.signal.aborted && !isAbortError(error)) setCusum({ status: 'error', message: describeDataError(error) });
+      });
+    return () => controller.abort();
+  }, [cusumClient, cusumAttempt, ewmaAttempt, attempt]);
+
+  useEffect(() => {
+    if (date === null || cusum.status !== 'ready') return undefined;
+    const controller = new AbortController();
+    Promise.all([cusumClient.day(date, controller.signal), cusumClient.comparison(date, controller.signal)])
+      .then(([day, comparison]) => !controller.signal.aborted && setCusumDay({ date, day, comparison }))
+      .catch((error) => {
+        if (!controller.signal.aborted && !isAbortError(error)) setCusum({ status: 'error', message: describeDataError(error) });
+      });
+    return () => controller.abort();
+  }, [cusumClient, cusum, date]);
+
+  const runCusumRecalculation = async () => {
+    setCusumRecalc({ status: 'running' });
+    try {
+      const result = await cusumClient.recalculate();
+      if (result === 'unavailable') {
+        setCusumRecalc({ status: 'unavailable' });
+        return;
+      }
+      setCusumRecalc({ status: 'done', message: result.message });
+      setCusumAttempt((value) => value + 1);
+    } catch (error) {
+      setCusumRecalc({ status: 'error', message: describeDataError(error) });
+    }
+  };
 
   // "View Statistical Details" (the SMART sidecar) links to #statistical-surveillance.
   const { hash } = useLocation();
@@ -284,6 +340,13 @@ function DynamicWorkspace() {
       ) : (
         <>
           <SignalView signal={selected.signal} />
+          {cusum.status === 'ready' && cusumDay && cusumDay.date === selected.signal.signal_date && cusumDay.comparison ? (
+            <MethodComparison
+              comparison={cusumDay.comparison}
+              ewmaSummary={ewma.status === 'ready' ? ewma.summary : null}
+              cusumSummary={cusum.summary}
+            />
+          ) : null}
           {ewma.status === 'loading' ? (
             <LoadingState label="Loading statistical surveillance…" />
           ) : ewma.status === 'error' ? (
@@ -316,6 +379,40 @@ function DynamicWorkspace() {
               signal={selected.signal}
               recalc={ewmaRecalc}
               onRecalculate={ewma.summary.recalculation_available ? runEwmaRecalculation : null}
+            />
+          )}
+          {cusum.status === 'loading' ? (
+            <LoadingState label="Loading CUSUM surveillance…" />
+          ) : cusum.status === 'error' ? (
+            <Card bodyClassName="p-0">
+              <ErrorState
+                title="CUSUM results are unavailable"
+                message={cusum.message}
+                onRetry={() => setCusumAttempt((value) => value + 1)}
+              />
+            </Card>
+          ) : cusum.summary.result_count === 0 ? (
+            <Card title="CUSUM Surveillance" bodyClassName="p-0">
+              <EmptyState
+                title="CUSUM has not been calculated yet"
+                message="Run python -m app.statistics.run --method cusum, or recalculate here (development)."
+                action={
+                  cusum.summary.recalculation_available ? (
+                    <button type="button" className="ls-btn" onClick={runCusumRecalculation}>
+                      {cusumRecalc.status === 'running' ? 'Recalculating…' : 'Recalculate CUSUM'}
+                    </button>
+                  ) : null
+                }
+              />
+            </Card>
+          ) : (
+            <CusumSurveillance
+              summary={cusum.summary}
+              history={cusum.history}
+              day={cusumDay && cusumDay.date === selected.signal.signal_date ? cusumDay.day : undefined}
+              selectedDate={selected.signal.signal_date}
+              recalc={cusumRecalc}
+              onRecalculate={cusum.summary.recalculation_available ? runCusumRecalculation : null}
             />
           )}
         </>

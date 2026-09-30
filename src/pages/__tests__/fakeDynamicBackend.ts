@@ -6,6 +6,7 @@
  */
 import recording from './fixtures/dynamic-api-recording.json';
 import ewmaRecording from './fixtures/ewma-api-recording.json';
+import cusumRecording from './fixtures/cusum-api-recording.json';
 import type { DynamicSignal, DynamicSummary } from '../../data-access/dynamicSurveillance';
 
 type Recording = {
@@ -36,7 +37,29 @@ export interface DynamicOptions {
   ewmaEmpty?: boolean;
   /** The EWMA endpoints fail (HTTP 500). */
   ewmaDown?: boolean;
+  /** No CUSUM result calculated yet. */
+  cusumEmpty?: boolean;
+  /** The CUSUM and comparison endpoints fail (HTTP 500). */
+  cusumDown?: boolean;
 }
+
+export const CUSUM_RECORDING = cusumRecording as Recording;
+export const CUSUM_PREFIX = '/api/statistics/cusum';
+export const COMPARISON_PREFIX = '/api/statistics/comparison';
+
+const cusumReply = (path: string, method: string, options: DynamicOptions): Response => {
+  if (options.cusumDown) return json({ detail: 'Internal Server Error' }, 500);
+  if (method === 'POST' && path === `${CUSUM_PREFIX}/recalculate`) {
+    return options.production ? json({ detail: 'Not Found' }, 404) : json(CUSUM_RECORDING.post.again);
+  }
+  const source = options.cusumEmpty ? CUSUM_RECORDING.empty : CUSUM_RECORDING.get;
+  if (method === 'GET' && path in source) {
+    const body = source[path];
+    if (options.production && path === CUSUM_PREFIX) return json({ ...(body as object), recalculation_available: false });
+    return json(body);
+  }
+  return json({ detail: 'No CUSUM result has been calculated for that.' }, 404);
+};
 
 const ewmaReply = (path: string, method: string, options: DynamicOptions): Response => {
   if (options.ewmaDown) return json({ detail: 'Internal Server Error' }, 500);
@@ -55,6 +78,7 @@ const ewmaReply = (path: string, method: string, options: DynamicOptions): Respo
 /** Answers a dynamic-surveillance request, or returns null for any other path. */
 export const dynamicReply = (path: string, method: string, options: DynamicOptions = {}): Response | null => {
   if (path.startsWith(EWMA_PREFIX)) return ewmaReply(path, method, options);
+  if (path.startsWith(CUSUM_PREFIX) || path.startsWith(COMPARISON_PREFIX)) return cusumReply(path, method, options);
   if (!path.startsWith(DYNAMIC_PREFIX)) return null;
   if (method === 'POST' && path === `${DYNAMIC_PREFIX}/recalculate`) {
     return options.production ? json({ detail: 'Not Found' }, 404) : json(DYNAMIC_RECORDING.post.again);

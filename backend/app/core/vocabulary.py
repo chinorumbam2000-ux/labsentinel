@@ -58,7 +58,9 @@ CALCULATION_STATUSES = ("CALCULATED", "INSUFFICIENT_BASELINE", "NO_DATA")
 
 # Secondary statistical detectors (app/statistics), stored per metric in
 # statistical_signal, never in the Composite Outbreak Signal Score columns.
-STATISTICAL_METHODS = ("EWMA",)
+# The capstone's detector set is complete: the Composite Outbreak Signal Score
+# (surveillance_signal), EWMA and CUSUM. No further method is added in this build.
+STATISTICAL_METHODS = ("EWMA", "CUSUM")
 STATISTICAL_METRICS = ("volume", "positivity")
 #   REFERENCE_PERIOD       the day is part of the historical reference; not monitored
 #   INSUFFICIENT_BASELINE  too few reference days to estimate a mean and SD
@@ -72,6 +74,8 @@ STATISTICAL_STATUSES = (
     "NO_DATA",
 )
 STATISTICAL_ALERT_STATES = ("NORMAL", "WATCH", "STATISTICAL_ALERT")
+# CUSUM has one formal threshold (C_t >= h): no WATCH state.
+CUSUM_ALERT_STATES = ("NORMAL", "STATISTICAL_ALERT")
 
 # Whether an observation's LOINC code maps to a LabSentinel test and syndrome.
 TERMINOLOGY_STATUSES = ("mapped", "unmapped")

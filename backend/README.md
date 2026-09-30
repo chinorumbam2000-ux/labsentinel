@@ -24,6 +24,13 @@
 > [EWMA statistical detector](#ewma-statistical-detector-experimental)).
 > EWMA is an experimental statistical surveillance method in this capstone
 > and has not been validated for production epidemiological decision-making.
+>
+> A third method, an **experimental CUSUM detector**, completes the
+> capstone's detector set (Composite, EWMA, CUSUM). The three are compared,
+> never combined (see
+> [CUSUM statistical detector](#cusum-statistical-detector-and-three-method-comparison-experimental)).
+> CUSUM is an experimental statistical surveillance method in this capstone
+> and has not been epidemiologically validated for production decision-making.
 
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
@@ -82,8 +89,8 @@ backend/
 │   ├── services/          query logic and FHIR ingestion used by the routes
 │   ├── surveillance/      dynamic surveillance engine: aggregation, baseline,
 │   │                      scoring, persistence, `run` command
-│   ├── statistics/        experimental EWMA detector: formulas, series,
-│   │                      comparison, persistence, `run` command
+│   ├── statistics/        experimental EWMA and CUSUM detectors: formulas,
+│   │                      series, comparison, persistence, `run` command
 │   └── seed/              dataset fixture, idempotent seed, parity check,
 │                          SMART sandbox facility, dynamic dataset
 ├── alembic/               migration environment and versions/
@@ -2002,8 +2009,326 @@ Audit events hold aggregate figures only:
   like busy ones.
 - One synthetic outbreak cannot establish sensitivity, specificity or
   timeliness.
-- No CUSUM, no multi-method combination and no machine learning: those
-  belong to later phases.
+- No multi-method combination and no machine learning. CUSUM was added in
+  Phase 9 as a separate third method (below), never combined with EWMA.
+
+## CUSUM statistical detector and three-method comparison (experimental)
+
+> **Experimental Statistical Surveillance.** CUSUM is an experimental
+> statistical surveillance method in this capstone and has not been
+> epidemiologically validated for production decision-making. A statistical
+> alert is not a confirmed outbreak.
+
+### The capstone detector set is complete
+
+| # | Method | Kind | Stored in |
+|---|---|---|---|
+| 1 | Composite Outbreak Signal Score | Multi-factor, rule-based | `surveillance_signal` |
+| 2 | EWMA | Statistical: smoothed shift | `statistical_signal`, method `EWMA` |
+| 3 | CUSUM | Statistical: cumulative sustained deviation | `statistical_signal`, method `CUSUM` |
+
+The three run independently on the same dynamic aggregation, and are compared
+but **never mathematically combined**. No further method (machine learning,
+Shewhart, Bayesian detectors, scan statistics, other control charts) is part
+of this build; those belong to future research.
+
+### What CUSUM is
+
+CUSUM (cumulative sum) adds up how far each day is above normal, and raises
+an alert when the accumulated excess is large enough. A single high day adds a
+little; several moderately high days in a row add up. Days at or below normal
+drain the sum back towards zero.
+
+### The formula (one-sided upper CUSUM, standardized)
+
+```
+z_t = (Y_t - mean) / SD                 standardized deviation
+C_0 = 0
+C_t = max(0, C_(t-1) + z_t - k)         k = reference (slack) value
+STATISTICAL ALERT when C_t >= h         h = decision limit
+```
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| k | **0.5** | A day must be more than k SDs above the mean to add to the sum |
+| h | **5.0** | The sum at which CUSUM signals (inclusive: C_t ≥ h) |
+
+- These are illustrative prototype values: a textbook pairing, not an
+  epidemiologically validated one. Both are configurable (`CusumConfig`).
+- **One-sided:** upper only, because LabSentinel watches for increases.
+  There is no downward CUSUM.
+- **Reset:** only the `max(0, …)`. An alert does not reset the sum, and
+  nothing another detector does affects it. C_t depends only on C_(t−1),
+  z_t and k.
+- **Days without data** (the Dec 25-31 gap) do not update the sum; it is
+  carried forward.
+- **States:** the formal states are NORMAL and STATISTICAL ALERT only.
+  *Approaching the limit* (C_t / h ≥ 0.75 while NORMAL) is an
+  **informational display note**, not a statistical alarm: the formal state
+  stays NORMAL until C_t reaches h.
+
+### Baseline: the same reference as EWMA
+
+For a fair comparison, CUSUM takes its reference from **EWMA's own reference
+routine and settings** (`ewma.reference_for`, 28-day period, at least 21 days
+with data). The baseline is therefore identical by construction:
+
+| Metric | Mean | SD |
+|---|---|---|
+| Volume | 49.79 tests | 7.99 |
+| Positivity | 7.49 % | 4.21 |
+
+The reference period is Nov 27-Dec 24 2025. A test asserts that CUSUM and
+EWMA store the same mean, SD and period. Fewer than 21 reference days gives
+`INSUFFICIENT_BASELINE`; zero SD gives `INSUFFICIENT_VARIANCE`. Neither
+produces a z-score, a sum or a state.
+
+**Positivity:** CUSUM uses the same daily positivity series as EWMA
+(Positive / (Positive + Negative) per day). Daily rates have **different
+denominators**, and this CUSUM does **not** yet model binomial variance by
+daily test count. That is a documented limitation, not something fixed mid-phase.
+
+### Volume CUSUM and positivity CUSUM
+
+The two metrics are calculated, stored and shown separately. Per date and
+metric, `statistical_signal` (method `CUSUM`) and the API give:
+- the observed value, and the baseline mean and SD;
+- the z-score, today's addition (z − k), the previous CUSUM and the current
+  CUSUM;
+- k, h and the distance to the limit (h − C_t);
+- the formal state and the informational approaching flag;
+- the reference period, configuration and formula;
+- a plain-language interpretation, for example *"Recent positivity values
+  have accumulated enough sustained upward deviation from the historical
+  baseline to cross the CUSUM decision limit."*
+
+The overall state is STATISTICAL ALERT when either metric has reached h.
+
+### Results (predefined k 0.5, h 5; dataset alone)
+
+| Positivity CUSUM | Observed | z | Previous | Added (z − k) | CUSUM | State |
+|---|---|---|---|---|---|---|
+| Jan 13 | 10.42 % | 0.695 | 0.000 | +0.195 | 0.195 | Normal (accumulating) |
+| Jan 14 | 6.38 % | −0.262 | 0.195 | −0.762 | **0.000** | Normal (reset) |
+| Jan 15 | 11.11 % | 0.860 | 0.000 | +0.360 | 0.360 | Normal |
+| Jan 16 | 17.74 % | 2.434 | 0.360 | +1.934 | 2.294 | Normal |
+| Jan 17 | 23.29 % | 3.750 | 2.294 | +3.250 | **5.544** | **STATISTICAL ALERT** |
+
+Volume CUSUM reaches 0.03 → 1.06 → 3.46 (Jan 15-17), then **7.25 on Jan 18
+(alert)**.
+
+**First signal dates (monitoring period Dec 25 - Jan 20):**
+
+| Method | Watch | Moderate | High / Alert | Critical |
+|---|---|---|---|---|
+| Composite | Jan 15 | Jan 16 | **Jan 17** | Jan 18 |
+| EWMA volume | Jan 17 | — | Jan 18 | — |
+| EWMA positivity | Jan 16 | — | **Jan 17** | — |
+| CUSUM volume | — | — | Jan 18 | — |
+| CUSUM positivity | — | — | **Jan 17** | — |
+
+**Lead (+) or lag (−) of CUSUM, in days:**
+
+| CUSUM | vs Composite High | vs Composite Critical | vs EWMA alert (same metric) |
+|---|---|---|---|
+| Positivity (Jan 17) | 0 | +1 | 0 |
+| Volume (Jan 18) | −1 | 0 | 0 |
+| Either metric (Jan 17) | 0 | +1 | 0 |
+
+**Finding.** On this synthetic outbreak, all three methods first signal on
+the same day (Jan 17): **3 OF 3 METHODS SIGNAL** from Jan 17 onward. CUSUM
+agrees with EWMA day for day. Neither statistical method detects earlier than
+the composite's High, so they **corroborate** it rather than anticipate it.
+
+This is one abrupt, steep synthetic outbreak. With it, the composite's
+multi-factor evidence and the statistical detectors cross their thresholds
+together. A slower rise would be needed to see whether CUSUM's accumulation
+gives earlier warning.
+
+### False-alert check
+
+- **Monitored in-control days (Jan 1-14):** no CUSUM alert on either metric.
+- **Reference period, in-sample (analysis only):** over the 28 in-control
+  history days, the sum peaks at 1.68 (volume) and 3.00 (positivity), below h,
+  so there are no alert days. This is optimistic, because those days define
+  their own baseline.
+- For contrast, on those same history days the composite's facility rule
+  reached Watch on 7 and Moderate on 4 days (never High). By the comparison
+  rule below, none of the three methods signalled falsely.
+
+### Parameter sensitivity (development analysis only)
+
+`python -m app.statistics.run --method cusum --report` runs the grid below.
+Nothing is stored and no alternative is shown as an alert. Dataset alone:
+
+| k | h | Volume alert | Positivity alert | False alerts before onset | Reference in-sample alert days | Overall vs composite High |
+|---|---|---|---|---|---|---|
+| 0.25 | 4 | Jan 17 | Jan 17 | 0 | 0 | same day |
+| 0.25 | 5 | Jan 18 | Jan 17 | 0 | 0 | same day |
+| 0.25 | 6 | Jan 18 | Jan 17 | 0 | 0 | same day |
+| 0.50 | 4 | Jan 18 | Jan 17 | 0 | 0 | same day |
+| **0.50** | **5** | **Jan 18** | **Jan 17** | **0** | **0** | **same day** |
+| 0.50 | 6 | Jan 18 | Jan 18 | 0 | 0 | 1 day later |
+| 0.75 | 4 | Jan 18 | Jan 17 | 0 | 0 | same day |
+| 0.75 | 5 | Jan 18 | Jan 18 | 0 | 0 | 1 day later |
+| 0.75 | 6 | Jan 18 | Jan 18 | 0 | 0 | 1 day later |
+
+- Only the most permissive setting (k 0.25, h 4) moves volume a day earlier.
+- The stricter settings delay positivity by a day.
+- No setting produces a false alert.
+
+The defaults stay k 0.5, h 5. They were fixed in advance, they are valid,
+and they were not chosen because they alert earliest.
+
+### Three-method comparison
+
+**Signalling rule, for comparison only:**
+- the composite signals at **High or Critical**;
+- EWMA signals when its **overall state is STATISTICAL ALERT**;
+- CUSUM signals when **either metric has reached h**.
+
+Each method's own logic is unchanged. The summary is a descriptive count
+(*3 OF 3 / 2 OF 3 / 1 OF 3 METHODS SIGNAL*, *NO METHODS SIGNAL*, or *n OF m
+AVAILABLE* when a method has no result), with which methods signal
+(Composite ✓ EWMA ✓ CUSUM ✓). **It is not a risk score.**
+
+Live example: after the FHIR respiratory-panel Bundle is ingested (extra
+results on Jan 16), the composite rises to High 69 on Jan 16. EWMA stays at
+Watch and CUSUM at Normal (sum 2.46), so the panel reads **1 OF 3 METHODS
+SIGNAL**.
+
+### Database
+
+The EWMA table `statistical_signal` was designed to be shared: its key already
+includes `method`. **Migration 0007** reuses it rather than adding a table:
+- `method` may be `EWMA` or `CUSUM`;
+- CUSUM columns: `z_score`, `previous_cusum`, `cusum_value`, `cusum_k`,
+  `cusum_h`;
+- `lambda_value` and `k_value` become nullable (CUSUM has neither), but a
+  check still requires them on every EWMA row, and `cusum_k` / `cusum_h` on
+  every CUSUM row;
+- a CALCULATED row must carry its own method's values;
+- CUSUM cannot be WATCH;
+- sums are ≥ 0, h > 0 and k ≥ 0.
+
+Existing EWMA rows are unchanged. The downgrade is refused while CUSUM rows
+exist.
+
+### API
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/statistics/cusum` | Label, disclaimer, k/h, formula, shared reference, extent, detection timing with lead/lag, the in-sample reference check, signalling rule, detector set |
+| GET | `/api/statistics/cusum/current` | Both metrics for `date` (default: the latest), overall state |
+| GET | `/api/statistics/cusum/history` | Daily CUSUM rows; filters `metric`, `date_from`, `date_to`, `syndrome` |
+| GET | `/api/statistics/comparison` | Composite, EWMA and CUSUM on a date, the agreement count and which methods signal |
+| POST | `/api/statistics/cusum/recalculate` | **Development only**; accepts no values; idempotent |
+
+The EWMA endpoints are unchanged and never return CUSUM rows.
+
+### Commands and recalculation
+
+```powershell
+python -m app.statistics.run                        # EWMA and CUSUM (idempotent)
+python -m app.statistics.run --method cusum         # CUSUM only (or --method ewma)
+python -m app.statistics.run --method cusum --report  # plus timing, false-alert check, k x h grid
+python -m app.statistics.run --method cusum --clear   # remove stored CUSUM results
+```
+
+The pipeline is: FHIR → PostgreSQL → dynamic aggregation → EWMA / CUSUM → UI.
+After a FHIR ingestion, recalculate Dynamic Surveillance, then EWMA and
+CUSUM, from the commands or the development buttons. CUSUM is never
+calculated from browser data.
+
+Audit events hold aggregate figures only:
+- `statistics.cusum.calculated`
+- `statistics.cusum.recalculated`
+- `statistics.cusum.state_changed`, for Normal → Statistical Alert and
+  Statistical Alert → Normal (for example *"Positivity CUSUM … on 2026-01-17
+  changed from Statistical Alert to Normal (C 0.02 vs h 5)"*)
+- `statistics.cusum.cleared`
+
+### UI
+
+- **Three-Method Comparison** (Dynamic Surveillance, under the dynamic
+  signal):
+  - three columns: LabSentinel Composite (score, severity), EWMA (volume,
+    positivity, overall) and CUSUM (volume, positivity, overall);
+  - the agreement count with ✓ / ✗ per method and its explanation;
+  - a method table (what it measures, current state, first alert,
+    interpretation) in plain language.
+- **CUSUM Surveillance**, a section of its own after EWMA (neither is hidden
+  behind the other):
+  - Test Volume CUSUM and Positivity CUSUM panels (observed today,
+    historical mean, SD, standardized deviation, previous CUSUM, added today,
+    current CUSUM, h, whether it crossed the limit, k, historical period,
+    interpretation, and the informational "approaching limit" badge);
+  - a **CUSUM trend** chart (the sum, the decision limit h and the shaded
+    75-100 % band) with a Volume / Positivity switch, tooltips and a
+    screen-reader table;
+  - **CUSUM detection timing** and the false-alert check;
+  - **Recalculate CUSUM** (development only).
+
+  If CUSUM fails, the composite and EWMA still show.
+- **SMART sidecar** (Dynamic Surveillance chosen): *Statistical detector:
+  EWMA — EWMA Alert* and *Statistical detector: CUSUM — CUSUM Alert*, plus
+  **View Statistical Details**. There is no CUSUM maths in the sidecar.
+
+### Manual full-stack demonstration
+
+1. Open Dynamic Surveillance. With CUSUM not yet calculated it says so;
+   press **Recalculate CUSUM**.
+2. Pick **Jan 10**: composite 0, EWMA Normal, CUSUM 0 — NO METHODS SIGNAL.
+3. Step through **Jan 13 → Jan 20**:
+   - the positivity sum reaches 0.20 on Jan 13 and resets to 0 on Jan 14;
+   - it then accumulates 0.36 and 2.29, and reaches **5.54 ≥ h on Jan 17**;
+   - volume follows on Jan 18.
+4. Read the timing table. The **Three-Method Comparison** shows 3 OF 3 from
+   Jan 17.
+5. On FHIR Ingestion, ingest the respiratory-panel Bundle and **Recalculate
+   Dynamic Surveillance**. Then **Recalculate EWMA** and **Recalculate
+   CUSUM**. Jan 16 changes to 1 OF 3 (Composite only).
+6. In the SMART sidecar (Dynamic Surveillance chosen): *EWMA Alert*,
+   *CUSUM Alert*.
+7. The Simulation Day 1-5 scores are still 0 / 24 / 50 / 74 / 87.
+
+### Tests
+
+- `tests/test_cusum.py` (15, no database):
+  - the z-score and the recursion, k and h handling (h inclusive);
+  - a hand-worked sequence including Normal → Alert → Normal;
+  - reset to zero and no other reset;
+  - approaching-the-limit being informational only, and carry-forward;
+  - insufficient baseline and zero variance, no leakage;
+  - the in-sample check, the overall state and three-method agreement.
+- `tests/test_cusum_surveillance.py` (15), re-run on PostgreSQL by
+  `tests/integration/test_cusum_surveillance_postgres.py`:
+  - the shared baseline with EWMA;
+  - hand calculations (positivity Jan 13-17, volume Jan 15-18);
+  - the false-alert checks, detection timing and lead/lag, and the
+    sensitivity grid (nothing stored);
+  - idempotency, with EWMA values untouched;
+  - FHIR-driven Normal → Alert, and Alert → Normal, with audit;
+  - composite, demonstration and EWMA unchanged;
+  - the API (summary, current, history, comparison, development-only
+    recalculation) and the command's method selection.
+- `tests/test_migrations.py`: 0007 admits CUSUM beside EWMA, enforces the
+  method-specific rules and guards the downgrade.
+- The EWMA test files are unchanged and pass.
+
+### CUSUM limitations
+
+- Experimental and not validated: k 0.5 and h 5 are illustrative.
+- The same fixed reference as EWMA (the first 28 days, assumed in control).
+- Positivity uses the empirical SD of daily rates. It does not model binomial
+  variance by daily test count, so days with few tests carry the same weight
+  as busy days.
+- Upper-only, daily, regional. There is no per-facility CUSUM and no seasonal
+  or day-of-week adjustment.
+- No reset after an alert. During a long outbreak the sum stays high, so it
+  signals ongoing excess, not the onset of new excess.
+- One steep synthetic outbreak cannot establish sensitivity, specificity or
+  timeliness, or distinguish the methods' speed on slower rises.
 
 ## Current limitations
 
