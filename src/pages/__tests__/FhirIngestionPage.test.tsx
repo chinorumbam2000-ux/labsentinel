@@ -144,7 +144,7 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     expect(backend.calls.some((call) => call.includes('/api/surveillance/dynamic'))).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: 'Recalculate Dynamic Surveillance' }));
 
-    expect(await screen.findByText(/Recalculated 20 day\(s\): 0 created, 0 updated, 20 unchanged\./)).toBeTruthy();
+    expect(await screen.findByText(/Recalculated 55 day\(s\): 0 created, 0 updated, 55 unchanged\./)).toBeTruthy();
     expect(screen.getByText(/Latest date 2026-01-20: 90 \(Critical\)/)).toBeTruthy();
     expect(backend.calls).toContain('POST /api/surveillance/dynamic/recalculate');
     expect(screen.getByRole('link', { name: 'Open Dynamic Surveillance' }).getAttribute('href')).toBe('/dynamic-surveillance');

@@ -97,6 +97,13 @@ describe('SMART sidecar regional panel in API mode', () => {
     expect(within(regional).getByText('Dynamic Surveillance', { selector: 'strong' })).toBeTruthy();
     expect(within(regional).getByText('90/100')).toBeTruthy();
     expect(within(regional).getByText('3 of 3')).toBeTruthy();
+    // A compact statistical indicator only: no control-chart mathematics in the sidecar.
+    expect(await within(regional).findByText('EWMA Alert')).toBeTruthy();
+    expect(within(regional).queryByText(/control limit|lambda/i)).toBeNull();
+    expect(within(regional).getByRole('link', { name: 'View Statistical Details' }).getAttribute('href')).toBe(
+      '/dynamic-surveillance#statistical-surveillance',
+    );
+    expect(calls).toContain('GET /api/statistics/ewma/current?date=2026-01-20');
     expect(within(regional).queryByText('Demo Surveillance', { selector: 'strong' })).toBeNull();
     expect(calls).toContain('GET /api/surveillance/dynamic/signals/current');
   });

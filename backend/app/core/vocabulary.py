@@ -56,6 +56,23 @@ SIGNAL_MODES = ("demo", "dynamic")
 #   NO_DATA                no eligible observations for the date; no score is produced
 CALCULATION_STATUSES = ("CALCULATED", "INSUFFICIENT_BASELINE", "NO_DATA")
 
+# Secondary statistical detectors (app/statistics), stored per metric in
+# statistical_signal, never in the Composite Outbreak Signal Score columns.
+STATISTICAL_METHODS = ("EWMA",)
+STATISTICAL_METRICS = ("volume", "positivity")
+#   REFERENCE_PERIOD       the day is part of the historical reference; not monitored
+#   INSUFFICIENT_BASELINE  too few reference days to estimate a mean and SD
+#   INSUFFICIENT_VARIANCE  the reference SD is zero: no control limit can be set
+#   NO_DATA                no eligible results that day; the EWMA is carried forward
+STATISTICAL_STATUSES = (
+    "CALCULATED",
+    "REFERENCE_PERIOD",
+    "INSUFFICIENT_BASELINE",
+    "INSUFFICIENT_VARIANCE",
+    "NO_DATA",
+)
+STATISTICAL_ALERT_STATES = ("NORMAL", "WATCH", "STATISTICAL_ALERT")
+
 # Whether an observation's LOINC code maps to a LabSentinel test and syndrome.
 TERMINOLOGY_STATUSES = ("mapped", "unmapped")
 

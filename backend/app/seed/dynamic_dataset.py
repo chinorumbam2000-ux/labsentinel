@@ -9,13 +9,18 @@ Each is ingested with a simulated delivery time (``received_at``) a few
 minutes after its effective time, as a laboratory feed would deliver it.
 
 It is separate from the frozen five-day demonstration: different dates
-(January 2026, outside Nov 3-7 2025), a different source system, and it never
-changes the demonstration's 699 observations or signals.
+(Nov 27 2025 - Jan 20 2026, all after the Nov 3-7 2025 demonstration), a
+different source system, and it never changes the demonstration's 699
+observations or signals.
 
 The story, for Respiratory Viral Syndrome at the three participating
 facilities (all synthetic):
 
-    Jan 1-5    history begins; too little for a baseline (INSUFFICIENT_BASELINE)
+    Nov 27-Dec 24  in-control HISTORY (Phase 8): 28 days of ordinary
+               day-to-day variation, the statistical reference period for EWMA
+    Dec 25-31  holiday reporting gap: no results
+    Jan 1-5    too little recent history for the composite's 7-day baseline
+               (INSUFFICIENT_BASELINE; the gap keeps the history out of its window)
     Jan 6-14   steady baseline: about 48 tests a day, about 8 % positive
     Jan 15     Worcester Central (HOSP-A) volume and positivity rise
     Jan 16     Central Mass Regional (HOSP-B) becomes abnormal too
@@ -28,7 +33,8 @@ counted, and shows up in Data Confidence as terminology mapping quality.
 The engine calculates whatever follows from these data; nothing here sets a
 score.
 
-    python -m app.seed.dynamic_dataset                     all 20 days
+    python -m app.seed.dynamic_dataset                     every phase (48 days)
+    python -m app.seed.dynamic_dataset --phase history     Nov 27-Dec 24 only
     python -m app.seed.dynamic_dataset --phase baseline    Jan 1-14 only
     python -m app.seed.dynamic_dataset --phase outbreak    Jan 15-20 only
     python -m app.seed.dynamic_dataset --remove            remove these observations
@@ -48,6 +54,8 @@ from app.models import AuditEvent, LabObservation
 from app.services.fhir_ingestion import ingest_document
 
 ZONE = ZoneInfo("America/New_York")
+HISTORY_FIRST_DAY = date(2025, 11, 27)
+HISTORY_LAST_DAY = date(2025, 12, 24)
 FIRST_DAY = date(2026, 1, 1)
 OUTBREAK_START = date(2026, 1, 15)
 LAST_DAY = date(2026, 1, 20)
@@ -65,6 +73,25 @@ POSITIVES = {
     "HOSP-B": [1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 3, 5, 7, 10, 13],
     "HOSP-C": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 4, 6, 8],
 }
+# PHASE 8 HISTORY, Nov 27 to Dec 24 2025 (28 days). The Jan 1-14 baseline
+# above is nearly constant (regional volume SD 0.7 tests), far too flat to
+# estimate a day-to-day standard deviation for EWMA control limits. These
+# days add ordinary variation: drawn once from Poisson(20 / 16 / 12) tests
+# and Binomial(tests, 0.08) positives with random.Random(20251127), then
+# frozen here as literals, so the dataset never depends on a generator.
+# The first draw was kept as it came; it was not adjusted to suit EWMA.
+HISTORY_TESTS = {
+    "HOSP-A": [16, 15, 27, 25, 21, 25, 20, 14, 20, 18, 34, 18, 22, 25, 15, 24, 25, 18, 19, 24, 18, 34, 15, 22, 28, 17, 22, 16],
+    "HOSP-B": [17, 20, 17, 26, 13, 11, 17, 19, 20, 20, 20, 11, 16, 23, 13, 19, 12, 10, 17, 18, 21, 11, 19, 14, 22, 17, 15, 15],
+    "HOSP-C": [9, 7, 14, 7, 14, 7, 15, 10, 10, 11, 12, 7, 12, 10, 14, 15, 11, 9, 14, 11, 18, 19, 10, 7, 13, 14, 9, 15],
+}
+HISTORY_POSITIVES = {
+    "HOSP-A": [2, 0, 2, 2, 1, 3, 1, 0, 2, 2, 3, 5, 3, 0, 1, 0, 3, 2, 0, 2, 0, 1, 0, 1, 3, 1, 2, 2],
+    "HOSP-B": [0, 1, 3, 1, 0, 0, 3, 3, 2, 1, 1, 2, 1, 2, 1, 1, 2, 0, 0, 1, 1, 2, 1, 1, 0, 1, 1, 1],
+    "HOSP-C": [1, 0, 0, 1, 2, 2, 0, 0, 0, 1, 2, 1, 0, 1, 0, 3, 0, 0, 0, 3, 1, 1, 0, 0, 2, 1, 0, 4],
+}
+PHASES = ("all", "history", "baseline", "outbreak")
+
 # Minutes from collection to delivery: base + (index * step) % spread.
 DELAYS = {"HOSP-A": (12, 7, 18), "HOSP-B": (18, 11, 25), "HOSP-C": (25, 13, 30)}
 FACILITY_DISPLAY = {
@@ -82,8 +109,28 @@ POSITIVE_RESULT = ("10828004", "Positive")
 NEGATIVE_RESULT = ("260385009", "Negative")
 
 
+def _span(first: date, last: date) -> list[date]:
+    return [first + timedelta(days=i) for i in range((last - first).days + 1)]
+
+
 def days() -> list[date]:
-    return [FIRST_DAY + timedelta(days=i) for i in range((LAST_DAY - FIRST_DAY).days + 1)]
+    """Every day with data: the history, then Jan 1-20 (Dec 25-31 is the reporting gap)."""
+    return _span(HISTORY_FIRST_DAY, HISTORY_LAST_DAY) + _span(FIRST_DAY, LAST_DAY)
+
+
+def phase_of(day: date) -> str:
+    if day <= HISTORY_LAST_DAY:
+        return "history"
+    return "baseline" if day < OUTBREAK_START else "outbreak"
+
+
+def counts(code: str, day: date) -> tuple[int, int]:
+    """(tests, positives) for a facility on a dataset day."""
+    if day <= HISTORY_LAST_DAY:
+        offset = (day - HISTORY_FIRST_DAY).days
+        return HISTORY_TESTS[code][offset], HISTORY_POSITIVES[code][offset]
+    offset = (day - FIRST_DAY).days
+    return TESTS[code][offset], POSITIVES[code][offset]
 
 
 @dataclass(frozen=True)
@@ -138,15 +185,13 @@ def _observation(code: str, day: date, index: int, count: int, loinc: tuple[str,
 
 def planned_observations(phase: str = "all") -> list[Planned]:
     """Every observation of the dataset (or one phase of it), in delivery order."""
-    selected = [
-        day for day in days()
-        if phase == "all" or (phase == "baseline") == (day < OUTBREAK_START)
-    ]
+    if phase not in PHASES:
+        raise ValueError(f"phase must be one of {', '.join(PHASES)}")
+    selected = [day for day in days() if phase in ("all", phase_of(day))]
     planned: list[Planned] = []
     for day in selected:
-        offset = (day - FIRST_DAY).days
         for code in TESTS:
-            count, positives = TESTS[code][offset], POSITIVES[code][offset]
+            count, positives = counts(code, day)
             # Positives go to the influenza A tests first: an influenza-led rise.
             order = sorted(range(count), key=lambda i: (i % 3 != 0, i))
             positive_indexes = set(order[:positives])
@@ -211,8 +256,8 @@ def main(argv: list[str]) -> int:
     if "--phase" in argv:
         position = argv.index("--phase")
         phase = argv[position + 1] if position + 1 < len(argv) else ""
-        if phase not in ("all", "baseline", "outbreak"):
-            print("--phase must be all, baseline or outbreak.")
+        if phase not in PHASES:
+            print("--phase must be all, history, baseline or outbreak.")
             return 2
     with get_session_factory()() as session, session.begin():
         if "--remove" in argv:

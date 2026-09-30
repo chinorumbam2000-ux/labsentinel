@@ -41,9 +41,18 @@ const renderPage = (mode: 'api' | 'local' = 'api') =>
     </DataSourceProvider>,
   );
 
-const metric = (label: string) => screen.getByText(label, { selector: 'dt' }).nextElementSibling?.textContent;
+/** The overview metric (the first <dt> with that label; the comparison panel repeats "Severity"). */
+const metric = (label: string) => screen.getAllByText(label, { selector: 'dt' })[0].nextElementSibling?.textContent;
 
-beforeEach(() => useBackend());
+beforeEach(() => {
+  useBackend();
+  // jsdom has no ResizeObserver; Recharts' ResponsiveContainer needs one.
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+});
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -138,7 +147,8 @@ describe('Dynamic Surveillance — API Capstone Mode', () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Why this dynamic signal?' });
     const history = screen.getByRole('table', { name: /Every calculated dynamic signal/ });
-    expect(within(history).getAllByRole('row')).toHaveLength(21);
+    // 55 calculated dates (Nov 27 - Jan 20) plus the header row.
+    expect(within(history).getAllByRole('row')).toHaveLength(56);
     fireEvent.change(screen.getByLabelText('Surveillance date'), { target: { value: '2026-01-15' } });
     await waitFor(() => expect(metric('Composite Outbreak Signal Score')).toBe('25 / 100'));
     expect(metric('Severity')).toBe('Watch');
@@ -149,7 +159,7 @@ describe('Dynamic Surveillance — API Capstone Mode', () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Why this dynamic signal?' });
     fireEvent.click(screen.getByRole('button', { name: 'Recalculate Dynamic Surveillance' }));
-    expect(await screen.findByText('Recalculated 20 day(s): 0 created, 0 updated, 20 unchanged.')).toBeTruthy();
+    expect(await screen.findByText('Recalculated 55 day(s): 0 created, 0 updated, 55 unchanged.')).toBeTruthy();
     expect(calls).toContain('POST /api/surveillance/dynamic/recalculate');
   });
 
@@ -170,5 +180,100 @@ describe('Dynamic Surveillance — API Capstone Mode', () => {
     useBackend({ down: true });
     renderPage();
     expect(await screen.findByText('Dynamic surveillance is unavailable')).toBeTruthy();
+  });
+});
+
+describe('Statistical Surveillance (EWMA) — API Capstone Mode', () => {
+  const section = async () => {
+    await screen.findByRole('heading', { name: 'Statistical Surveillance' });
+    return screen.getByRole('heading', { name: 'Statistical Surveillance' }).closest('section')!;
+  };
+  const fact = (panel: HTMLElement, label: string) =>
+    within(panel).getByText(label, { selector: 'dt' }).nextElementSibling?.textContent;
+
+  it('is labelled experimental and shows both metrics for the selected date', async () => {
+    renderPage();
+    const stats = await section();
+    expect(within(stats).getByText('Experimental Statistical Surveillance')).toBeTruthy();
+    expect(within(stats).getByText(/Prototype statistical detector — not clinically or epidemiologically validated\./)).toBeTruthy();
+    expect(screen.getByText(/EWMA is an experimental statistical surveillance method in this capstone/)).toBeTruthy();
+
+    const positivity = await within(stats).findByRole('region', { name: 'Positivity EWMA' });
+    expect(within(positivity).getByText('Statistical Alert')).toBeTruthy();
+    expect(fact(positivity, 'Observed')).toBe('37.7%');
+    expect(fact(positivity, 'Historical mean')).toBe('7.5% (SD 4.2%)');
+    expect(fact(positivity, 'EWMA')).toBe('20.90% → 25.11%');
+    expect(fact(positivity, 'Upper control limit')).toBe('12.26%');
+    expect(fact(positivity, 'Crossed the limit?')).toBe('Yes — 12.85% above the limit');
+    expect(fact(positivity, 'Lambda · k')).toBe('0.25 · 3');
+    expect(fact(positivity, 'Historical period')).toBe('2025-11-27 to 2025-12-24 (28 days)');
+    expect(
+      within(positivity).getByText('The exponentially weighted positivity signal exceeded its historical control limit.'),
+    ).toBeTruthy();
+
+    const volume = within(stats).getByRole('region', { name: 'Test Volume EWMA' });
+    expect(fact(volume, 'Observed')).toBe('106.0 tests');
+    expect(fact(volume, 'Upper control limit')).toBe('58.84 tests');
+  });
+
+  it('compares the two methods without combining them', async () => {
+    renderPage();
+    const stats = await section();
+    const comparison = within(stats).getByRole('heading', { name: 'Detection Comparison' }).closest('section')!;
+    await within(comparison).findByText('Agreement: Both methods signal');
+    expect(fact(comparison, 'Score')).toBe('90 / 100');
+    expect(fact(comparison, 'Volume')).toBe('Statistical Alert');
+    expect(fact(comparison, 'Overall')).toMatch(/Statistical Alert$/);
+    expect(within(comparison).getByText(/independently indicate abnormal activity/)).toBeTruthy();
+    expect(within(comparison).getByText(/never combined into one number/)).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('Surveillance date'), { target: { value: '2026-01-16' } });
+    // A new date remounts the section: query it again.
+    await screen.findByText('Agreement: Neither');
+    const updated = screen.getByRole('heading', { name: 'Detection Comparison' }).closest('section')!;
+    expect(fact(updated, 'Positivity')).toBe('Watch');
+    expect(fact(updated, 'Overall')).toMatch(/Watch$/);
+    expect(calls).toContain('GET /api/statistics/ewma/current?date=2026-01-16');
+  });
+
+  it('shows detection timing with lead and lag', async () => {
+    renderPage();
+    const stats = await section();
+    const timing = within(stats).getByRole('table', { name: /each EWMA metric reaches Watch and Statistical Alert/ });
+    const row = within(timing).getByText('Positivity EWMA — Statistical Alert').closest('tr')!;
+    expect(row.textContent).toContain('Sat, Jan 17, 2026');
+    expect(row.textContent).toContain('2 days later'); // vs composite Watch (Jan 15)
+    expect(row.textContent).toContain('same day'); // vs composite High (Jan 17)
+    const composite = within(stats).getByRole('table', { name: /Composite Outbreak Signal Score reaches each severity/ });
+    expect(within(composite).getByText('Thu, Jan 15, 2026')).toBeTruthy();
+  });
+
+  it('switches the trend chart between metrics, with an accessible table', async () => {
+    renderPage();
+    const stats = await section();
+    const tableFor = (name: RegExp) => within(stats).getByRole('table', { name });
+    // 20 monitored days (Jan 1-20) plus the header row.
+    expect(within(tableFor(/Positivity \(%\): observed value/)).getAllByRole('row')).toHaveLength(21);
+    fireEvent.click(within(stats).getByRole('radio', { name: 'Test Volume' }));
+    expect(within(tableFor(/Tests a day: observed value/)).getByText('84.0 tests')).toBeTruthy();
+  });
+
+  it('recalculates EWMA on request (development)', async () => {
+    renderPage();
+    const stats = await section();
+    fireEvent.click(within(stats).getByRole('button', { name: 'Recalculate EWMA' }));
+    expect(await screen.findByText('EWMA recalculated: 0 created, 0 updated, 110 unchanged.')).toBeTruthy();
+    expect(calls).toContain('POST /api/statistics/ewma/recalculate');
+  });
+
+  it('keeps the composite view when EWMA fails, and explains when it is not calculated', async () => {
+    useBackend({ ewmaDown: true });
+    renderPage();
+    expect(await screen.findByText('Statistical surveillance is unavailable')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Why this dynamic signal?' })).toBeTruthy();
+    cleanup();
+    useBackend({ ewmaEmpty: true });
+    renderPage();
+    expect(await screen.findByText('EWMA has not been calculated yet')).toBeTruthy();
   });
 });

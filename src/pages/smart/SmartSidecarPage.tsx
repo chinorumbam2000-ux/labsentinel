@@ -15,6 +15,7 @@ import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 import { createFhirIngestionClient } from '../../data-access/fhirIngestion';
 import { createDynamicSurveillanceClient, type DynamicSignal } from '../../data-access/dynamicSurveillance';
+import { createEwmaClient, type EwmaState } from '../../data-access/ewma';
 import { DYNAMIC_LABEL, INSUFFICIENT_BASELINE_TEXT, NO_DATA_TEXT, formatSurveillanceDate } from '../../lib/dynamicSurveillance';
 import { describeDataError } from '../../data-access/hooks';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
@@ -103,18 +104,30 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 /** The latest DYNAMIC regional signal (API mode, when chosen in the sidecar). */
 function DynamicRegional({ baseUrl }: { baseUrl: string }) {
   const client = useMemo(() => createDynamicSurveillanceClient(baseUrl), [baseUrl]);
+  const ewmaClient = useMemo(() => createEwmaClient(baseUrl), [baseUrl]);
   const [state, setState] = useState<
     { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; signal: DynamicSignal | null }
   >({ status: 'loading' });
+  // The EWMA detector's overall state for the same date: a compact indicator only.
+  const [detector, setDetector] = useState<EwmaState | null | 'unavailable'>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     client
       .signalFor(null, controller.signal)
-      .then((signal) => !controller.signal.aborted && setState({ status: 'ready', signal }))
+      .then((signal) => {
+        if (controller.signal.aborted) return;
+        setState({ status: 'ready', signal });
+        if (signal) {
+          ewmaClient
+            .day(signal.signal_date, controller.signal)
+            .then((day) => !controller.signal.aborted && setDetector(day?.overall_state ?? 'unavailable'))
+            .catch(() => !controller.signal.aborted && setDetector('unavailable'));
+        }
+      })
       .catch((error) => !controller.signal.aborted && setState({ status: 'error', message: describeDataError(error) }));
     return () => controller.abort();
-  }, [client]);
+  }, [client, ewmaClient]);
 
   const intro = (
     <p className="mt-1 text-xs text-muted">
@@ -167,15 +180,34 @@ function DynamicRegional({ baseUrl }: { baseUrl: string }) {
         <Row label="Last calculated">
           {signal.calculated_at ? new Date(signal.calculated_at).toLocaleString('en-US') : '—'}
         </Row>
+        <Row label="Statistical Detector">
+          {detector === null
+            ? 'Loading…'
+            : detector === 'unavailable'
+              ? 'Not available'
+              : detector === 'STATISTICAL_ALERT'
+                ? 'EWMA Alert'
+                : detector === 'WATCH'
+                  ? 'EWMA Watch'
+                  : 'EWMA Normal'}
+        </Row>
       </dl>
       {signal.calculation_status !== 'CALCULATED' ? (
         <p className="mt-1 text-xs text-muted">
           {signal.calculation_status === 'NO_DATA' ? NO_DATA_TEXT : INSUFFICIENT_BASELINE_TEXT}
         </p>
       ) : null}
-      <Link to="/dynamic-surveillance" className="mt-2 inline-block text-xs font-medium text-brand hover:underline">
-        View Dynamic Surveillance
-      </Link>
+      <p className="mt-1 text-[11px] text-muted">
+        The statistical detector is experimental: an EWMA alert is not a confirmed outbreak.
+      </p>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+        <Link to="/dynamic-surveillance" className="text-xs font-medium text-brand hover:underline">
+          View Dynamic Surveillance
+        </Link>
+        <Link to="/dynamic-surveillance#statistical-surveillance" className="text-xs font-medium text-brand hover:underline">
+          View Statistical Details
+        </Link>
+      </div>
     </>
   );
 }

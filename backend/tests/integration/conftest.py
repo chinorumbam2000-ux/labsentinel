@@ -27,6 +27,7 @@ from tests.conftest import alembic_config
 TEST_URL_VARIABLE = "LABSENTINEL_TEST_DATABASE_URL"
 MANAGED_TABLES = (
     "audit_event",
+    "statistical_signal",
     "demo_simulation_day",
     "surveillance_signal",
     "lab_observation",

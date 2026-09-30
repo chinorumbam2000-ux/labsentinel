@@ -18,6 +18,12 @@
 > [Dynamic surveillance engine](#dynamic-surveillance-engine-development)).
 > The Dynamic Surveillance Engine is a capstone prototype model and is not
 > epidemiologically validated for production public-health decision-making.
+>
+> An **experimental EWMA statistical detector** runs beside the Composite
+> Outbreak Signal Score and never modifies it (see
+> [EWMA statistical detector](#ewma-statistical-detector-experimental)).
+> EWMA is an experimental statistical surveillance method in this capstone
+> and has not been validated for production epidemiological decision-making.
 
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
@@ -76,6 +82,8 @@ backend/
 │   ├── services/          query logic and FHIR ingestion used by the routes
 │   ├── surveillance/      dynamic surveillance engine: aggregation, baseline,
 │   │                      scoring, persistence, `run` command
+│   ├── statistics/        experimental EWMA detector: formulas, series,
+│   │                      comparison, persistence, `run` command
 │   └── seed/              dataset fixture, idempotent seed, parity check,
 │                          SMART sandbox facility, dynamic dataset
 ├── alembic/               migration environment and versions/
@@ -1453,7 +1461,8 @@ when `APP_ENV=development`.
 
 ```powershell
 # from backend\
-python -m app.seed.dynamic_dataset                   # synthetic dynamic dataset, all 20 days
+python -m app.seed.dynamic_dataset                   # synthetic dynamic dataset, every phase (48 days)
+python -m app.seed.dynamic_dataset --phase history   # Nov 27-Dec 24 only (the EWMA reference)
 python -m app.seed.dynamic_dataset --phase baseline  # Jan 1-14 only
 python -m app.seed.dynamic_dataset --phase outbreak  # Jan 15-20 only
 python -m app.seed.dynamic_dataset --remove          # remove its observations
@@ -1486,8 +1495,17 @@ the dynamic dataset, which is FHIR-ingested. To keep the dataset, add
 
 ### The synthetic dynamic dataset and its story
 
-`app/seed/dynamic_dataset.py` holds 1,167 deterministic synthetic FHIR R4
-Observations at the three participating facilities, January 1-20 2026. They
+`app/seed/dynamic_dataset.py` holds 2,589 deterministic synthetic FHIR R4
+Observations at the three participating facilities, in three phases:
+
+- **history**: Nov 27-Dec 24 2025, 1,422 observations. Added in Phase 8 as
+  the EWMA reference period.
+- **baseline**: Jan 1-14 2026, 687 observations.
+- **outbreak**: Jan 15-20 2026, 480 observations.
+
+A reporting gap (Dec 25-31, no results) separates the history from January.
+The gap keeps the history outside every January composite baseline window,
+so the January results below are the same as in Phase 7. They
 are sent through the **real FHIR ingestion pipeline**, each with a simulated
 delivery time 12-54 minutes after collection. They are ordinary
 FHIR-ingested rows, separate from the demonstration's 699, and never reuse
@@ -1499,7 +1517,9 @@ What the engine calculates from them (dataset alone):
 
 | Date | What happens | Score |
 |---|---|---|
-| Jan 1-5 | History begins | INSUFFICIENT_BASELINE |
+| Nov 27-Dec 24 | In-control history with ordinary Poisson / binomial variation | Nov 27-Dec 1 insufficient; then mostly Low, with Watch on 7 days and Moderate on 4 from small-count noise (see [EWMA](#early-detection-analysis-predefined-parameters-dataset-alone)) |
+| Dec 25-31 | Reporting gap | NO_DATA |
+| Jan 1-5 | Too little recent history for the 7-day window | INSUFFICIENT_BASELINE |
 | Jan 6-14 | Steady baseline, about 48 tests and 8 % positive a day | 0-6, Low |
 | Jan 15 | Worcester Central (HOSP-A): tests +30 %, positivity 15 % | 25, Watch |
 | Jan 16 | Central Mass Regional (HOSP-B) abnormal by positivity | 54, Moderate |
@@ -1626,12 +1646,364 @@ $env:VITE_DATA_SOURCE = "api"; $env:VITE_API_BASE_URL = "http://127.0.0.1:8000";
 - Recalculation is manual (CLI or the development endpoint); there is no
   scheduler or event-driven trigger, and a very long history is recalculated
   in one request (up to 366 days).
+- On realistic day-to-day variation (the Phase 8 history), the facility
+  rule raises Watch/Moderate on some in-control days: it is sensitive to
+  small counts.
 - Data Confidence's freshness is reporting delay (timeliness) of the stored
   results, not a live feed heartbeat; there is no record of failed or
   duplicate deliveries to feed Data Integrity.
 - The classroom pages (Dashboard, Map, Signals, Simulation, header) show only
   the frozen demonstration. Dynamic signals appear on the Dynamic
   Surveillance page and, when chosen, in the SMART sidecar.
+
+## EWMA statistical detector (experimental)
+
+> **Experimental Statistical Surveillance.** EWMA is an experimental
+> statistical surveillance method in this capstone and has not been validated
+> for production epidemiological decision-making. A statistical alert is not a
+> confirmed outbreak.
+
+### Why EWMA was added
+
+The Composite Outbreak Signal Score is a rule-based, multi-factor score. Phase 8
+adds a secondary, independent **statistical time-series** detector to ask:
+
+> Does a statistical time-series method independently detect a sustained shift
+> in laboratory activity?
+
+EWMA runs **beside** the composite and never modifies it:
+
+```
+persisted observations -> dynamic aggregation (same eligibility as the engine)
+   ├── Composite Outbreak Signal Score   (surveillance_signal, unchanged)
+   └── EWMA per metric                   (statistical_signal, new)
+            -> alert state -> side-by-side comparison, never combined
+```
+
+The code is in `backend/app/statistics/`:
+
+| Module | Contents |
+|---|---|
+| `types.py` | Configuration and result types |
+| `ewma.py` | The pure formulas |
+| `service.py` | Daily series, agreement, early-detection and sensitivity analysis |
+| `persistence.py` | Idempotent storage and audit events |
+| `run.py` | The command |
+
+### The formula
+
+For each metric's daily regional series Y_t (test volume, or positivity in
+percent, computed from eligible Positive and Negative results only, exactly
+as the dynamic engine does):
+
+```
+reference   mu = mean, s = sample SD of Y over the reference period
+start       EWMA_0 = mu
+recursion   EWMA_t = lambda * Y_t + (1 - lambda) * EWMA_(t-1)
+limits      sigma_t = s * sqrt( lambda / (2 - lambda) * (1 - (1 - lambda)^(2t)) )
+            UCL_t   = mu + k * sigma_t
+            WL_t    = mu + warning_fraction * k * sigma_t
+state       STATISTICAL ALERT if EWMA_t > UCL_t
+            WATCH             if EWMA_t > WL_t
+            NORMAL            otherwise
+```
+
+- **t** counts EWMA updates, that is, days with data since monitoring began.
+  A day without data (for example the Dec 25-31 reporting gap) does not
+  update the EWMA; the value is carried forward and stored as `NO_DATA`.
+- **Control limits** are the exact **time-varying** limits (Montgomery,
+  *Introduction to Statistical Quality Control*). They are narrower for the
+  first few updates and converge to the long-run limit
+  mu + k·s·sqrt(lambda / (2 - lambda)), which is stored alongside for
+  reference.
+- **One-sided:** only the upper limit is used. LabSentinel watches for
+  increases, so falls are never flagged.
+
+| Parameter | Default | Notes |
+|---|---|---|
+| lambda | **0.25** | A common textbook starting point, **not** an epidemiologically validated choice. Configurable (`EwmaConfig.lam`) |
+| k | **3** | Control-limit multiplier |
+| warning fraction | **2/3** | WATCH begins two thirds of the way from the mean to the UCL: a 2-sigma warning limit when k = 3 |
+| reference days | **28** | The reference period is the first 28 calendar days of eligible history; monitoring starts the day after |
+| minimum reference days | **21** | Days with data required in the reference period |
+
+Every stored result records lambda, k and the full configuration.
+
+### Baseline (reference) requirements
+
+- The reference period is fixed and strictly **before** every monitored date.
+  Each day's EWMA uses only that day and earlier days, so there is no
+  future-data leakage; a test adds a huge later value and shows earlier days
+  are unchanged.
+- Fewer than 21 reference days with data gives `INSUFFICIENT_BASELINE`. A
+  reference SD of zero gives `INSUFFICIENT_VARIANCE`. Neither produces a
+  limit or a state: nothing divides by zero and no limit is invented.
+- **The Phase 7 dataset was not enough.** Its 14 baseline days are nearly
+  constant (regional volume SD 0.73 tests a day, against about 6.9 expected
+  from ordinary Poisson variation at 48 tests). That would give a volume UCL
+  of 48.9 tests, so an ordinary 49-test day would push EWMA toward an alert.
+  The synthetic dataset therefore gained an in-control **history** phase:
+  - Nov 27-Dec 24 2025, 28 days and 1,422 observations;
+  - drawn once from Poisson(20 / 16 / 12) tests and Binomial(n, 8 %)
+    positives with a fixed seed, then frozen as literal tables;
+  - the first draw was kept as it came.
+
+  A Dec 25-31 reporting gap keeps this history outside every January
+  composite baseline window, so every Phase 7 composite result is unchanged.
+  The frozen classroom dataset is not touched.
+
+  Reference statistics:
+
+  | Metric | Mean | SD |
+  |---|---|---|
+  | Volume | 49.79 tests | 7.99 |
+  | Positivity | 7.49 % | 4.21 points |
+
+### Volume EWMA and positivity EWMA
+
+The two metrics are calculated, stored and shown **separately**, never merged
+into one number. For each date and metric, `statistical_signal` stores and the
+API returns:
+- the observed value;
+- the reference mean and SD;
+- the previous EWMA and the EWMA;
+- the UCL, the warning limit and the distance from the UCL;
+- the state, lambda and k;
+- the update count and the reference period;
+- a plain-language interpretation, for example *"The exponentially weighted
+  positivity signal exceeded its historical control limit."*
+
+**Overall state:** STATISTICAL ALERT if either metric is above its UCL, WATCH
+if either is above its warning limit, otherwise NORMAL (shown as *No
+statistical alert*). This is not a score.
+
+### Composite vs EWMA, and agreement
+
+The UI shows the composite (score, severity) and EWMA (volume state,
+positivity state, overall) side by side. An agreement state only describes
+whether they concur:
+
+| Agreement | When |
+|---|---|
+| BOTH METHODS SIGNAL | Composite High/Critical **and** EWMA above a UCL |
+| COMPOSITE ONLY | Composite High/Critical, EWMA not above a UCL |
+| EWMA ONLY | EWMA above a UCL, composite below High |
+| NEITHER | Neither |
+| NOT AVAILABLE | One method has no result for the date |
+
+Each method's *signal* is its alert level: composite High or Critical, and
+EWMA STATISTICAL ALERT. Composite Watch/Moderate and EWMA WATCH are early
+warnings: they are shown but do not count as a signal.
+
+### Early detection analysis (predefined parameters, dataset alone)
+
+Parameters were fixed before looking at the results (lambda 0.25, k 3). The
+evaluation period is the EWMA monitoring period (Dec 25 2025 - Jan 20 2026);
+the synthetic outbreak begins Jan 15.
+
+| Method | Watch | Moderate | High / Statistical Alert | Critical |
+|---|---|---|---|---|
+| Composite | Jan 15 | Jan 16 | Jan 17 | Jan 18 |
+| Volume EWMA | Jan 17 | — | Jan 18 | — |
+| Positivity EWMA | Jan 16 | — | Jan 17 | — |
+
+EWMA lead (+) or lag (−) in days against the composite's bands:
+
+| | vs Watch | vs Moderate | vs High | vs Critical |
+|---|---|---|---|---|
+| Positivity EWMA alert (Jan 17) | −2 | −1 | **0** | +1 |
+| Volume EWMA alert (Jan 18) | −3 | −2 | −1 | 0 |
+| Positivity EWMA watch (Jan 16) | −1 | 0 | +1 | +2 |
+
+**Finding.** On this dataset EWMA does **not** detect earlier than the
+composite:
+- its first statistical alert (positivity, Jan 17) comes the same day the
+  composite reaches High, and 2 days after the composite's first Watch;
+- volume EWMA is a day later again.
+
+EWMA independently **confirms** the shift, from a different principle.
+
+Neither method alarmed on the in-control January days (Jan 1-14) that both
+monitored. On the realistic in-control history (the EWMA reference period, not
+monitored by EWMA), the composite's facility rule reached Watch on 7 and
+Moderate on 4 of its 23 scored days, from ordinary day-to-day noise at small
+counts. That is a
+documented limitation of the rule, and a reason a statistical detector is
+worth having alongside it.
+
+With the Phase 5 FHIR fixtures also ingested (extra results on Jan 12 and
+Jan 16), the composite reaches High on Jan 16, so EWMA's first alert is then
+one day **after** High. On Jan 16 the agreement reads COMPOSITE ONLY.
+
+### Lambda sensitivity (development analysis only)
+
+`python -m app.statistics.run --report` recomputes EWMA for lambda 0.15,
+0.20, 0.25 and 0.30. Nothing is stored and no alternative becomes an alert.
+Dataset alone, k 3:
+
+| lambda | Volume watch / alert | Positivity watch / alert | Overall alert vs composite High | State changes (vol / pos) | Non-normal days before onset |
+|---|---|---|---|---|---|
+| 0.15 | Jan 18 / Jan 18 | Jan 17 / Jan 17 | same day | 1 / 1 | 0 |
+| 0.20 | Jan 17 / Jan 18 | Jan 17 / Jan 17 | same day | 2 / 1 | 0 |
+| 0.25 | Jan 17 / Jan 18 | Jan 16 / Jan 17 | same day | 2 / 2 | 0 |
+| 0.30 | Jan 17 / Jan 18 | Jan 16 / Jan 17 | same day | 2 / 2 | 0 |
+
+- **Alert dates do not depend on lambda** over this range; only the WATCH
+  (early-warning) dates move, by at most a day.
+- Smaller lambda smooths more. At 0.15 both metrics jump straight from NORMAL
+  to STATISTICAL ALERT, so the warning stage is lost.
+- No lambda raised a false WATCH before the onset.
+- 0.25 stays the default because it was chosen in advance and keeps a
+  one-day warning stage on positivity. It was **not** chosen for the earliest
+  alert, since all four alert on the same day. One synthetic outbreak cannot
+  validate any value.
+
+### Hand-calculated validation
+
+The following are calculated by hand and asserted in
+`tests/test_ewma_surveillance.py`, with the arithmetic in each docstring:
+- the reference mean and SD;
+- positivity on Jan 15, 16 and 17;
+- volume on Jan 16, 17 and 18.
+
+Small examples in `tests/test_ewma.py` check the recursion, the limit
+factors (sigma_1 = lambda·s exactly) and the three states.
+
+| Positivity | Jan 15 | Jan 16 | Jan 17 |
+|---|---|---|---|
+| Previous EWMA | 7.6272 | 8.4982 | 10.8091 |
+| Observed | 6/54 = 11.1111 % | 11/62 = 17.7419 % | 17/73 = 23.2877 % |
+| EWMA = 0.25·Y + 0.75·prev | 8.4982 | 10.8091 | 13.9287 |
+| Mean / SD | 7.4874 / 4.2133 | same | same |
+| t, factor | 15, 0.377931 | 16, 0.377945 | 17, 0.377954 |
+| UCL = mean + 3·SD·factor | 12.2644 | 12.2645 | 12.2647 |
+| WL = mean + 2·SD·factor | 10.6720 | 10.6722 | 10.6722 |
+| Result | NORMAL | **WATCH** (above WL) | **STATISTICAL ALERT** (above UCL) |
+
+### Database: migration 0006
+
+`statistical_signal` is a new table. It never touches `surveillance_signal`.
+
+- **Key:** unique on (mode, method, syndrome, signal_date, metric). The
+  method is part of the key so a later detector can sit beside EWMA.
+- **Values:** the stored values listed above, plus `calculation_metadata`
+  (the reference period, update number, limit factors, formula and
+  configuration).
+- **Checks:**
+  - mode, method, metric, status and state;
+  - every CALCULATED row is complete;
+  - 0 < lambda ≤ 1 and k > 0.
+- **Downgrade:** drops the table.
+
+### API
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/statistics/ewma` | Label, disclaimer, configuration, formula, reference statistics, extent, early-detection analysis, agreement rule |
+| GET | `/api/statistics/ewma/current` | Both metrics for `date` (default: the latest monitored date), the overall state, the composite for that date, and the agreement |
+| GET | `/api/statistics/ewma/history` | Daily results; filters `metric`, `date_from`, `date_to`, `syndrome` |
+| POST | `/api/statistics/ewma/recalculate` | **Development only** (`404` otherwise). Recomputes from persisted observations; accepts no values |
+
+### Commands and recalculation
+
+```powershell
+python -m app.statistics.run            # recompute and store (idempotent)
+python -m app.statistics.run --report   # plus early-detection and lambda sensitivity (not stored)
+python -m app.statistics.run --clear    # remove stored EWMA results
+```
+
+Because EWMA is recursive, a recalculation recomputes the whole series from
+the persisted observations. It reconciles one row per date and metric,
+leaves unchanged rows alone and removes rows for dates no longer present.
+
+The pipeline is: FHIR → PostgreSQL → dynamic aggregation → EWMA → UI. EWMA
+is never calculated from browser data. After a FHIR ingestion, recalculate
+Dynamic Surveillance (for the composite), then EWMA. They are separate on
+purpose.
+
+Audit events hold aggregate figures only:
+- `statistics.ewma.calculated`
+- `statistics.ewma.recalculated`
+- `statistics.ewma.state_changed`, one per metric and date, for example
+  *"Positivity EWMA … on 2026-01-16 changed from Watch to Statistical Alert
+  (EWMA 15.82 vs UCL 12.26)"*
+- `statistics.ewma.cleared`
+
+### UI
+
+- **Dynamic Surveillance → Statistical Surveillance**, labelled
+  *Experimental Statistical Surveillance* with the prototype-detector note. It
+  has:
+  - **Test Volume EWMA** and **Positivity EWMA** panels, each with observed,
+    historical mean (SD), previous and current EWMA, UCL, warning limit,
+    whether the limit was crossed, lambda and k, the historical period, a
+    plain-language interpretation and a small EWMA-vs-UCL trend;
+  - **Detection Comparison** (composite vs EWMA, agreement and explanation,
+    never combined);
+  - an **EWMA trend** chart (observed, EWMA, historical mean, UCL) with a
+    Test Volume / Positivity switch and a screen-reader table;
+  - **Detection timing**;
+  - **Recalculate EWMA** (development only).
+
+  If EWMA fails to load, the composite view still works.
+- **SMART sidecar** (Dynamic Surveillance chosen): one line, *Statistical
+  Detector: EWMA Alert / Watch / Normal*, a note that it is experimental, and
+  **View Statistical Details** (linking to the section). There is no
+  control-chart maths in the sidecar.
+
+### Manual full-stack demonstration
+
+1. Open Dynamic Surveillance.
+2. Load the dataset:
+   `python -m app.seed.dynamic_dataset; python -m app.surveillance.run`.
+   **Recalculate EWMA** from the empty state.
+3. Pick **Jan 10**, a baseline day: composite 0, both EWMAs Normal,
+   agreement Neither.
+4. Step through **Jan 14 → Jan 20**:
+   - positivity EWMA reaches WATCH on Jan 16 and STATISTICAL ALERT on Jan 17;
+   - volume reaches WATCH on Jan 17 and alerts on Jan 18;
+   - read **Detection timing**.
+5. On FHIR Ingestion, ingest the *respiratory panel Bundle* (Jan 16), then:
+   - **Recalculate Dynamic Surveillance** from the prompt;
+   - **Recalculate EWMA**.
+
+   Jan 16 changes, for example to COMPOSITE ONLY.
+6. Launch the SMART sidecar and choose Dynamic Surveillance: *Statistical
+   Detector: EWMA Alert*.
+7. Check that Simulation (Day 1-5) is still 0 / 24 / 50 / 74 / 87.
+
+### Tests
+
+- `tests/test_ewma.py` (17, no database): recursion, lambda handling and
+  validation, limit factors, reference mean and SD, insufficient baseline,
+  zero variance, the hand-worked states, one-sidedness, carry-forward, no
+  leakage, overall state and agreement.
+- `tests/test_ewma_surveillance.py` (15), re-run on PostgreSQL by
+  `tests/integration/test_ewma_surveillance_postgres.py`:
+  - the dataset hand calculations and the reporting gap;
+  - in-control normality;
+  - detection analysis and sensitivity (nothing stored);
+  - idempotency;
+  - FHIR-driven recalculation with audit events;
+  - that the composite and the demonstration are untouched;
+  - the API with filters, and development-only recalculation;
+  - the command.
+
+### EWMA limitations
+
+- Experimental and not validated: lambda, k, the warning fraction and the
+  reference length are illustrative defaults.
+- One fixed reference period, the first 28 days of history. It is not
+  refreshed as time passes, and it assumes that period was in control.
+- Daily regional series only: no per-facility EWMA, no day-of-week or
+  seasonal adjustment.
+- Positivity uses the empirical SD of daily rates, not a binomial variance
+  that depends on each day's test count, so days with few tests are weighted
+  like busy ones.
+- One synthetic outbreak cannot establish sensitivity, specificity or
+  timeliness.
+- No CUSUM, no multi-method combination and no machine learning: those
+  belong to later phases.
 
 ## Current limitations
 

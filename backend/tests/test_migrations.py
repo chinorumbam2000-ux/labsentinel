@@ -19,6 +19,7 @@ from app.database import Base
 from tests.conftest import alembic_config, sqlite_engine, upgrade
 
 CORE_TABLES = {
+    "statistical_signal",
     "facility",
     "lab_observation",
     "surveillance_signal",
@@ -30,7 +31,7 @@ CORE_TABLES = {
 def test_single_linear_head() -> None:
     script = ScriptDirectory.from_config(alembic_config())
 
-    assert script.get_heads() == ["0005"]
+    assert script.get_heads() == ["0006"]
 
 
 def test_upgrade_head_creates_core_tables(tmp_path: Path) -> None:
@@ -91,7 +92,7 @@ def test_offline_postgresql_sql_matches_model_intent() -> None:
         "REFERENCES facility (id) ON DELETE RESTRICT",
         "uq_lab_observation_source_record UNIQUE (source_system, source_observation_id)",
         "ck_surveillance_signal_severity_valid",
-        "UPDATE alembic_version SET version_num='0005'",
+        "UPDATE alembic_version SET version_num='0006'",
         "uq_surveillance_signal_mode_syndrome_date UNIQUE (mode, syndrome, signal_date)",
         "calculation_metadata JSONB",
     ):

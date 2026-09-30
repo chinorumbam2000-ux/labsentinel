@@ -33,6 +33,11 @@ from tests.conftest import client_for
 SYNDROME = DEFAULT_SYNDROME
 CONFIG = EngineConfig()
 FIRST, LAST = date(2026, 1, 1), date(2026, 1, 20)
+# Phase 8 added an in-control history (Nov 27 - Dec 24) before a Dec 25-31
+# reporting gap. The gap keeps it out of every January baseline window, so
+# the January hand calculations below are unchanged.
+DATA_FIRST = date(2025, 11, 27)
+DATASET_ROWS, DATASET_DAYS = 2589, 55
 SALT = "test-salt"
 
 
@@ -40,8 +45,8 @@ SALT = "test-salt"
 def dynamic_engine(seeded_engine: Engine) -> Iterator[Engine]:
     with Session(seeded_engine) as session, session.begin():
         report = dynamic_dataset.load(session, salt=SALT)
-        assert (report.created, report.rejected) == (1167, 0)
-        recalculate(session, SYNDROME, FIRST, LAST, CONFIG)
+        assert (report.created, report.rejected) == (DATASET_ROWS, 0)
+        recalculate(session, SYNDROME, DATA_FIRST, LAST, CONFIG)
     yield seeded_engine
     with Session(seeded_engine) as session, session.begin():
         session.execute(delete(SurveillanceSignal).where(SurveillanceSignal.mode == "dynamic"))
@@ -96,8 +101,8 @@ def test_dataset_is_ordinary_fhir_ingested_data(dynamic_engine: Engine) -> None:
         rows = session.scalars(
             select(LabObservation).where(LabObservation.source_system.like(dynamic_dataset.SOURCE_PREFIX + "%"))
         ).all()
-        assert len(rows) == 1167
-        assert sum(r.terminology_status == "unmapped" for r in rows) == 20
+        assert len(rows) == DATASET_ROWS
+        assert sum(r.terminology_status == "unmapped" for r in rows) == 48
         assert all(r.patient_reference.startswith("FHIR-PT-") for r in rows)
         assert all(r.received_datetime is not None for r in rows)
         # The frozen demonstration's observations are untouched.
@@ -105,9 +110,12 @@ def test_dataset_is_ordinary_fhir_ingested_data(dynamic_engine: Engine) -> None:
 
 
 def test_dataset_phases_partition_the_days() -> None:
+    history = dynamic_dataset.planned_observations("history")
     baseline = dynamic_dataset.planned_observations("baseline")
     outbreak = dynamic_dataset.planned_observations("outbreak")
-    assert len(baseline) + len(outbreak) == len(dynamic_dataset.planned_observations()) == 1167
+    assert len(history) + len(baseline) + len(outbreak) == len(dynamic_dataset.planned_observations()) == DATASET_ROWS
+    assert max(p.resource["effectiveDateTime"] for p in history) < "2025-12-25"
+    assert min(p.resource["effectiveDateTime"] for p in baseline) >= "2026-01-01"
     assert max(p.resource["effectiveDateTime"] for p in baseline) < "2026-01-15"
     assert min(p.resource["effectiveDateTime"] for p in outbreak) >= "2026-01-15"
 
@@ -238,7 +246,7 @@ def test_the_story_progresses_through_the_severity_bands(dynamic_engine: Engine)
     with Session(dynamic_engine) as session:
         history = session.scalars(
             select(SurveillanceSignal)
-            .where(SurveillanceSignal.mode == "dynamic")
+            .where(SurveillanceSignal.mode == "dynamic", SurveillanceSignal.signal_date >= FIRST)
             .order_by(SurveillanceSignal.signal_date)
         ).all()
         assert len(history) == 20
@@ -348,7 +356,7 @@ def test_rerun_is_idempotent(scratch: Session) -> None:
     assert report.count("unchanged") == 20
     assert scratch.scalar(
         select(func.count()).select_from(SurveillanceSignal).where(SurveillanceSignal.mode == "dynamic")
-    ) == 20
+    ) == DATASET_DAYS
     assert scratch.scalar(select(func.count()).select_from(AuditEvent)) == audits
 
 
@@ -419,12 +427,16 @@ def test_reseeding_the_demonstration_leaves_dynamic_signals_alone(scratch: Sessi
 
 def test_signal_list_and_filters(dyn_client: TestClient) -> None:
     rows = dyn_client.get("/api/surveillance/dynamic/signals").json()
-    assert len(rows) == 20 and {r["mode"] for r in rows} == {"dynamic"}
+    assert len(rows) == DATASET_DAYS and {r["mode"] for r in rows} == {"dynamic"}
+    # The reporting gap: no eligible observations, so no score.
+    assert {r["calculation_status"] for r in rows if "2025-12-25" <= r["signal_date"] <= "2025-12-31"} == {"NO_DATA"}
     assert rows[0]["calculation_status"] == "INSUFFICIENT_BASELINE" and rows[0]["composite_score"] is None
     ranged = dyn_client.get("/api/surveillance/dynamic/signals", params={"date_from": "2026-01-15", "date_to": "2026-01-17"}).json()
     assert [r["composite_score"] for r in ranged] == [25, 54, 80]
     assert ranged[0]["participating_facilities"] == 3 and ranged[0]["participating_geographies"] == 3
-    by_facility = dyn_client.get("/api/surveillance/dynamic/signals", params={"facility": "HOSP-C"}).json()
+    by_facility = dyn_client.get(
+        "/api/surveillance/dynamic/signals", params={"facility": "HOSP-C", "date_from": "2026-01-01"}
+    ).json()
     assert [r["signal_date"] for r in by_facility] == ["2026-01-17", "2026-01-18", "2026-01-19", "2026-01-20"]
     assert dyn_client.get("/api/surveillance/dynamic/signals", params={"date_from": "2026-01-10", "date_to": "2026-01-01"}).status_code == 422
 
@@ -443,7 +455,9 @@ def test_current_and_single_signal(dyn_client: TestClient) -> None:
 
 def test_summary(dyn_client: TestClient) -> None:
     body = dyn_client.get("/api/surveillance/dynamic/summary").json()
-    assert (body["mode"], body["signal_count"], body["first_date"], body["last_date"]) == ("dynamic", 20, "2026-01-01", "2026-01-20")
+    assert (body["mode"], body["signal_count"], body["first_date"], body["last_date"]) == (
+        "dynamic", DATASET_DAYS, "2025-11-27", "2026-01-20",
+    )
     assert body["latest"]["signal_date"] == "2026-01-20"
     assert body["method"]["weights"] == {"volume": 0.25, "positivity": 0.3, "facilities": 0.2, "geography": 0.15, "persistence": 0.1}
     assert "not epidemiologically validated" in body["disclaimer"]
@@ -452,7 +466,9 @@ def test_summary(dyn_client: TestClient) -> None:
 
 def test_recalculate_endpoint(dyn_client: TestClient) -> None:
     body = dyn_client.post("/api/surveillance/dynamic/recalculate", json={}).json()
-    assert (body["date_from"], body["date_to"], body["unchanged"], body["created"]) == ("2026-01-01", "2026-01-20", 20, 0)
+    assert (body["date_from"], body["date_to"], body["unchanged"], body["created"]) == (
+        "2025-11-27", "2026-01-20", DATASET_DAYS, 0,
+    )
     one = dyn_client.post(
         "/api/surveillance/dynamic/recalculate", json={"date_from": "2026-01-20", "date_to": "2026-01-20"}
     ).json()

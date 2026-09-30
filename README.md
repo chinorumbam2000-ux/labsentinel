@@ -55,6 +55,19 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 > See
 > [Dynamic surveillance engine](backend/README.md#dynamic-surveillance-engine-development).
 >
+> Beside it, an **experimental EWMA statistical detector** (Experimental
+> Statistical Surveillance) runs an EWMA control chart on daily test volume
+> and positivity:
+> - lambda 0.25 and k 3, with time-varying upper control limits;
+> - a 28-day reference period;
+> - NORMAL / WATCH / STATISTICAL ALERT states.
+>
+> It compares with the Composite Outbreak Signal Score and never modifies or
+> combines with it. EWMA is an experimental statistical surveillance method
+> in this capstone and has not been validated for production
+> epidemiological decision-making. See
+> [EWMA statistical detector](backend/README.md#ewma-statistical-detector-experimental).
+>
 > Both modes show identical values. See
 > [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
 > for how to run API mode. `main` and the `submission-v1.4` tag remain the

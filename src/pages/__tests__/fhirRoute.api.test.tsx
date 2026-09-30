@@ -27,6 +27,12 @@ beforeEach(() => {
     return fhir.fetch(input, init);
   });
   Element.prototype.scrollTo = () => {};
+  // jsdom has no ResizeObserver; Recharts' ResponsiveContainer needs one.
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
 });
 afterEach(() => {
   cleanup();

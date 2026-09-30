@@ -65,11 +65,11 @@
      "persistence": 0.1
     }
    },
-   "signal_count": 20,
-   "first_date": "2026-01-01",
+   "signal_count": 55,
+   "first_date": "2025-11-27",
    "last_date": "2026-01-20",
    "latest": {
-    "id": 25,
+    "id": 60,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-20",
@@ -93,7 +93,7 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00",
     "volume_component_score": 60.26,
     "positivity_component_score": 100.0,
     "facility_component_score": 100.0,
@@ -399,6 +399,850 @@
     "id": 6,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-11-27",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 42,
+    "positive_count": 3,
+    "positivity_rate": 7.14,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 7,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-11-28",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 42,
+    "positive_count": 1,
+    "positivity_rate": 2.38,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 8,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-11-29",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 58,
+    "positive_count": 5,
+    "positivity_rate": 8.62,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 9,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-11-30",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 58,
+    "positive_count": 4,
+    "positivity_rate": 6.9,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 10,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-01",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 48,
+    "positive_count": 3,
+    "positivity_rate": 6.25,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 11,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-02",
+    "calculation_status": "CALCULATED",
+    "test_volume": 43,
+    "positive_count": 5,
+    "positivity_rate": 11.63,
+    "baseline_volume": 49.6,
+    "baseline_positivity_rate": 6.45,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01604"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 25.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 12,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-03",
+    "calculation_status": "CALCULATED",
+    "test_volume": 52,
+    "positive_count": 4,
+    "positivity_rate": 7.69,
+    "baseline_volume": 48.5,
+    "baseline_positivity_rate": 7.22,
+    "affected_facilities": 2,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 2,
+    "composite_score": 31.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 13,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-04",
+    "calculation_status": "CALCULATED",
+    "test_volume": 43,
+    "positive_count": 3,
+    "positivity_rate": 6.98,
+    "baseline_volume": 49.0,
+    "baseline_positivity_rate": 7.29,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 3,
+    "composite_score": 19.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 14,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-05",
+    "calculation_status": "CALCULATED",
+    "test_volume": 50,
+    "positive_count": 4,
+    "positivity_rate": 8.0,
+    "baseline_volume": 49.14,
+    "baseline_positivity_rate": 7.27,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 2.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 15,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-06",
+    "calculation_status": "CALCULATED",
+    "test_volume": 49,
+    "positive_count": 4,
+    "positivity_rate": 8.16,
+    "baseline_volume": 50.29,
+    "baseline_positivity_rate": 7.95,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 16,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-07",
+    "calculation_status": "CALCULATED",
+    "test_volume": 66,
+    "positive_count": 6,
+    "positivity_rate": 9.09,
+    "baseline_volume": 49.0,
+    "baseline_positivity_rate": 7.87,
+    "affected_facilities": 2,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 37.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 17,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-08",
+    "calculation_status": "CALCULATED",
+    "test_volume": 36,
+    "positive_count": 8,
+    "positivity_rate": 22.22,
+    "baseline_volume": 50.14,
+    "baseline_positivity_rate": 8.26,
+    "affected_facilities": 2,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 2,
+    "composite_score": 56.0,
+    "severity": "Moderate",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 18,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-09",
+    "calculation_status": "CALCULATED",
+    "test_volume": 50,
+    "positive_count": 4,
+    "positivity_rate": 8.0,
+    "baseline_volume": 48.43,
+    "baseline_positivity_rate": 10.03,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 1.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 19,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-10",
+    "calculation_status": "CALCULATED",
+    "test_volume": 58,
+    "positive_count": 3,
+    "positivity_rate": 5.17,
+    "baseline_volume": 49.43,
+    "baseline_positivity_rate": 9.54,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 19.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 20,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-11",
+    "calculation_status": "CALCULATED",
+    "test_volume": 42,
+    "positive_count": 2,
+    "positivity_rate": 4.76,
+    "baseline_volume": 50.29,
+    "baseline_positivity_rate": 9.09,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 2,
+    "composite_score": 17.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 21,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-12",
+    "calculation_status": "CALCULATED",
+    "test_volume": 58,
+    "positive_count": 4,
+    "positivity_rate": 6.9,
+    "baseline_volume": 50.14,
+    "baseline_positivity_rate": 8.83,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 3,
+    "composite_score": 23.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 22,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-13",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 5,
+    "positivity_rate": 10.42,
+    "baseline_volume": 51.29,
+    "baseline_positivity_rate": 8.64,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 4,
+    "composite_score": 25.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 23,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-14",
+    "calculation_status": "CALCULATED",
+    "test_volume": 37,
+    "positive_count": 2,
+    "positivity_rate": 5.41,
+    "baseline_volume": 51.14,
+    "baseline_positivity_rate": 8.94,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 24,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-15",
+    "calculation_status": "CALCULATED",
+    "test_volume": 50,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": 47.0,
+    "baseline_positivity_rate": 8.51,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 16.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 25,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-16",
+    "calculation_status": "CALCULATED",
+    "test_volume": 53,
+    "positive_count": 6,
+    "positivity_rate": 11.32,
+    "baseline_volume": 49.0,
+    "baseline_positivity_rate": 5.83,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 2,
+    "composite_score": 30.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 26,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-17",
+    "calculation_status": "CALCULATED",
+    "test_volume": 57,
+    "positive_count": 2,
+    "positivity_rate": 3.51,
+    "baseline_volume": 49.43,
+    "baseline_positivity_rate": 6.36,
+    "affected_facilities": 2,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 3,
+    "composite_score": 35.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 27,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-18",
+    "calculation_status": "CALCULATED",
+    "test_volume": 64,
+    "positive_count": 4,
+    "positivity_rate": 6.25,
+    "baseline_volume": 49.29,
+    "baseline_positivity_rate": 6.09,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 4,
+    "composite_score": 53.0,
+    "severity": "Moderate",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 28,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-19",
+    "calculation_status": "CALCULATED",
+    "test_volume": 44,
+    "positive_count": 1,
+    "positivity_rate": 2.27,
+    "baseline_volume": 52.43,
+    "baseline_positivity_rate": 6.27,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 29,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-20",
+    "calculation_status": "CALCULATED",
+    "test_volume": 43,
+    "positive_count": 2,
+    "positivity_rate": 4.65,
+    "baseline_volume": 50.43,
+    "baseline_positivity_rate": 5.67,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 30,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-21",
+    "calculation_status": "CALCULATED",
+    "test_volume": 63,
+    "positive_count": 5,
+    "positivity_rate": 7.94,
+    "baseline_volume": 49.71,
+    "baseline_positivity_rate": 4.89,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 50.0,
+    "severity": "Moderate",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 31,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-22",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 3,
+    "positivity_rate": 6.25,
+    "baseline_volume": 53.43,
+    "baseline_positivity_rate": 5.35,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 2.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 32,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-23",
+    "calculation_status": "CALCULATED",
+    "test_volume": 46,
+    "positive_count": 3,
+    "positivity_rate": 6.52,
+    "baseline_volume": 53.14,
+    "baseline_positivity_rate": 6.18,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 1.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 33,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-24",
+    "calculation_status": "CALCULATED",
+    "test_volume": 46,
+    "positive_count": 7,
+    "positivity_rate": 15.22,
+    "baseline_volume": 52.14,
+    "baseline_positivity_rate": 5.48,
+    "affected_facilities": 2,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 45.0,
+    "severity": "Moderate",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 34,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-25",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": 50.57,
+    "baseline_positivity_rate": 7.06,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 35,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-26",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": 48.33,
+    "baseline_positivity_rate": 7.24,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 36,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-27",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": 49.2,
+    "baseline_positivity_rate": 8.13,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 37,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-28",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 38,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-29",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 39,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-30",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 40,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2025-12-31",
+    "calculation_status": "NO_DATA",
+    "test_volume": 0,
+    "positive_count": 0,
+    "positivity_rate": 0.0,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 0.0,
+    "data_confidence_level": "Low",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
+   },
+   {
+    "id": 41,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-01",
     "calculation_status": "INSUFFICIENT_BASELINE",
     "test_volume": 48,
@@ -416,10 +1260,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 7,
+    "id": 42,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-02",
@@ -439,10 +1283,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 8,
+    "id": 43,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-03",
@@ -462,10 +1306,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 9,
+    "id": 44,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-04",
@@ -485,10 +1329,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 10,
+    "id": 45,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-05",
@@ -508,10 +1352,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 11,
+    "id": 46,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-06",
@@ -531,10 +1375,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 12,
+    "id": 47,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-07",
@@ -554,10 +1398,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 13,
+    "id": 48,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-08",
@@ -577,10 +1421,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 14,
+    "id": 49,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-09",
@@ -600,10 +1444,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 15,
+    "id": 50,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-10",
@@ -623,10 +1467,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 16,
+    "id": 51,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-11",
@@ -646,10 +1490,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 17,
+    "id": 52,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-12",
@@ -669,10 +1513,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 18,
+    "id": 53,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-13",
@@ -692,10 +1536,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 19,
+    "id": 54,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-14",
@@ -715,10 +1559,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 20,
+    "id": 55,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-15",
@@ -740,10 +1584,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 21,
+    "id": 56,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-16",
@@ -766,10 +1610,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 22,
+    "id": 57,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-17",
@@ -793,10 +1637,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 23,
+    "id": 58,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-18",
@@ -820,10 +1664,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 24,
+    "id": 59,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-19",
@@ -847,10 +1691,10 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    },
    {
-    "id": 25,
+    "id": 60,
     "mode": "dynamic",
     "syndrome": "Respiratory Viral Syndrome",
     "signal_date": "2026-01-20",
@@ -874,11 +1718,11 @@
     "data_confidence_score": 93.0,
     "data_confidence_level": "Very High",
     "status": "NEW",
-    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+    "calculated_at": "2026-09-29T21:47:57.576965-04:00"
    }
   ],
   "/api/surveillance/dynamic/signals/current?date=2026-01-15": {
-   "id": 20,
+   "id": 55,
    "mode": "dynamic",
    "syndrome": "Respiratory Viral Syndrome",
    "signal_date": "2026-01-15",
@@ -900,7 +1744,7 @@
    "data_confidence_score": 93.0,
    "data_confidence_level": "Very High",
    "status": "NEW",
-   "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+   "calculated_at": "2026-09-29T21:47:57.576965-04:00",
    "volume_component_score": 12.5,
    "positivity_component_score": 24.47,
    "facility_component_score": 33.33,
@@ -1179,8 +2023,644 @@
     }
    }
   },
+  "/api/surveillance/dynamic/signals/current?date=2026-01-16": {
+   "id": 56,
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "signal_date": "2026-01-16",
+   "calculation_status": "CALCULATED",
+   "test_volume": 62,
+   "positive_count": 11,
+   "positivity_rate": 17.74,
+   "baseline_volume": 48.86,
+   "baseline_positivity_rate": 8.19,
+   "affected_facilities": 2,
+   "participating_facilities": 3,
+   "affected_geographies": [
+    "01604",
+    "01605"
+   ],
+   "participating_geographies": 3,
+   "persistence_days": 2,
+   "composite_score": 54.0,
+   "severity": "Moderate",
+   "data_confidence_score": 93.0,
+   "data_confidence_level": "Very High",
+   "status": "NEW",
+   "calculated_at": "2026-09-29T21:47:57.576965-04:00",
+   "volume_component_score": 26.9,
+   "positivity_component_score": 63.7,
+   "facility_component_score": 66.67,
+   "geography_component_score": 66.67,
+   "persistence_component_score": 50.0,
+   "message": null,
+   "calculation": {
+    "engine_version": "1",
+    "mode": "dynamic",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "method": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "current": {
+     "tests": 62,
+     "positive": 11,
+     "negative": 51,
+     "indeterminate": 0,
+     "positivity_rate": 17.7419
+    },
+    "baseline": {
+     "window_start": "2026-01-09",
+     "window_end": "2026-01-15",
+     "window_days": 7,
+     "observed_days": 7,
+     "min_days": 5,
+     "mean_tests": 48.8571,
+     "positivity_rate": 8.1871,
+     "status": "SUFFICIENT"
+    },
+    "facilities": [
+     {
+      "facility_code": "HOSP-A",
+      "name": "Worcester Central Medical Center",
+      "vendor": "Epic",
+      "area": "01604",
+      "subregion": "Worcester County",
+      "tests": 30,
+      "positive": 7,
+      "negative": 23,
+      "positivity_rate": 23.3333,
+      "baseline_mean_tests": 20.8571,
+      "baseline_positivity_rate": 8.9041,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 43.8356,
+      "positivity_change_points": 14.4292,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +43.8% (threshold +25%)",
+       "positivity +14.4 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-B",
+      "name": "Central Massachusetts Regional Hospital",
+      "vendor": "Oracle Health",
+      "area": "01605",
+      "subregion": "Worcester County",
+      "tests": 20,
+      "positive": 3,
+      "negative": 17,
+      "positivity_rate": 15.0,
+      "baseline_mean_tests": 16.1429,
+      "baseline_positivity_rate": 7.0796,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 23.8938,
+      "positivity_change_points": 7.9204,
+      "status": "ABNORMAL",
+      "reasons": [
+       "positivity +7.9 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-C",
+      "name": "Shrewsbury Community Medical Center",
+      "vendor": "MEDITECH",
+      "area": "01545",
+      "subregion": "Worcester County",
+      "tests": 12,
+      "positive": 1,
+      "negative": 11,
+      "positivity_rate": 8.3333,
+      "baseline_mean_tests": 11.8571,
+      "baseline_positivity_rate": 8.4337,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 1.2048,
+      "positivity_change_points": -0.1004,
+      "status": "NORMAL",
+      "reasons": []
+     }
+    ],
+    "geography": {
+     "level": "postal_code",
+     "participating": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ],
+     "affected": [
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ]
+    },
+    "data_confidence": {
+     "score": 93,
+     "level": "Very High",
+     "facilities_reporting": 3,
+     "facilities_total": 3,
+     "explanation": "All 3 facilities reported, promptly and with high mapping quality.",
+     "components": [
+      {
+       "key": "freshness",
+       "label": "Feed Freshness",
+       "weight": 0.3,
+       "max_points": 30,
+       "score": 78.6957,
+       "points": 24,
+       "evidence": "Median reporting delay 20-38 minutes across reporting facilities"
+      },
+      {
+       "key": "completeness",
+       "label": "Data Completeness",
+       "weight": 0.25,
+       "max_points": 25,
+       "score": 99.1935,
+       "points": 25,
+       "evidence": "99.2% of required fields populated"
+      },
+      {
+       "key": "terminology",
+       "label": "Terminology Mapping Quality",
+       "weight": 0.2,
+       "max_points": 20,
+       "score": 98.4127,
+       "points": 20,
+       "evidence": "98.4% of laboratory results mapped to a LabSentinel test"
+      },
+      {
+       "key": "participation",
+       "label": "Facility Participation",
+       "weight": 0.15,
+       "max_points": 15,
+       "score": 100.0,
+       "points": 15,
+       "evidence": "3 of 3 facilities reporting"
+      },
+      {
+       "key": "integrity",
+       "label": "Data Integrity",
+       "weight": 0.1,
+       "max_points": 10,
+       "score": 100.0,
+       "points": 10,
+       "evidence": "No consistency issues"
+      }
+     ]
+    },
+    "changes": {
+     "volume_change_percent": 26.9006,
+     "positivity_change_points": 9.5548
+    },
+    "components": [
+     {
+      "key": "volume",
+      "label": "Test Volume",
+      "weight": 0.25,
+      "max_points": 25,
+      "raw": {
+       "current_tests": 62,
+       "baseline_mean_tests": 48.8571,
+       "change_percent": 26.9006
+      },
+      "normalized": 26.9006,
+      "weighted": 6.7251,
+      "points": 7
+     },
+     {
+      "key": "positivity",
+      "label": "Positivity",
+      "weight": 0.3,
+      "max_points": 30,
+      "raw": {
+       "current_rate": 17.7419,
+       "baseline_rate": 8.1871,
+       "change_points": 9.5548,
+       "range_points": 15.0
+      },
+      "normalized": 63.6987,
+      "weighted": 19.1096,
+      "points": 19
+     },
+     {
+      "key": "facilities",
+      "label": "Affected Facilities",
+      "weight": 0.2,
+      "max_points": 20,
+      "raw": {
+       "affected": 2,
+       "participating": 3
+      },
+      "normalized": 66.6667,
+      "weighted": 13.3333,
+      "points": 13
+     },
+     {
+      "key": "geography",
+      "label": "Geographic Spread",
+      "weight": 0.15,
+      "max_points": 15,
+      "raw": {
+       "affected": 2,
+       "participating": 3
+      },
+      "normalized": 66.6667,
+      "weighted": 10.0,
+      "points": 10
+     },
+     {
+      "key": "persistence",
+      "label": "Persistence",
+      "weight": 0.1,
+      "max_points": 10,
+      "raw": {
+       "days": 2,
+       "max_days": 4
+      },
+      "normalized": 50.0,
+      "weighted": 5.0,
+      "points": 5
+     }
+    ],
+    "composite": {
+     "unrounded": 54.1681,
+     "score": 54,
+     "severity": "Moderate"
+    },
+    "persistence": {
+     "days": 2,
+     "abnormal_today": true,
+     "rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "previous_signal": "2026-01-15",
+     "previous_calculation_status": "CALCULATED",
+     "previous_abnormal": true,
+     "previous_persistence_days": 1
+    }
+   }
+  },
+  "/api/surveillance/dynamic/signals/current?date=2026-01-17": {
+   "id": 57,
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "signal_date": "2026-01-17",
+   "calculation_status": "CALCULATED",
+   "test_volume": 73,
+   "positive_count": 17,
+   "positivity_rate": 23.29,
+   "baseline_volume": 50.71,
+   "baseline_positivity_rate": 9.86,
+   "affected_facilities": 3,
+   "participating_facilities": 3,
+   "affected_geographies": [
+    "01545",
+    "01604",
+    "01605"
+   ],
+   "participating_geographies": 3,
+   "persistence_days": 3,
+   "composite_score": 80.0,
+   "severity": "High",
+   "data_confidence_score": 93.0,
+   "data_confidence_level": "Very High",
+   "status": "NEW",
+   "calculated_at": "2026-09-29T21:47:57.576965-04:00",
+   "volume_component_score": 43.94,
+   "positivity_component_score": 89.52,
+   "facility_component_score": 100.0,
+   "geography_component_score": 100.0,
+   "persistence_component_score": 75.0,
+   "message": null,
+   "calculation": {
+    "engine_version": "1",
+    "mode": "dynamic",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "method": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "current": {
+     "tests": 73,
+     "positive": 17,
+     "negative": 56,
+     "indeterminate": 0,
+     "positivity_rate": 23.2877
+    },
+    "baseline": {
+     "window_start": "2026-01-10",
+     "window_end": "2026-01-16",
+     "window_days": 7,
+     "observed_days": 7,
+     "min_days": 5,
+     "mean_tests": 50.7143,
+     "positivity_rate": 9.8592,
+     "status": "SUFFICIENT"
+    },
+    "facilities": [
+     {
+      "facility_code": "HOSP-A",
+      "name": "Worcester Central Medical Center",
+      "vendor": "Epic",
+      "area": "01604",
+      "subregion": "Worcester County",
+      "tests": 34,
+      "positive": 9,
+      "negative": 25,
+      "positivity_rate": 26.4706,
+      "baseline_mean_tests": 22.1429,
+      "baseline_positivity_rate": 11.6129,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 53.5484,
+      "positivity_change_points": 14.8577,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +53.5% (threshold +25%)",
+       "positivity +14.9 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-B",
+      "name": "Central Massachusetts Regional Hospital",
+      "vendor": "Oracle Health",
+      "area": "01605",
+      "subregion": "Worcester County",
+      "tests": 24,
+      "positive": 5,
+      "negative": 19,
+      "positivity_rate": 20.8333,
+      "baseline_mean_tests": 16.5714,
+      "baseline_positivity_rate": 8.6207,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 44.8276,
+      "positivity_change_points": 12.2126,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +44.8% (threshold +25%)",
+       "positivity +12.2 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-C",
+      "name": "Shrewsbury Community Medical Center",
+      "vendor": "MEDITECH",
+      "area": "01545",
+      "subregion": "Worcester County",
+      "tests": 15,
+      "positive": 3,
+      "negative": 12,
+      "positivity_rate": 20.0,
+      "baseline_mean_tests": 12.0,
+      "baseline_positivity_rate": 8.3333,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 25.0,
+      "positivity_change_points": 11.6667,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +25.0% (threshold +25%)",
+       "positivity +11.7 points (threshold +5)"
+      ]
+     }
+    ],
+    "geography": {
+     "level": "postal_code",
+     "participating": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ],
+     "affected": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ]
+    },
+    "data_confidence": {
+     "score": 93,
+     "level": "Very High",
+     "facilities_reporting": 3,
+     "facilities_total": 3,
+     "explanation": "All 3 facilities reported, promptly and with high mapping quality.",
+     "components": [
+      {
+       "key": "freshness",
+       "label": "Feed Freshness",
+       "weight": 0.3,
+       "max_points": 30,
+       "score": 78.8406,
+       "points": 24,
+       "evidence": "Median reporting delay 20-38 minutes across reporting facilities"
+      },
+      {
+       "key": "completeness",
+       "label": "Data Completeness",
+       "weight": 0.25,
+       "max_points": 25,
+       "score": 99.3151,
+       "points": 25,
+       "evidence": "99.3% of required fields populated"
+      },
+      {
+       "key": "terminology",
+       "label": "Terminology Mapping Quality",
+       "weight": 0.2,
+       "max_points": 20,
+       "score": 98.6486,
+       "points": 20,
+       "evidence": "98.6% of laboratory results mapped to a LabSentinel test"
+      },
+      {
+       "key": "participation",
+       "label": "Facility Participation",
+       "weight": 0.15,
+       "max_points": 15,
+       "score": 100.0,
+       "points": 15,
+       "evidence": "3 of 3 facilities reporting"
+      },
+      {
+       "key": "integrity",
+       "label": "Data Integrity",
+       "weight": 0.1,
+       "max_points": 10,
+       "score": 100.0,
+       "points": 10,
+       "evidence": "No consistency issues"
+      }
+     ]
+    },
+    "changes": {
+     "volume_change_percent": 43.9437,
+     "positivity_change_points": 13.4285
+    },
+    "components": [
+     {
+      "key": "volume",
+      "label": "Test Volume",
+      "weight": 0.25,
+      "max_points": 25,
+      "raw": {
+       "current_tests": 73,
+       "baseline_mean_tests": 50.7143,
+       "change_percent": 43.9437
+      },
+      "normalized": 43.9437,
+      "weighted": 10.9859,
+      "points": 11
+     },
+     {
+      "key": "positivity",
+      "label": "Positivity",
+      "weight": 0.3,
+      "max_points": 30,
+      "raw": {
+       "current_rate": 23.2877,
+       "baseline_rate": 9.8592,
+       "change_points": 13.4285,
+       "range_points": 15.0
+      },
+      "normalized": 89.5234,
+      "weighted": 26.857,
+      "points": 27
+     },
+     {
+      "key": "facilities",
+      "label": "Affected Facilities",
+      "weight": 0.2,
+      "max_points": 20,
+      "raw": {
+       "affected": 3,
+       "participating": 3
+      },
+      "normalized": 100.0,
+      "weighted": 20.0,
+      "points": 20
+     },
+     {
+      "key": "geography",
+      "label": "Geographic Spread",
+      "weight": 0.15,
+      "max_points": 15,
+      "raw": {
+       "affected": 3,
+       "participating": 3
+      },
+      "normalized": 100.0,
+      "weighted": 15.0,
+      "points": 15
+     },
+     {
+      "key": "persistence",
+      "label": "Persistence",
+      "weight": 0.1,
+      "max_points": 10,
+      "raw": {
+       "days": 3,
+       "max_days": 4
+      },
+      "normalized": 75.0,
+      "weighted": 7.5,
+      "points": 8
+     }
+    ],
+    "composite": {
+     "unrounded": 80.3429,
+     "score": 80,
+     "severity": "High"
+    },
+    "persistence": {
+     "days": 3,
+     "abnormal_today": true,
+     "rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "previous_signal": "2026-01-16",
+     "previous_calculation_status": "CALCULATED",
+     "previous_abnormal": true,
+     "previous_persistence_days": 2
+    }
+   }
+  },
   "/api/surveillance/dynamic/signals/current?date=2026-01-03": {
-   "id": 8,
+   "id": 43,
    "mode": "dynamic",
    "syndrome": "Respiratory Viral Syndrome",
    "signal_date": "2026-01-03",
@@ -1200,7 +2680,7 @@
    "data_confidence_score": 93.0,
    "data_confidence_level": "Very High",
    "status": "NEW",
-   "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+   "calculated_at": "2026-09-29T21:47:57.576965-04:00",
    "volume_component_score": null,
    "positivity_component_score": null,
    "facility_component_score": null,
@@ -1386,7 +2866,7 @@
    }
   },
   "/api/surveillance/dynamic/signals/current": {
-   "id": 25,
+   "id": 60,
    "mode": "dynamic",
    "syndrome": "Respiratory Viral Syndrome",
    "signal_date": "2026-01-20",
@@ -1410,7 +2890,7 @@
    "data_confidence_score": 93.0,
    "data_confidence_level": "Very High",
    "status": "NEW",
-   "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+   "calculated_at": "2026-09-29T21:47:57.576965-04:00",
    "volume_component_score": 60.26,
    "positivity_component_score": 100.0,
    "facility_component_score": 100.0,
@@ -1713,14 +3193,14 @@
  "post": {
   "first": {
    "syndrome": "Respiratory Viral Syndrome",
-   "date_from": "2026-01-01",
+   "date_from": "2025-11-27",
    "date_to": "2026-01-20",
-   "created": 20,
+   "created": 55,
    "updated": 0,
    "unchanged": 0,
    "days": [
     {
-     "signal_date": "2026-01-01",
+     "signal_date": "2025-11-27",
      "outcome": "created",
      "signal_id": 6,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1729,7 +3209,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-02",
+     "signal_date": "2025-11-28",
      "outcome": "created",
      "signal_id": 7,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1738,7 +3218,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-03",
+     "signal_date": "2025-11-29",
      "outcome": "created",
      "signal_id": 8,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1747,7 +3227,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-04",
+     "signal_date": "2025-11-30",
      "outcome": "created",
      "signal_id": 9,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1756,7 +3236,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-05",
+     "signal_date": "2025-12-01",
      "outcome": "created",
      "signal_id": 10,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1765,43 +3245,43 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-06",
+     "signal_date": "2025-12-02",
      "outcome": "created",
      "signal_id": 11,
      "calculation_status": "CALCULATED",
-     "composite_score": 1,
-     "severity": "Low",
+     "composite_score": 25,
+     "severity": "Watch",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-07",
+     "signal_date": "2025-12-03",
      "outcome": "created",
      "signal_id": 12,
      "calculation_status": "CALCULATED",
-     "composite_score": 1,
-     "severity": "Low",
+     "composite_score": 31,
+     "severity": "Watch",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-08",
+     "signal_date": "2025-12-04",
      "outcome": "created",
      "signal_id": 13,
      "calculation_status": "CALCULATED",
-     "composite_score": 0,
+     "composite_score": 19,
      "severity": "Low",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-09",
+     "signal_date": "2025-12-05",
      "outcome": "created",
      "signal_id": 14,
      "calculation_status": "CALCULATED",
-     "composite_score": 1,
+     "composite_score": 2,
      "severity": "Low",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-10",
+     "signal_date": "2025-12-06",
      "outcome": "created",
      "signal_id": 15,
      "calculation_status": "CALCULATED",
@@ -1810,9 +3290,324 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-11",
+     "signal_date": "2025-12-07",
      "outcome": "created",
      "signal_id": 16,
+     "calculation_status": "CALCULATED",
+     "composite_score": 37,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-08",
+     "outcome": "created",
+     "signal_id": 17,
+     "calculation_status": "CALCULATED",
+     "composite_score": 56,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-09",
+     "outcome": "created",
+     "signal_id": 18,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-10",
+     "outcome": "created",
+     "signal_id": 19,
+     "calculation_status": "CALCULATED",
+     "composite_score": 19,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-11",
+     "outcome": "created",
+     "signal_id": 20,
+     "calculation_status": "CALCULATED",
+     "composite_score": 17,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-12",
+     "outcome": "created",
+     "signal_id": 21,
+     "calculation_status": "CALCULATED",
+     "composite_score": 23,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-13",
+     "outcome": "created",
+     "signal_id": 22,
+     "calculation_status": "CALCULATED",
+     "composite_score": 25,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-14",
+     "outcome": "created",
+     "signal_id": 23,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-15",
+     "outcome": "created",
+     "signal_id": 24,
+     "calculation_status": "CALCULATED",
+     "composite_score": 16,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-16",
+     "outcome": "created",
+     "signal_id": 25,
+     "calculation_status": "CALCULATED",
+     "composite_score": 30,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-17",
+     "outcome": "created",
+     "signal_id": 26,
+     "calculation_status": "CALCULATED",
+     "composite_score": 35,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-18",
+     "outcome": "created",
+     "signal_id": 27,
+     "calculation_status": "CALCULATED",
+     "composite_score": 53,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-19",
+     "outcome": "created",
+     "signal_id": 28,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-20",
+     "outcome": "created",
+     "signal_id": 29,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-21",
+     "outcome": "created",
+     "signal_id": 30,
+     "calculation_status": "CALCULATED",
+     "composite_score": 50,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-22",
+     "outcome": "created",
+     "signal_id": 31,
+     "calculation_status": "CALCULATED",
+     "composite_score": 2,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-23",
+     "outcome": "created",
+     "signal_id": 32,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-24",
+     "outcome": "created",
+     "signal_id": 33,
+     "calculation_status": "CALCULATED",
+     "composite_score": 45,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-25",
+     "outcome": "created",
+     "signal_id": 34,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-26",
+     "outcome": "created",
+     "signal_id": 35,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-27",
+     "outcome": "created",
+     "signal_id": 36,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-28",
+     "outcome": "created",
+     "signal_id": 37,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-29",
+     "outcome": "created",
+     "signal_id": 38,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-30",
+     "outcome": "created",
+     "signal_id": 39,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-31",
+     "outcome": "created",
+     "signal_id": 40,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-01",
+     "outcome": "created",
+     "signal_id": 41,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-02",
+     "outcome": "created",
+     "signal_id": 42,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-03",
+     "outcome": "created",
+     "signal_id": 43,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-04",
+     "outcome": "created",
+     "signal_id": 44,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-05",
+     "outcome": "created",
+     "signal_id": 45,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-06",
+     "outcome": "created",
+     "signal_id": 46,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-07",
+     "outcome": "created",
+     "signal_id": 47,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-08",
+     "outcome": "created",
+     "signal_id": 48,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-09",
+     "outcome": "created",
+     "signal_id": 49,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-10",
+     "outcome": "created",
+     "signal_id": 50,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-11",
+     "outcome": "created",
+     "signal_id": 51,
      "calculation_status": "CALCULATED",
      "composite_score": 2,
      "severity": "Low",
@@ -1821,7 +3616,7 @@
     {
      "signal_date": "2026-01-12",
      "outcome": "created",
-     "signal_id": 17,
+     "signal_id": 52,
      "calculation_status": "CALCULATED",
      "composite_score": 0,
      "severity": "Low",
@@ -1830,7 +3625,7 @@
     {
      "signal_date": "2026-01-13",
      "outcome": "created",
-     "signal_id": 18,
+     "signal_id": 53,
      "calculation_status": "CALCULATED",
      "composite_score": 6,
      "severity": "Low",
@@ -1839,7 +3634,7 @@
     {
      "signal_date": "2026-01-14",
      "outcome": "created",
-     "signal_id": 19,
+     "signal_id": 54,
      "calculation_status": "CALCULATED",
      "composite_score": 0,
      "severity": "Low",
@@ -1848,7 +3643,7 @@
     {
      "signal_date": "2026-01-15",
      "outcome": "created",
-     "signal_id": 20,
+     "signal_id": 55,
      "calculation_status": "CALCULATED",
      "composite_score": 25,
      "severity": "Watch",
@@ -1857,7 +3652,7 @@
     {
      "signal_date": "2026-01-16",
      "outcome": "created",
-     "signal_id": 21,
+     "signal_id": 56,
      "calculation_status": "CALCULATED",
      "composite_score": 54,
      "severity": "Moderate",
@@ -1866,7 +3661,7 @@
     {
      "signal_date": "2026-01-17",
      "outcome": "created",
-     "signal_id": 22,
+     "signal_id": 57,
      "calculation_status": "CALCULATED",
      "composite_score": 80,
      "severity": "High",
@@ -1875,7 +3670,7 @@
     {
      "signal_date": "2026-01-18",
      "outcome": "created",
-     "signal_id": 23,
+     "signal_id": 58,
      "calculation_status": "CALCULATED",
      "composite_score": 85,
      "severity": "Critical",
@@ -1884,7 +3679,7 @@
     {
      "signal_date": "2026-01-19",
      "outcome": "created",
-     "signal_id": 24,
+     "signal_id": 59,
      "calculation_status": "CALCULATED",
      "composite_score": 90,
      "severity": "Critical",
@@ -1893,7 +3688,7 @@
     {
      "signal_date": "2026-01-20",
      "outcome": "created",
-     "signal_id": 25,
+     "signal_id": 60,
      "calculation_status": "CALCULATED",
      "composite_score": 90,
      "severity": "Critical",
@@ -1901,18 +3696,18 @@
     }
    ],
    "skipped": [],
-   "message": "Recalculated 20 day(s): 20 created, 0 updated, 0 unchanged."
+   "message": "Recalculated 55 day(s): 55 created, 0 updated, 0 unchanged."
   },
   "again": {
    "syndrome": "Respiratory Viral Syndrome",
-   "date_from": "2026-01-01",
+   "date_from": "2025-11-27",
    "date_to": "2026-01-20",
    "created": 0,
    "updated": 0,
-   "unchanged": 20,
+   "unchanged": 55,
    "days": [
     {
-     "signal_date": "2026-01-01",
+     "signal_date": "2025-11-27",
      "outcome": "unchanged",
      "signal_id": 6,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1921,7 +3716,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-02",
+     "signal_date": "2025-11-28",
      "outcome": "unchanged",
      "signal_id": 7,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1930,7 +3725,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-03",
+     "signal_date": "2025-11-29",
      "outcome": "unchanged",
      "signal_id": 8,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1939,7 +3734,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-04",
+     "signal_date": "2025-11-30",
      "outcome": "unchanged",
      "signal_id": 9,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1948,7 +3743,7 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-05",
+     "signal_date": "2025-12-01",
      "outcome": "unchanged",
      "signal_id": 10,
      "calculation_status": "INSUFFICIENT_BASELINE",
@@ -1957,43 +3752,43 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-06",
+     "signal_date": "2025-12-02",
      "outcome": "unchanged",
      "signal_id": 11,
      "calculation_status": "CALCULATED",
-     "composite_score": 1,
-     "severity": "Low",
+     "composite_score": 25,
+     "severity": "Watch",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-07",
+     "signal_date": "2025-12-03",
      "outcome": "unchanged",
      "signal_id": 12,
      "calculation_status": "CALCULATED",
-     "composite_score": 1,
-     "severity": "Low",
+     "composite_score": 31,
+     "severity": "Watch",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-08",
+     "signal_date": "2025-12-04",
      "outcome": "unchanged",
      "signal_id": 13,
      "calculation_status": "CALCULATED",
-     "composite_score": 0,
+     "composite_score": 19,
      "severity": "Low",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-09",
+     "signal_date": "2025-12-05",
      "outcome": "unchanged",
      "signal_id": 14,
      "calculation_status": "CALCULATED",
-     "composite_score": 1,
+     "composite_score": 2,
      "severity": "Low",
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-10",
+     "signal_date": "2025-12-06",
      "outcome": "unchanged",
      "signal_id": 15,
      "calculation_status": "CALCULATED",
@@ -2002,9 +3797,324 @@
      "previous_severity": null
     },
     {
-     "signal_date": "2026-01-11",
+     "signal_date": "2025-12-07",
      "outcome": "unchanged",
      "signal_id": 16,
+     "calculation_status": "CALCULATED",
+     "composite_score": 37,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-08",
+     "outcome": "unchanged",
+     "signal_id": 17,
+     "calculation_status": "CALCULATED",
+     "composite_score": 56,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-09",
+     "outcome": "unchanged",
+     "signal_id": 18,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-10",
+     "outcome": "unchanged",
+     "signal_id": 19,
+     "calculation_status": "CALCULATED",
+     "composite_score": 19,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-11",
+     "outcome": "unchanged",
+     "signal_id": 20,
+     "calculation_status": "CALCULATED",
+     "composite_score": 17,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-12",
+     "outcome": "unchanged",
+     "signal_id": 21,
+     "calculation_status": "CALCULATED",
+     "composite_score": 23,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-13",
+     "outcome": "unchanged",
+     "signal_id": 22,
+     "calculation_status": "CALCULATED",
+     "composite_score": 25,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-14",
+     "outcome": "unchanged",
+     "signal_id": 23,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-15",
+     "outcome": "unchanged",
+     "signal_id": 24,
+     "calculation_status": "CALCULATED",
+     "composite_score": 16,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-16",
+     "outcome": "unchanged",
+     "signal_id": 25,
+     "calculation_status": "CALCULATED",
+     "composite_score": 30,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-17",
+     "outcome": "unchanged",
+     "signal_id": 26,
+     "calculation_status": "CALCULATED",
+     "composite_score": 35,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-18",
+     "outcome": "unchanged",
+     "signal_id": 27,
+     "calculation_status": "CALCULATED",
+     "composite_score": 53,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-19",
+     "outcome": "unchanged",
+     "signal_id": 28,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-20",
+     "outcome": "unchanged",
+     "signal_id": 29,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-21",
+     "outcome": "unchanged",
+     "signal_id": 30,
+     "calculation_status": "CALCULATED",
+     "composite_score": 50,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-22",
+     "outcome": "unchanged",
+     "signal_id": 31,
+     "calculation_status": "CALCULATED",
+     "composite_score": 2,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-23",
+     "outcome": "unchanged",
+     "signal_id": 32,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-24",
+     "outcome": "unchanged",
+     "signal_id": 33,
+     "calculation_status": "CALCULATED",
+     "composite_score": 45,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-25",
+     "outcome": "unchanged",
+     "signal_id": 34,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-26",
+     "outcome": "unchanged",
+     "signal_id": 35,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-27",
+     "outcome": "unchanged",
+     "signal_id": 36,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-28",
+     "outcome": "unchanged",
+     "signal_id": 37,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-29",
+     "outcome": "unchanged",
+     "signal_id": 38,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-30",
+     "outcome": "unchanged",
+     "signal_id": 39,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2025-12-31",
+     "outcome": "unchanged",
+     "signal_id": 40,
+     "calculation_status": "NO_DATA",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-01",
+     "outcome": "unchanged",
+     "signal_id": 41,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-02",
+     "outcome": "unchanged",
+     "signal_id": 42,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-03",
+     "outcome": "unchanged",
+     "signal_id": 43,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-04",
+     "outcome": "unchanged",
+     "signal_id": 44,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-05",
+     "outcome": "unchanged",
+     "signal_id": 45,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-06",
+     "outcome": "unchanged",
+     "signal_id": 46,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-07",
+     "outcome": "unchanged",
+     "signal_id": 47,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-08",
+     "outcome": "unchanged",
+     "signal_id": 48,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-09",
+     "outcome": "unchanged",
+     "signal_id": 49,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-10",
+     "outcome": "unchanged",
+     "signal_id": 50,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-11",
+     "outcome": "unchanged",
+     "signal_id": 51,
      "calculation_status": "CALCULATED",
      "composite_score": 2,
      "severity": "Low",
@@ -2013,7 +4123,7 @@
     {
      "signal_date": "2026-01-12",
      "outcome": "unchanged",
-     "signal_id": 17,
+     "signal_id": 52,
      "calculation_status": "CALCULATED",
      "composite_score": 0,
      "severity": "Low",
@@ -2022,7 +4132,7 @@
     {
      "signal_date": "2026-01-13",
      "outcome": "unchanged",
-     "signal_id": 18,
+     "signal_id": 53,
      "calculation_status": "CALCULATED",
      "composite_score": 6,
      "severity": "Low",
@@ -2031,7 +4141,7 @@
     {
      "signal_date": "2026-01-14",
      "outcome": "unchanged",
-     "signal_id": 19,
+     "signal_id": 54,
      "calculation_status": "CALCULATED",
      "composite_score": 0,
      "severity": "Low",
@@ -2040,7 +4150,7 @@
     {
      "signal_date": "2026-01-15",
      "outcome": "unchanged",
-     "signal_id": 20,
+     "signal_id": 55,
      "calculation_status": "CALCULATED",
      "composite_score": 25,
      "severity": "Watch",
@@ -2049,7 +4159,7 @@
     {
      "signal_date": "2026-01-16",
      "outcome": "unchanged",
-     "signal_id": 21,
+     "signal_id": 56,
      "calculation_status": "CALCULATED",
      "composite_score": 54,
      "severity": "Moderate",
@@ -2058,7 +4168,7 @@
     {
      "signal_date": "2026-01-17",
      "outcome": "unchanged",
-     "signal_id": 22,
+     "signal_id": 57,
      "calculation_status": "CALCULATED",
      "composite_score": 80,
      "severity": "High",
@@ -2067,7 +4177,7 @@
     {
      "signal_date": "2026-01-18",
      "outcome": "unchanged",
-     "signal_id": 23,
+     "signal_id": 58,
      "calculation_status": "CALCULATED",
      "composite_score": 85,
      "severity": "Critical",
@@ -2076,7 +4186,7 @@
     {
      "signal_date": "2026-01-19",
      "outcome": "unchanged",
-     "signal_id": 24,
+     "signal_id": 59,
      "calculation_status": "CALCULATED",
      "composite_score": 90,
      "severity": "Critical",
@@ -2085,7 +4195,7 @@
     {
      "signal_date": "2026-01-20",
      "outcome": "unchanged",
-     "signal_id": 25,
+     "signal_id": 60,
      "calculation_status": "CALCULATED",
      "composite_score": 90,
      "severity": "Critical",
@@ -2093,7 +4203,7 @@
     }
    ],
    "skipped": [],
-   "message": "Recalculated 20 day(s): 0 created, 0 updated, 20 unchanged."
+   "message": "Recalculated 55 day(s): 0 created, 0 updated, 55 unchanged."
   }
  }
 }

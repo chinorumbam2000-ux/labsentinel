@@ -10,10 +10,12 @@
  * no client, no requests.
  */
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import Card from '../components/common/Card';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
 import DynamicProvenance from '../components/dynamic/DynamicProvenance';
 import DynamicWhyThisSignal from '../components/dynamic/DynamicWhyThisSignal';
+import StatisticalSurveillance, { type EwmaRecalc } from '../components/dynamic/StatisticalSurveillance';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { useDataSourceContext } from '../data-access/DataSourceProvider';
 import { isAbortError } from '../data-access/apiClient';
@@ -24,6 +26,7 @@ import {
   type DynamicSummary,
   type RecalculateResult,
 } from '../data-access/dynamicSurveillance';
+import { createEwmaClient, type EwmaDay, type EwmaPoint, type EwmaSummary } from '../data-access/ewma';
 import { describeDataError } from '../data-access/hooks';
 import {
   DYNAMIC_DISCLAIMER,
@@ -102,6 +105,62 @@ function DynamicWorkspace() {
   const [selected, setSelected] = useState<Selected>({ status: 'idle' });
   const [recalc, setRecalc] = useState<Recalc>({ status: 'idle' });
   const reload = useCallback(() => setAttempt((value) => value + 1), []);
+
+  // Experimental EWMA detector: loaded on its own, so a failure never hides the composite.
+  const ewmaClient = useMemo(() => createEwmaClient(config.apiBaseUrl), [config.apiBaseUrl]);
+  const [ewmaAttempt, setEwmaAttempt] = useState(0);
+  const [ewma, setEwma] = useState<
+    { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; summary: EwmaSummary; history: EwmaPoint[] }
+  >({ status: 'loading' });
+  const [ewmaDay, setEwmaDay] = useState<{ date: string; day: EwmaDay | null } | null>(null);
+  const [ewmaRecalc, setEwmaRecalc] = useState<EwmaRecalc>({ status: 'idle' });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setEwma({ status: 'loading' });
+    Promise.all([ewmaClient.summary(controller.signal), ewmaClient.history(controller.signal)])
+      .then(([summary, history]) => !controller.signal.aborted && setEwma({ status: 'ready', summary, history }))
+      .catch((error) => {
+        if (!controller.signal.aborted && !isAbortError(error)) setEwma({ status: 'error', message: describeDataError(error) });
+      });
+    return () => controller.abort();
+  }, [ewmaClient, ewmaAttempt, attempt]);
+
+  useEffect(() => {
+    if (date === null || ewma.status !== 'ready') return undefined;
+    const controller = new AbortController();
+    ewmaClient
+      .day(date, controller.signal)
+      .then((day) => !controller.signal.aborted && setEwmaDay({ date, day }))
+      .catch((error) => {
+        if (!controller.signal.aborted && !isAbortError(error)) setEwma({ status: 'error', message: describeDataError(error) });
+      });
+    return () => controller.abort();
+  }, [ewmaClient, ewma, date]);
+
+  // "View Statistical Details" (the SMART sidecar) links to #statistical-surveillance.
+  const { hash } = useLocation();
+  const ewmaShown = ewmaDay !== null && ewma.status === 'ready';
+  useEffect(() => {
+    if (hash === '#statistical-surveillance' && ewmaShown) {
+      document.getElementById('statistical-surveillance')?.scrollIntoView?.({ block: 'start' });
+    }
+  }, [hash, ewmaShown]);
+
+  const runEwmaRecalculation = async () => {
+    setEwmaRecalc({ status: 'running' });
+    try {
+      const result = await ewmaClient.recalculate();
+      if (result === 'unavailable') {
+        setEwmaRecalc({ status: 'unavailable' });
+        return;
+      }
+      setEwmaRecalc({ status: 'done', message: result.message });
+      setEwmaAttempt((value) => value + 1);
+    } catch (error) {
+      setEwmaRecalc({ status: 'error', message: describeDataError(error) });
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -223,7 +282,43 @@ function DynamicWorkspace() {
           <EmptyState title="No dynamic signal for this date" message="Recalculate to produce one." />
         </Card>
       ) : (
-        <SignalView signal={selected.signal} />
+        <>
+          <SignalView signal={selected.signal} />
+          {ewma.status === 'loading' ? (
+            <LoadingState label="Loading statistical surveillance…" />
+          ) : ewma.status === 'error' ? (
+            <Card bodyClassName="p-0">
+              <ErrorState
+                title="Statistical surveillance is unavailable"
+                message={ewma.message}
+                onRetry={() => setEwmaAttempt((value) => value + 1)}
+              />
+            </Card>
+          ) : ewma.summary.result_count === 0 ? (
+            <Card title="Statistical Surveillance" bodyClassName="p-0">
+              <EmptyState
+                title="EWMA has not been calculated yet"
+                message="Run python -m app.statistics.run, or recalculate here (development)."
+                action={
+                  ewma.summary.recalculation_available ? (
+                    <button type="button" className="ls-btn" onClick={runEwmaRecalculation}>
+                      {ewmaRecalc.status === 'running' ? 'Recalculating…' : 'Recalculate EWMA'}
+                    </button>
+                  ) : null
+                }
+              />
+            </Card>
+          ) : (
+            <StatisticalSurveillance
+              summary={ewma.summary}
+              history={ewma.history}
+              day={ewmaDay && ewmaDay.date === selected.signal.signal_date ? ewmaDay.day : undefined}
+              signal={selected.signal}
+              recalc={ewmaRecalc}
+              onRecalculate={ewma.summary.recalculation_available ? runEwmaRecalculation : null}
+            />
+          )}
+        </>
       )}
 
       <Card
