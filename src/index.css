@@ -141,7 +141,10 @@
 #ls-main section[aria-labelledby] > div:first-child::before {
   content: '';
   position: absolute;
-  inset: -18px -30px;
+  /* The halo may reach sideways only as far as the workspace gutter (px-4,
+     1rem, below lg), or it widens #ls-main's scroll area (by 14px at 375 and
+     768px). From lg the gutter is px-8 (2rem), so the full 30px fits. */
+  inset: -18px -1rem;
   /* #ls-main already establishes a stacking context, so this sits above the
      backdrop but behind the heading's own content. */
   z-index: -1;
@@ -153,6 +156,13 @@
     rgba(245, 248, 252, 0.5) 74%,
     rgba(245, 248, 252, 0) 100%
   );
+}
+
+@media (min-width: 1024px) {
+  #ls-main header:not(.ls-card-header)::before,
+  #ls-main section[aria-labelledby] > div:first-child::before {
+    inset: -18px -30px;
+  }
 }
 
 /* Honour a reduced-transparency preference: drop the vector field and the
