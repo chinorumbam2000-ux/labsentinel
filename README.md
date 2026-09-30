@@ -39,6 +39,22 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 > environments on `/hospitals` are unchanged. See
 > [SMART on FHIR sandbox launch](backend/README.md#smart-on-fhir-sandbox-launch-development).
 >
+> A **dynamic surveillance engine** in the backend calculates surveillance
+> signals from the laboratory observations stored in PostgreSQL:
+> - daily aggregation;
+> - a rolling baseline of prior days, with no score when history is insufficient;
+> - the same five weighted components and severity bands as the prototype;
+> - Data Confidence, kept separate from the score;
+> - stored explainability.
+>
+> Its signals are kept apart from the frozen classroom demonstration, which
+> stays at 0 / 24 / 50 / 74 / 87. In API mode they are shown on
+> `/dynamic-surveillance`, and in the SMART sidecar when chosen. The
+> Dynamic Surveillance Engine is a capstone prototype model and is not
+> epidemiologically validated for production public-health decision-making.
+> See
+> [Dynamic surveillance engine](backend/README.md#dynamic-surveillance-engine-development).
+>
 > Both modes show identical values. See
 > [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
 > for how to run API mode. `main` and the `submission-v1.4` tag remain the

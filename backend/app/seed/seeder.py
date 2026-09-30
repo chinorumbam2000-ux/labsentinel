@@ -5,7 +5,7 @@ Every row is matched on the natural key the database already enforces:
 
     facility              facility_code
     lab_observation       (source_system, source_observation_id)
-    surveillance_signal   (syndrome, signal_date)
+    surveillance_signal   (mode = 'demo', syndrome, signal_date)
     demo_simulation_day   day
 
 A row that exists and matches is left alone; one that differs is updated to
@@ -146,7 +146,11 @@ def seed_demo_dataset(session: Session, dataset: DemoDataset) -> SeedReport:
             _apply(existing, values, report.observations)
     session.flush()
 
-    signals = {(s.syndrome, s.signal_date): s for s in session.scalars(select(SurveillanceSignal))}
+    # Only the frozen demonstration's signals: dynamic signals are the engine's.
+    signals = {
+        (s.syndrome, s.signal_date): s
+        for s in session.scalars(select(SurveillanceSignal).where(SurveillanceSignal.mode == "demo"))
+    }
     demo_days = {d.day: d for d in session.scalars(select(DemoSimulationDay))}
     for row in dataset.signals:
         values = {
@@ -165,7 +169,9 @@ def seed_demo_dataset(session: Session, dataset: DemoDataset) -> SeedReport:
         }
         signal = signals.get((row.syndrome, row.signal_date))
         if signal is None:
-            signal = SurveillanceSignal(syndrome=row.syndrome, signal_date=row.signal_date, **values)
+            signal = SurveillanceSignal(
+                mode="demo", syndrome=row.syndrome, signal_date=row.signal_date, **values
+            )
             session.add(signal)
             report.signals.inserted += 1
         else:

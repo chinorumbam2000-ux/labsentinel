@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import FhirIngestionPage, { DEMO_WINDOW_NOTE, SYNTHETIC_NOTICE } from '../FhirIngestionPage';
+import { MemoryRouter } from 'react-router-dom';
+import FhirIngestionPage, { DEMO_WINDOW_NOTE, DYNAMIC_PROMPT, SYNTHETIC_NOTICE } from '../FhirIngestionPage';
 import { DataSourceProvider } from '../../data-access/DataSourceProvider';
 import { BASE, fakeBackend, type FakeBackend } from './fakeFhirBackend';
 
@@ -10,7 +11,9 @@ let backend: FakeBackend;
 const renderPage = (mode: 'api' | 'local' = 'api') =>
   render(
     <DataSourceProvider configResult={{ ok: true, config: { mode, apiBaseUrl: BASE } }}>
-      <FhirIngestionPage />
+      <MemoryRouter>
+        <FhirIngestionPage />
+      </MemoryRouter>
     </DataSourceProvider>,
   );
 
@@ -129,6 +132,27 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     ).toBeTruthy();
     const pipeline = screen.getByRole('list', { name: 'Ingestion pipeline' });
     expect(within(pipeline).getByText(/nothing written/)).toBeTruthy();
+  });
+
+  it('offers dynamic recalculation after a successful ingestion, and runs it only when asked', async () => {
+    renderPage();
+    await waitForReady();
+    await loadAndIngest('influenza-a-positive');
+    await screen.findByText('✓ Ingested');
+
+    expect(screen.getByText(DYNAMIC_PROMPT)).toBeTruthy();
+    expect(backend.calls.some((call) => call.includes('/api/surveillance/dynamic'))).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Recalculate Dynamic Surveillance' }));
+
+    expect(await screen.findByText(/Recalculated 20 day\(s\): 0 created, 0 updated, 20 unchanged\./)).toBeTruthy();
+    expect(screen.getByText(/Latest date 2026-01-20: 90 \(Critical\)/)).toBeTruthy();
+    expect(backend.calls).toContain('POST /api/surveillance/dynamic/recalculate');
+    expect(screen.getByRole('link', { name: 'Open Dynamic Surveillance' }).getAttribute('href')).toBe('/dynamic-surveillance');
+
+    // A duplicate created nothing, so there is nothing new to recalculate.
+    fireEvent.click(screen.getByRole('button', { name: 'Ingest Again' }));
+    await screen.findByText('Duplicate detected.');
+    expect(screen.queryByText(DYNAMIC_PROMPT)).toBeNull();
   });
 
   it('renders structured errors without claiming later stages succeeded', async () => {

@@ -39,4 +39,19 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(calls).toEqual([]);
   });
+
+  it('shows the Dynamic Surveillance route as a notice only, with no navigation entry and no requests', async () => {
+    render(
+      <MemoryRouter initialEntries={['/dynamic-surveillance']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Dynamic Surveillance requires LabSentinel API Capstone Mode.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Recalculate Dynamic Surveillance' })).toBeNull();
+    const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
+    expect(nav.textContent).not.toContain('Dynamic Surveillance');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(calls).toEqual([]);
+  });
 });

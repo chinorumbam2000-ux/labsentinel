@@ -4,6 +4,7 @@
  * captured with FastAPI's TestClient on a freshly seeded database).
  */
 import recording from './fixtures/fhir-api-recording.json';
+import { dynamicReply } from './fakeDynamicBackend';
 
 export const BASE = 'http://api.test';
 
@@ -52,6 +53,8 @@ export const fakeBackend = ({ down = false, disabled = false } = {}): FakeBacken
     if (path === '/api/health') return json({ status: 'healthy', service: 'LabSentinel API', version: '0.1.0' });
     if (path === '/api/health/database') return json({ status: 'healthy', database: 'connected' });
     if (disabled && path.startsWith('/api/fhir/')) return json({ detail: 'Not Found' }, 404);
+    const dynamic = dynamicReply(path, method, { production: disabled });
+    if (dynamic) return dynamic;
     if (method === 'POST' && path === '/api/fhir/ingest') {
       const reply = RECORDED.ingest[ingestStep(String(init?.body))];
       return json(reply.body, reply.status);

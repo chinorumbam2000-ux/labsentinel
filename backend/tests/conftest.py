@@ -42,6 +42,15 @@ def sqlite_engine(path: Path) -> Engine:
     @event.listens_for(engine, "connect")
     def _enable_foreign_keys(dbapi_connection, _record) -> None:  # type: ignore[no-untyped-def]
         dbapi_connection.execute("PRAGMA foreign_keys = ON")
+        # pysqlite emits no BEGIN before a SAVEPOINT, so releasing one would
+        # commit it. Let SQLAlchemy manage transactions instead (the recipe in
+        # SQLAlchemy's SQLite dialect documentation), so a rolled-back test
+        # transaction really is rolled back, savepoints included.
+        dbapi_connection.isolation_level = None
+
+    @event.listens_for(engine, "begin")
+    def _begin(connection) -> None:  # type: ignore[no-untyped-def]
+        connection.exec_driver_sql("BEGIN")
 
     return engine
 

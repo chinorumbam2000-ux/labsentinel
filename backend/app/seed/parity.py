@@ -97,7 +97,10 @@ def compare_with_frontend(session: Session, raw: dict[str, Any]) -> list[str]:
         for d in session.scalars(select(DemoSimulationDay).options(selectinload(DemoSimulationDay.signal)))
     }
     check("simulation days", sorted(demo_days), [d["day"] for d in raw["days"]])
-    signal_dates = {s.signal_date for s in session.scalars(select(SurveillanceSignal))}
+    signal_dates = {
+        s.signal_date
+        for s in session.scalars(select(SurveillanceSignal).where(SurveillanceSignal.mode == "demo"))
+    }
     check("signal count", len(signal_dates), len(raw["days"]))
 
     for d in raw["days"]:

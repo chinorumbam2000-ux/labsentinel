@@ -1,0 +1,2099 @@
+{
+ "empty": {
+  "/api/surveillance/dynamic/summary": {
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "disclaimer": "The Dynamic Surveillance Engine is a capstone prototype model and is not epidemiologically validated for production public-health decision-making.",
+   "method": {
+    "engine_version": "1",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "description": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "weights": {
+     "volume": 0.25,
+     "positivity": 0.3,
+     "facilities": 0.2,
+     "geography": 0.15,
+     "persistence": 0.1
+    }
+   },
+   "signal_count": 0,
+   "first_date": null,
+   "last_date": null,
+   "latest": null,
+   "recalculation_available": true
+  },
+  "/api/surveillance/dynamic/signals": []
+ },
+ "get": {
+  "/api/surveillance/dynamic/summary": {
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "disclaimer": "The Dynamic Surveillance Engine is a capstone prototype model and is not epidemiologically validated for production public-health decision-making.",
+   "method": {
+    "engine_version": "1",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "description": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "weights": {
+     "volume": 0.25,
+     "positivity": 0.3,
+     "facilities": 0.2,
+     "geography": 0.15,
+     "persistence": 0.1
+    }
+   },
+   "signal_count": 20,
+   "first_date": "2026-01-01",
+   "last_date": "2026-01-20",
+   "latest": {
+    "id": 25,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-20",
+    "calculation_status": "CALCULATED",
+    "test_volume": 106,
+    "positive_count": 40,
+    "positivity_rate": 37.74,
+    "baseline_volume": 66.14,
+    "baseline_positivity_rate": 20.52,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 6,
+    "composite_score": 90.0,
+    "severity": "Critical",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+    "volume_component_score": 60.26,
+    "positivity_component_score": 100.0,
+    "facility_component_score": 100.0,
+    "geography_component_score": 100.0,
+    "persistence_component_score": 100.0,
+    "message": null,
+    "calculation": {
+     "engine_version": "1",
+     "mode": "dynamic",
+     "config": {
+      "baseline_window_days": 7,
+      "min_baseline_days": 5,
+      "facility_min_tests": 10,
+      "abnormal_volume_increase_percent": 25.0,
+      "abnormal_positivity_increase_points": 5.0,
+      "timezone": "America/New_York"
+     },
+     "method": {
+      "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+      "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+      "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+      "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+     },
+     "current": {
+      "tests": 106,
+      "positive": 40,
+      "negative": 66,
+      "indeterminate": 0,
+      "positivity_rate": 37.7358
+     },
+     "baseline": {
+      "window_start": "2026-01-13",
+      "window_end": "2026-01-19",
+      "window_days": 7,
+      "observed_days": 7,
+      "min_days": 5,
+      "mean_tests": 66.1429,
+      "positivity_rate": 20.5184,
+      "status": "SUFFICIENT"
+     },
+     "facilities": [
+      {
+       "facility_code": "HOSP-A",
+       "name": "Worcester Central Medical Center",
+       "vendor": "Epic",
+       "area": "01604",
+       "subregion": "Worcester County",
+       "tests": 46,
+       "positive": 19,
+       "negative": 27,
+       "positivity_rate": 41.3043,
+       "baseline_mean_tests": 29.8571,
+       "baseline_positivity_rate": 23.445,
+       "baseline_observed_days": 7,
+       "volume_change_percent": 54.067,
+       "positivity_change_points": 17.8594,
+       "status": "ABNORMAL",
+       "reasons": [
+        "volume +54.1% (threshold +25%)",
+        "positivity +17.9 points (threshold +5)"
+       ]
+      },
+      {
+       "facility_code": "HOSP-B",
+       "name": "Central Massachusetts Regional Hospital",
+       "vendor": "Oracle Health",
+       "area": "01605",
+       "subregion": "Worcester County",
+       "tests": 36,
+       "positive": 13,
+       "negative": 23,
+       "positivity_rate": 36.1111,
+       "baseline_mean_tests": 21.8571,
+       "baseline_positivity_rate": 18.9542,
+       "baseline_observed_days": 7,
+       "volume_change_percent": 64.7059,
+       "positivity_change_points": 17.1569,
+       "status": "ABNORMAL",
+       "reasons": [
+        "volume +64.7% (threshold +25%)",
+        "positivity +17.2 points (threshold +5)"
+       ]
+      },
+      {
+       "facility_code": "HOSP-C",
+       "name": "Shrewsbury Community Medical Center",
+       "vendor": "MEDITECH",
+       "area": "01545",
+       "subregion": "Worcester County",
+       "tests": 24,
+       "positive": 8,
+       "negative": 16,
+       "positivity_rate": 33.3333,
+       "baseline_mean_tests": 14.4286,
+       "baseline_positivity_rate": 16.8317,
+       "baseline_observed_days": 7,
+       "volume_change_percent": 66.3366,
+       "positivity_change_points": 16.5017,
+       "status": "ABNORMAL",
+       "reasons": [
+        "volume +66.3% (threshold +25%)",
+        "positivity +16.5 points (threshold +5)"
+       ]
+      }
+     ],
+     "geography": {
+      "level": "postal_code",
+      "participating": [
+       {
+        "code": "01545",
+        "level": "postal_code",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US"
+       },
+       {
+        "code": "01604",
+        "level": "postal_code",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US"
+       },
+       {
+        "code": "01605",
+        "level": "postal_code",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US"
+       }
+      ],
+      "affected": [
+       {
+        "code": "01545",
+        "level": "postal_code",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US"
+       },
+       {
+        "code": "01604",
+        "level": "postal_code",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US"
+       },
+       {
+        "code": "01605",
+        "level": "postal_code",
+        "subregion": "Worcester County",
+        "region": "MA",
+        "country_code": "US"
+       }
+      ]
+     },
+     "data_confidence": {
+      "score": 93,
+      "level": "Very High",
+      "facilities_reporting": 3,
+      "facilities_total": 3,
+      "explanation": "All 3 facilities reported, promptly and with high mapping quality.",
+      "components": [
+       {
+        "key": "freshness",
+        "label": "Feed Freshness",
+        "weight": 0.3,
+        "max_points": 30,
+        "score": 78.4058,
+        "points": 24,
+        "evidence": "Median reporting delay 20-40 minutes across reporting facilities"
+       },
+       {
+        "key": "completeness",
+        "label": "Data Completeness",
+        "weight": 0.25,
+        "max_points": 25,
+        "score": 98.5849,
+        "points": 25,
+        "evidence": "98.6% of required fields populated"
+       },
+       {
+        "key": "terminology",
+        "label": "Terminology Mapping Quality",
+        "weight": 0.2,
+        "max_points": 20,
+        "score": 99.0654,
+        "points": 20,
+        "evidence": "99.1% of laboratory results mapped to a LabSentinel test"
+       },
+       {
+        "key": "participation",
+        "label": "Facility Participation",
+        "weight": 0.15,
+        "max_points": 15,
+        "score": 100.0,
+        "points": 15,
+        "evidence": "3 of 3 facilities reporting"
+       },
+       {
+        "key": "integrity",
+        "label": "Data Integrity",
+        "weight": 0.1,
+        "max_points": 10,
+        "score": 100.0,
+        "points": 10,
+        "evidence": "No consistency issues"
+       }
+      ]
+     },
+     "changes": {
+      "volume_change_percent": 60.2592,
+      "positivity_change_points": 17.2175
+     },
+     "components": [
+      {
+       "key": "volume",
+       "label": "Test Volume",
+       "weight": 0.25,
+       "max_points": 25,
+       "raw": {
+        "current_tests": 106,
+        "baseline_mean_tests": 66.1429,
+        "change_percent": 60.2592
+       },
+       "normalized": 60.2592,
+       "weighted": 15.0648,
+       "points": 15
+      },
+      {
+       "key": "positivity",
+       "label": "Positivity",
+       "weight": 0.3,
+       "max_points": 30,
+       "raw": {
+        "current_rate": 37.7358,
+        "baseline_rate": 20.5184,
+        "change_points": 17.2175,
+        "range_points": 15.0
+       },
+       "normalized": 100.0,
+       "weighted": 30.0,
+       "points": 30
+      },
+      {
+       "key": "facilities",
+       "label": "Affected Facilities",
+       "weight": 0.2,
+       "max_points": 20,
+       "raw": {
+        "affected": 3,
+        "participating": 3
+       },
+       "normalized": 100.0,
+       "weighted": 20.0,
+       "points": 20
+      },
+      {
+       "key": "geography",
+       "label": "Geographic Spread",
+       "weight": 0.15,
+       "max_points": 15,
+       "raw": {
+        "affected": 3,
+        "participating": 3
+       },
+       "normalized": 100.0,
+       "weighted": 15.0,
+       "points": 15
+      },
+      {
+       "key": "persistence",
+       "label": "Persistence",
+       "weight": 0.1,
+       "max_points": 10,
+       "raw": {
+        "days": 6,
+        "max_days": 4
+       },
+       "normalized": 100.0,
+       "weighted": 10.0,
+       "points": 10
+      }
+     ],
+     "composite": {
+      "unrounded": 90.0648,
+      "score": 90,
+      "severity": "Critical"
+     },
+     "persistence": {
+      "days": 6,
+      "abnormal_today": true,
+      "rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+      "previous_signal": "2026-01-19",
+      "previous_calculation_status": "CALCULATED",
+      "previous_abnormal": true,
+      "previous_persistence_days": 5
+     }
+    }
+   },
+   "recalculation_available": true
+  },
+  "/api/surveillance/dynamic/signals": [
+   {
+    "id": 6,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-01",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 48,
+    "positive_count": 4,
+    "positivity_rate": 8.33,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 7,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-02",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 49,
+    "positive_count": 3,
+    "positivity_rate": 6.12,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 8,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-03",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 48,
+    "positive_count": 5,
+    "positivity_rate": 10.42,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 9,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-04",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 47,
+    "positive_count": 3,
+    "positivity_rate": 6.38,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 10,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-05",
+    "calculation_status": "INSUFFICIENT_BASELINE",
+    "test_volume": 49,
+    "positive_count": 4,
+    "positivity_rate": 8.16,
+    "baseline_volume": null,
+    "baseline_positivity_rate": null,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": null,
+    "severity": null,
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 11,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-06",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 4,
+    "positivity_rate": 8.33,
+    "baseline_volume": 48.2,
+    "baseline_positivity_rate": 7.88,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 1.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 12,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-07",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 4,
+    "positivity_rate": 8.33,
+    "baseline_volume": 48.17,
+    "baseline_positivity_rate": 7.96,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 1.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 13,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-08",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 3,
+    "positivity_rate": 6.25,
+    "baseline_volume": 48.14,
+    "baseline_positivity_rate": 8.01,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 14,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-09",
+    "calculation_status": "CALCULATED",
+    "test_volume": 49,
+    "positive_count": 4,
+    "positivity_rate": 8.16,
+    "baseline_volume": 48.14,
+    "baseline_positivity_rate": 7.72,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 1.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 15,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-10",
+    "calculation_status": "CALCULATED",
+    "test_volume": 47,
+    "positive_count": 3,
+    "positivity_rate": 6.38,
+    "baseline_volume": 48.14,
+    "baseline_positivity_rate": 8.01,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 16,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-11",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 4,
+    "positivity_rate": 8.33,
+    "baseline_volume": 48.0,
+    "baseline_positivity_rate": 7.44,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 2.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 17,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-12",
+    "calculation_status": "CALCULATED",
+    "test_volume": 49,
+    "positive_count": 3,
+    "positivity_rate": 6.12,
+    "baseline_volume": 48.14,
+    "baseline_positivity_rate": 7.72,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 18,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-13",
+    "calculation_status": "CALCULATED",
+    "test_volume": 48,
+    "positive_count": 5,
+    "positivity_rate": 10.42,
+    "baseline_volume": 48.14,
+    "baseline_positivity_rate": 7.42,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 6.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 19,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-14",
+    "calculation_status": "CALCULATED",
+    "test_volume": 47,
+    "positive_count": 3,
+    "positivity_rate": 6.38,
+    "baseline_volume": 48.14,
+    "baseline_positivity_rate": 7.72,
+    "affected_facilities": 0,
+    "participating_facilities": 3,
+    "affected_geographies": [],
+    "participating_geographies": 3,
+    "persistence_days": 0,
+    "composite_score": 0.0,
+    "severity": "Low",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 20,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-15",
+    "calculation_status": "CALCULATED",
+    "test_volume": 54,
+    "positive_count": 6,
+    "positivity_rate": 11.11,
+    "baseline_volume": 48.0,
+    "baseline_positivity_rate": 7.44,
+    "affected_facilities": 1,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01604"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 1,
+    "composite_score": 25.0,
+    "severity": "Watch",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 21,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-16",
+    "calculation_status": "CALCULATED",
+    "test_volume": 62,
+    "positive_count": 11,
+    "positivity_rate": 17.74,
+    "baseline_volume": 48.86,
+    "baseline_positivity_rate": 8.19,
+    "affected_facilities": 2,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 2,
+    "composite_score": 54.0,
+    "severity": "Moderate",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 22,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-17",
+    "calculation_status": "CALCULATED",
+    "test_volume": 73,
+    "positive_count": 17,
+    "positivity_rate": 23.29,
+    "baseline_volume": 50.71,
+    "baseline_positivity_rate": 9.86,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 3,
+    "composite_score": 80.0,
+    "severity": "High",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 23,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-18",
+    "calculation_status": "CALCULATED",
+    "test_volume": 84,
+    "positive_count": 22,
+    "positivity_rate": 26.19,
+    "baseline_volume": 54.43,
+    "baseline_positivity_rate": 12.86,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 4,
+    "composite_score": 85.0,
+    "severity": "Critical",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 24,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-19",
+    "calculation_status": "CALCULATED",
+    "test_volume": 95,
+    "positive_count": 31,
+    "positivity_rate": 32.63,
+    "baseline_volume": 59.57,
+    "baseline_positivity_rate": 16.07,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 5,
+    "composite_score": 90.0,
+    "severity": "Critical",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   },
+   {
+    "id": 25,
+    "mode": "dynamic",
+    "syndrome": "Respiratory Viral Syndrome",
+    "signal_date": "2026-01-20",
+    "calculation_status": "CALCULATED",
+    "test_volume": 106,
+    "positive_count": 40,
+    "positivity_rate": 37.74,
+    "baseline_volume": 66.14,
+    "baseline_positivity_rate": 20.52,
+    "affected_facilities": 3,
+    "participating_facilities": 3,
+    "affected_geographies": [
+     "01545",
+     "01604",
+     "01605"
+    ],
+    "participating_geographies": 3,
+    "persistence_days": 6,
+    "composite_score": 90.0,
+    "severity": "Critical",
+    "data_confidence_score": 93.0,
+    "data_confidence_level": "Very High",
+    "status": "NEW",
+    "calculated_at": "2026-09-29T20:02:26.278015-04:00"
+   }
+  ],
+  "/api/surveillance/dynamic/signals/current?date=2026-01-15": {
+   "id": 20,
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "signal_date": "2026-01-15",
+   "calculation_status": "CALCULATED",
+   "test_volume": 54,
+   "positive_count": 6,
+   "positivity_rate": 11.11,
+   "baseline_volume": 48.0,
+   "baseline_positivity_rate": 7.44,
+   "affected_facilities": 1,
+   "participating_facilities": 3,
+   "affected_geographies": [
+    "01604"
+   ],
+   "participating_geographies": 3,
+   "persistence_days": 1,
+   "composite_score": 25.0,
+   "severity": "Watch",
+   "data_confidence_score": 93.0,
+   "data_confidence_level": "Very High",
+   "status": "NEW",
+   "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+   "volume_component_score": 12.5,
+   "positivity_component_score": 24.47,
+   "facility_component_score": 33.33,
+   "geography_component_score": 33.33,
+   "persistence_component_score": 25.0,
+   "message": null,
+   "calculation": {
+    "engine_version": "1",
+    "mode": "dynamic",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "method": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "current": {
+     "tests": 54,
+     "positive": 6,
+     "negative": 48,
+     "indeterminate": 0,
+     "positivity_rate": 11.1111
+    },
+    "baseline": {
+     "window_start": "2026-01-08",
+     "window_end": "2026-01-14",
+     "window_days": 7,
+     "observed_days": 7,
+     "min_days": 5,
+     "mean_tests": 48.0,
+     "positivity_rate": 7.4405,
+     "status": "SUFFICIENT"
+    },
+    "facilities": [
+     {
+      "facility_code": "HOSP-A",
+      "name": "Worcester Central Medical Center",
+      "vendor": "Epic",
+      "area": "01604",
+      "subregion": "Worcester County",
+      "tests": 26,
+      "positive": 4,
+      "negative": 22,
+      "positivity_rate": 15.3846,
+      "baseline_mean_tests": 20.0,
+      "baseline_positivity_rate": 7.1429,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 30.0,
+      "positivity_change_points": 8.2418,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +30.0% (threshold +25%)",
+       "positivity +8.2 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-B",
+      "name": "Central Massachusetts Regional Hospital",
+      "vendor": "Oracle Health",
+      "area": "01605",
+      "subregion": "Worcester County",
+      "tests": 16,
+      "positive": 1,
+      "negative": 15,
+      "positivity_rate": 6.25,
+      "baseline_mean_tests": 16.1429,
+      "baseline_positivity_rate": 7.0796,
+      "baseline_observed_days": 7,
+      "volume_change_percent": -0.885,
+      "positivity_change_points": -0.8296,
+      "status": "NORMAL",
+      "reasons": []
+     },
+     {
+      "facility_code": "HOSP-C",
+      "name": "Shrewsbury Community Medical Center",
+      "vendor": "MEDITECH",
+      "area": "01545",
+      "subregion": "Worcester County",
+      "tests": 12,
+      "positive": 1,
+      "negative": 11,
+      "positivity_rate": 8.3333,
+      "baseline_mean_tests": 11.8571,
+      "baseline_positivity_rate": 8.4337,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 1.2048,
+      "positivity_change_points": -0.1004,
+      "status": "NORMAL",
+      "reasons": []
+     }
+    ],
+    "geography": {
+     "level": "postal_code",
+     "participating": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ],
+     "affected": [
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ]
+    },
+    "data_confidence": {
+     "score": 93,
+     "level": "Very High",
+     "facilities_reporting": 3,
+     "facilities_total": 3,
+     "explanation": "All 3 facilities reported, promptly and with high mapping quality.",
+     "components": [
+      {
+       "key": "freshness",
+       "label": "Feed Freshness",
+       "weight": 0.3,
+       "max_points": 30,
+       "score": 78.5507,
+       "points": 24,
+       "evidence": "Median reporting delay 20-38 minutes across reporting facilities"
+      },
+      {
+       "key": "completeness",
+       "label": "Data Completeness",
+       "weight": 0.25,
+       "max_points": 25,
+       "score": 99.0741,
+       "points": 25,
+       "evidence": "99.1% of required fields populated"
+      },
+      {
+       "key": "terminology",
+       "label": "Terminology Mapping Quality",
+       "weight": 0.2,
+       "max_points": 20,
+       "score": 98.1818,
+       "points": 20,
+       "evidence": "98.2% of laboratory results mapped to a LabSentinel test"
+      },
+      {
+       "key": "participation",
+       "label": "Facility Participation",
+       "weight": 0.15,
+       "max_points": 15,
+       "score": 100.0,
+       "points": 15,
+       "evidence": "3 of 3 facilities reporting"
+      },
+      {
+       "key": "integrity",
+       "label": "Data Integrity",
+       "weight": 0.1,
+       "max_points": 10,
+       "score": 100.0,
+       "points": 10,
+       "evidence": "No consistency issues"
+      }
+     ]
+    },
+    "changes": {
+     "volume_change_percent": 12.5,
+     "positivity_change_points": 3.6706
+    },
+    "components": [
+     {
+      "key": "volume",
+      "label": "Test Volume",
+      "weight": 0.25,
+      "max_points": 25,
+      "raw": {
+       "current_tests": 54,
+       "baseline_mean_tests": 48.0,
+       "change_percent": 12.5
+      },
+      "normalized": 12.5,
+      "weighted": 3.125,
+      "points": 3
+     },
+     {
+      "key": "positivity",
+      "label": "Positivity",
+      "weight": 0.3,
+      "max_points": 30,
+      "raw": {
+       "current_rate": 11.1111,
+       "baseline_rate": 7.4405,
+       "change_points": 3.6706,
+       "range_points": 15.0
+      },
+      "normalized": 24.4709,
+      "weighted": 7.3413,
+      "points": 7
+     },
+     {
+      "key": "facilities",
+      "label": "Affected Facilities",
+      "weight": 0.2,
+      "max_points": 20,
+      "raw": {
+       "affected": 1,
+       "participating": 3
+      },
+      "normalized": 33.3333,
+      "weighted": 6.6667,
+      "points": 7
+     },
+     {
+      "key": "geography",
+      "label": "Geographic Spread",
+      "weight": 0.15,
+      "max_points": 15,
+      "raw": {
+       "affected": 1,
+       "participating": 3
+      },
+      "normalized": 33.3333,
+      "weighted": 5.0,
+      "points": 5
+     },
+     {
+      "key": "persistence",
+      "label": "Persistence",
+      "weight": 0.1,
+      "max_points": 10,
+      "raw": {
+       "days": 1,
+       "max_days": 4
+      },
+      "normalized": 25.0,
+      "weighted": 2.5,
+      "points": 3
+     }
+    ],
+    "composite": {
+     "unrounded": 24.6329,
+     "score": 25,
+     "severity": "Watch"
+    },
+    "persistence": {
+     "days": 1,
+     "abnormal_today": true,
+     "rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "previous_signal": "2026-01-14",
+     "previous_calculation_status": "CALCULATED",
+     "previous_abnormal": false,
+     "previous_persistence_days": 0
+    }
+   }
+  },
+  "/api/surveillance/dynamic/signals/current?date=2026-01-03": {
+   "id": 8,
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "signal_date": "2026-01-03",
+   "calculation_status": "INSUFFICIENT_BASELINE",
+   "test_volume": 48,
+   "positive_count": 5,
+   "positivity_rate": 10.42,
+   "baseline_volume": null,
+   "baseline_positivity_rate": null,
+   "affected_facilities": 0,
+   "participating_facilities": 3,
+   "affected_geographies": [],
+   "participating_geographies": 3,
+   "persistence_days": 0,
+   "composite_score": null,
+   "severity": null,
+   "data_confidence_score": 93.0,
+   "data_confidence_level": "Very High",
+   "status": "NEW",
+   "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+   "volume_component_score": null,
+   "positivity_component_score": null,
+   "facility_component_score": null,
+   "geography_component_score": null,
+   "persistence_component_score": null,
+   "message": "Insufficient historical data to calculate a dynamic surveillance baseline.",
+   "calculation": {
+    "engine_version": "1",
+    "mode": "dynamic",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "method": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "current": {
+     "tests": 48,
+     "positive": 5,
+     "negative": 43,
+     "indeterminate": 0,
+     "positivity_rate": 10.4167
+    },
+    "baseline": {
+     "window_start": "2025-12-27",
+     "window_end": "2026-01-02",
+     "window_days": 7,
+     "observed_days": 2,
+     "min_days": 5,
+     "mean_tests": null,
+     "positivity_rate": null,
+     "status": "INSUFFICIENT_BASELINE"
+    },
+    "facilities": [
+     {
+      "facility_code": "HOSP-A",
+      "name": "Worcester Central Medical Center",
+      "vendor": "Epic",
+      "area": "01604",
+      "subregion": "Worcester County",
+      "tests": 19,
+      "positive": 2,
+      "negative": 17,
+      "positivity_rate": 10.5263,
+      "baseline_mean_tests": null,
+      "baseline_positivity_rate": null,
+      "baseline_observed_days": 2,
+      "volume_change_percent": null,
+      "positivity_change_points": null,
+      "status": "INSUFFICIENT_BASELINE",
+      "reasons": []
+     },
+     {
+      "facility_code": "HOSP-B",
+      "name": "Central Massachusetts Regional Hospital",
+      "vendor": "Oracle Health",
+      "area": "01605",
+      "subregion": "Worcester County",
+      "tests": 17,
+      "positive": 2,
+      "negative": 15,
+      "positivity_rate": 11.7647,
+      "baseline_mean_tests": null,
+      "baseline_positivity_rate": null,
+      "baseline_observed_days": 2,
+      "volume_change_percent": null,
+      "positivity_change_points": null,
+      "status": "INSUFFICIENT_BASELINE",
+      "reasons": []
+     },
+     {
+      "facility_code": "HOSP-C",
+      "name": "Shrewsbury Community Medical Center",
+      "vendor": "MEDITECH",
+      "area": "01545",
+      "subregion": "Worcester County",
+      "tests": 12,
+      "positive": 1,
+      "negative": 11,
+      "positivity_rate": 8.3333,
+      "baseline_mean_tests": null,
+      "baseline_positivity_rate": null,
+      "baseline_observed_days": 2,
+      "volume_change_percent": null,
+      "positivity_change_points": null,
+      "status": "INSUFFICIENT_BASELINE",
+      "reasons": []
+     }
+    ],
+    "geography": {
+     "level": "postal_code",
+     "participating": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ],
+     "affected": []
+    },
+    "data_confidence": {
+     "score": 93,
+     "level": "Very High",
+     "facilities_reporting": 3,
+     "facilities_total": 3,
+     "explanation": "All 3 facilities reported, promptly and with high mapping quality.",
+     "components": [
+      {
+       "key": "freshness",
+       "label": "Feed Freshness",
+       "weight": 0.3,
+       "max_points": 30,
+       "score": 78.9855,
+       "points": 24,
+       "evidence": "Median reporting delay 20-38 minutes across reporting facilities"
+      },
+      {
+       "key": "completeness",
+       "label": "Data Completeness",
+       "weight": 0.25,
+       "max_points": 25,
+       "score": 98.9583,
+       "points": 25,
+       "evidence": "99.0% of required fields populated"
+      },
+      {
+       "key": "terminology",
+       "label": "Terminology Mapping Quality",
+       "weight": 0.2,
+       "max_points": 20,
+       "score": 97.9592,
+       "points": 20,
+       "evidence": "98.0% of laboratory results mapped to a LabSentinel test"
+      },
+      {
+       "key": "participation",
+       "label": "Facility Participation",
+       "weight": 0.15,
+       "max_points": 15,
+       "score": 100.0,
+       "points": 15,
+       "evidence": "3 of 3 facilities reporting"
+      },
+      {
+       "key": "integrity",
+       "label": "Data Integrity",
+       "weight": 0.1,
+       "max_points": 10,
+       "score": 100.0,
+       "points": 10,
+       "evidence": "No consistency issues"
+      }
+     ]
+    },
+    "message": "Insufficient historical data to calculate a dynamic surveillance baseline.",
+    "persistence": {
+     "days": 0,
+     "rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history."
+    }
+   }
+  },
+  "/api/surveillance/dynamic/signals/current": {
+   "id": 25,
+   "mode": "dynamic",
+   "syndrome": "Respiratory Viral Syndrome",
+   "signal_date": "2026-01-20",
+   "calculation_status": "CALCULATED",
+   "test_volume": 106,
+   "positive_count": 40,
+   "positivity_rate": 37.74,
+   "baseline_volume": 66.14,
+   "baseline_positivity_rate": 20.52,
+   "affected_facilities": 3,
+   "participating_facilities": 3,
+   "affected_geographies": [
+    "01545",
+    "01604",
+    "01605"
+   ],
+   "participating_geographies": 3,
+   "persistence_days": 6,
+   "composite_score": 90.0,
+   "severity": "Critical",
+   "data_confidence_score": 93.0,
+   "data_confidence_level": "Very High",
+   "status": "NEW",
+   "calculated_at": "2026-09-29T20:02:26.278015-04:00",
+   "volume_component_score": 60.26,
+   "positivity_component_score": 100.0,
+   "facility_component_score": 100.0,
+   "geography_component_score": 100.0,
+   "persistence_component_score": 100.0,
+   "message": null,
+   "calculation": {
+    "engine_version": "1",
+    "mode": "dynamic",
+    "config": {
+     "baseline_window_days": 7,
+     "min_baseline_days": 5,
+     "facility_min_tests": 10,
+     "abnormal_volume_increase_percent": 25.0,
+     "abnormal_positivity_increase_points": 5.0,
+     "timezone": "America/New_York"
+    },
+    "method": {
+     "baseline": "Rolling historical mean of the 7 days before the surveillance date (the date itself and later days are never used). Days without data are left out; at least 5 days with data are required. Volume: mean eligible tests per day. Positivity: pooled positives / (positives + negatives).",
+     "affected_facility_rule": "Sufficient own baseline, at least 10 eligible tests, and volume >= +25% or positivity >= +5 percentage points above the facility's own baseline.",
+     "persistence_rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "eligibility": "Mapped test for the syndrome; status final, amended or corrected; active participating facility; outside the frozen demonstration period. Positivity counts Positive and Negative results only."
+    },
+    "current": {
+     "tests": 106,
+     "positive": 40,
+     "negative": 66,
+     "indeterminate": 0,
+     "positivity_rate": 37.7358
+    },
+    "baseline": {
+     "window_start": "2026-01-13",
+     "window_end": "2026-01-19",
+     "window_days": 7,
+     "observed_days": 7,
+     "min_days": 5,
+     "mean_tests": 66.1429,
+     "positivity_rate": 20.5184,
+     "status": "SUFFICIENT"
+    },
+    "facilities": [
+     {
+      "facility_code": "HOSP-A",
+      "name": "Worcester Central Medical Center",
+      "vendor": "Epic",
+      "area": "01604",
+      "subregion": "Worcester County",
+      "tests": 46,
+      "positive": 19,
+      "negative": 27,
+      "positivity_rate": 41.3043,
+      "baseline_mean_tests": 29.8571,
+      "baseline_positivity_rate": 23.445,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 54.067,
+      "positivity_change_points": 17.8594,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +54.1% (threshold +25%)",
+       "positivity +17.9 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-B",
+      "name": "Central Massachusetts Regional Hospital",
+      "vendor": "Oracle Health",
+      "area": "01605",
+      "subregion": "Worcester County",
+      "tests": 36,
+      "positive": 13,
+      "negative": 23,
+      "positivity_rate": 36.1111,
+      "baseline_mean_tests": 21.8571,
+      "baseline_positivity_rate": 18.9542,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 64.7059,
+      "positivity_change_points": 17.1569,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +64.7% (threshold +25%)",
+       "positivity +17.2 points (threshold +5)"
+      ]
+     },
+     {
+      "facility_code": "HOSP-C",
+      "name": "Shrewsbury Community Medical Center",
+      "vendor": "MEDITECH",
+      "area": "01545",
+      "subregion": "Worcester County",
+      "tests": 24,
+      "positive": 8,
+      "negative": 16,
+      "positivity_rate": 33.3333,
+      "baseline_mean_tests": 14.4286,
+      "baseline_positivity_rate": 16.8317,
+      "baseline_observed_days": 7,
+      "volume_change_percent": 66.3366,
+      "positivity_change_points": 16.5017,
+      "status": "ABNORMAL",
+      "reasons": [
+       "volume +66.3% (threshold +25%)",
+       "positivity +16.5 points (threshold +5)"
+      ]
+     }
+    ],
+    "geography": {
+     "level": "postal_code",
+     "participating": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ],
+     "affected": [
+      {
+       "code": "01545",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01604",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      },
+      {
+       "code": "01605",
+       "level": "postal_code",
+       "subregion": "Worcester County",
+       "region": "MA",
+       "country_code": "US"
+      }
+     ]
+    },
+    "data_confidence": {
+     "score": 93,
+     "level": "Very High",
+     "facilities_reporting": 3,
+     "facilities_total": 3,
+     "explanation": "All 3 facilities reported, promptly and with high mapping quality.",
+     "components": [
+      {
+       "key": "freshness",
+       "label": "Feed Freshness",
+       "weight": 0.3,
+       "max_points": 30,
+       "score": 78.4058,
+       "points": 24,
+       "evidence": "Median reporting delay 20-40 minutes across reporting facilities"
+      },
+      {
+       "key": "completeness",
+       "label": "Data Completeness",
+       "weight": 0.25,
+       "max_points": 25,
+       "score": 98.5849,
+       "points": 25,
+       "evidence": "98.6% of required fields populated"
+      },
+      {
+       "key": "terminology",
+       "label": "Terminology Mapping Quality",
+       "weight": 0.2,
+       "max_points": 20,
+       "score": 99.0654,
+       "points": 20,
+       "evidence": "99.1% of laboratory results mapped to a LabSentinel test"
+      },
+      {
+       "key": "participation",
+       "label": "Facility Participation",
+       "weight": 0.15,
+       "max_points": 15,
+       "score": 100.0,
+       "points": 15,
+       "evidence": "3 of 3 facilities reporting"
+      },
+      {
+       "key": "integrity",
+       "label": "Data Integrity",
+       "weight": 0.1,
+       "max_points": 10,
+       "score": 100.0,
+       "points": 10,
+       "evidence": "No consistency issues"
+      }
+     ]
+    },
+    "changes": {
+     "volume_change_percent": 60.2592,
+     "positivity_change_points": 17.2175
+    },
+    "components": [
+     {
+      "key": "volume",
+      "label": "Test Volume",
+      "weight": 0.25,
+      "max_points": 25,
+      "raw": {
+       "current_tests": 106,
+       "baseline_mean_tests": 66.1429,
+       "change_percent": 60.2592
+      },
+      "normalized": 60.2592,
+      "weighted": 15.0648,
+      "points": 15
+     },
+     {
+      "key": "positivity",
+      "label": "Positivity",
+      "weight": 0.3,
+      "max_points": 30,
+      "raw": {
+       "current_rate": 37.7358,
+       "baseline_rate": 20.5184,
+       "change_points": 17.2175,
+       "range_points": 15.0
+      },
+      "normalized": 100.0,
+      "weighted": 30.0,
+      "points": 30
+     },
+     {
+      "key": "facilities",
+      "label": "Affected Facilities",
+      "weight": 0.2,
+      "max_points": 20,
+      "raw": {
+       "affected": 3,
+       "participating": 3
+      },
+      "normalized": 100.0,
+      "weighted": 20.0,
+      "points": 20
+     },
+     {
+      "key": "geography",
+      "label": "Geographic Spread",
+      "weight": 0.15,
+      "max_points": 15,
+      "raw": {
+       "affected": 3,
+       "participating": 3
+      },
+      "normalized": 100.0,
+      "weighted": 15.0,
+      "points": 15
+     },
+     {
+      "key": "persistence",
+      "label": "Persistence",
+      "weight": 0.1,
+      "max_points": 10,
+      "raw": {
+       "days": 6,
+       "max_days": 4
+      },
+      "normalized": 100.0,
+      "weighted": 10.0,
+      "points": 10
+     }
+    ],
+    "composite": {
+     "unrounded": 90.0648,
+     "score": 90,
+     "severity": "Critical"
+    },
+    "persistence": {
+     "days": 6,
+     "abnormal_today": true,
+     "rule": "Consecutive days, ending on the surveillance date, with at least one abnormal facility, read from the persisted dynamic signal history.",
+     "previous_signal": "2026-01-19",
+     "previous_calculation_status": "CALCULATED",
+     "previous_abnormal": true,
+     "previous_persistence_days": 5
+    }
+   }
+  }
+ },
+ "post": {
+  "first": {
+   "syndrome": "Respiratory Viral Syndrome",
+   "date_from": "2026-01-01",
+   "date_to": "2026-01-20",
+   "created": 20,
+   "updated": 0,
+   "unchanged": 0,
+   "days": [
+    {
+     "signal_date": "2026-01-01",
+     "outcome": "created",
+     "signal_id": 6,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-02",
+     "outcome": "created",
+     "signal_id": 7,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-03",
+     "outcome": "created",
+     "signal_id": 8,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-04",
+     "outcome": "created",
+     "signal_id": 9,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-05",
+     "outcome": "created",
+     "signal_id": 10,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-06",
+     "outcome": "created",
+     "signal_id": 11,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-07",
+     "outcome": "created",
+     "signal_id": 12,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-08",
+     "outcome": "created",
+     "signal_id": 13,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-09",
+     "outcome": "created",
+     "signal_id": 14,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-10",
+     "outcome": "created",
+     "signal_id": 15,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-11",
+     "outcome": "created",
+     "signal_id": 16,
+     "calculation_status": "CALCULATED",
+     "composite_score": 2,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-12",
+     "outcome": "created",
+     "signal_id": 17,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-13",
+     "outcome": "created",
+     "signal_id": 18,
+     "calculation_status": "CALCULATED",
+     "composite_score": 6,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-14",
+     "outcome": "created",
+     "signal_id": 19,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-15",
+     "outcome": "created",
+     "signal_id": 20,
+     "calculation_status": "CALCULATED",
+     "composite_score": 25,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-16",
+     "outcome": "created",
+     "signal_id": 21,
+     "calculation_status": "CALCULATED",
+     "composite_score": 54,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-17",
+     "outcome": "created",
+     "signal_id": 22,
+     "calculation_status": "CALCULATED",
+     "composite_score": 80,
+     "severity": "High",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-18",
+     "outcome": "created",
+     "signal_id": 23,
+     "calculation_status": "CALCULATED",
+     "composite_score": 85,
+     "severity": "Critical",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-19",
+     "outcome": "created",
+     "signal_id": 24,
+     "calculation_status": "CALCULATED",
+     "composite_score": 90,
+     "severity": "Critical",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-20",
+     "outcome": "created",
+     "signal_id": 25,
+     "calculation_status": "CALCULATED",
+     "composite_score": 90,
+     "severity": "Critical",
+     "previous_severity": null
+    }
+   ],
+   "skipped": [],
+   "message": "Recalculated 20 day(s): 20 created, 0 updated, 0 unchanged."
+  },
+  "again": {
+   "syndrome": "Respiratory Viral Syndrome",
+   "date_from": "2026-01-01",
+   "date_to": "2026-01-20",
+   "created": 0,
+   "updated": 0,
+   "unchanged": 20,
+   "days": [
+    {
+     "signal_date": "2026-01-01",
+     "outcome": "unchanged",
+     "signal_id": 6,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-02",
+     "outcome": "unchanged",
+     "signal_id": 7,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-03",
+     "outcome": "unchanged",
+     "signal_id": 8,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-04",
+     "outcome": "unchanged",
+     "signal_id": 9,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-05",
+     "outcome": "unchanged",
+     "signal_id": 10,
+     "calculation_status": "INSUFFICIENT_BASELINE",
+     "composite_score": null,
+     "severity": null,
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-06",
+     "outcome": "unchanged",
+     "signal_id": 11,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-07",
+     "outcome": "unchanged",
+     "signal_id": 12,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-08",
+     "outcome": "unchanged",
+     "signal_id": 13,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-09",
+     "outcome": "unchanged",
+     "signal_id": 14,
+     "calculation_status": "CALCULATED",
+     "composite_score": 1,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-10",
+     "outcome": "unchanged",
+     "signal_id": 15,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-11",
+     "outcome": "unchanged",
+     "signal_id": 16,
+     "calculation_status": "CALCULATED",
+     "composite_score": 2,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-12",
+     "outcome": "unchanged",
+     "signal_id": 17,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-13",
+     "outcome": "unchanged",
+     "signal_id": 18,
+     "calculation_status": "CALCULATED",
+     "composite_score": 6,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-14",
+     "outcome": "unchanged",
+     "signal_id": 19,
+     "calculation_status": "CALCULATED",
+     "composite_score": 0,
+     "severity": "Low",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-15",
+     "outcome": "unchanged",
+     "signal_id": 20,
+     "calculation_status": "CALCULATED",
+     "composite_score": 25,
+     "severity": "Watch",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-16",
+     "outcome": "unchanged",
+     "signal_id": 21,
+     "calculation_status": "CALCULATED",
+     "composite_score": 54,
+     "severity": "Moderate",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-17",
+     "outcome": "unchanged",
+     "signal_id": 22,
+     "calculation_status": "CALCULATED",
+     "composite_score": 80,
+     "severity": "High",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-18",
+     "outcome": "unchanged",
+     "signal_id": 23,
+     "calculation_status": "CALCULATED",
+     "composite_score": 85,
+     "severity": "Critical",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-19",
+     "outcome": "unchanged",
+     "signal_id": 24,
+     "calculation_status": "CALCULATED",
+     "composite_score": 90,
+     "severity": "Critical",
+     "previous_severity": null
+    },
+    {
+     "signal_date": "2026-01-20",
+     "outcome": "unchanged",
+     "signal_id": 25,
+     "calculation_status": "CALCULATED",
+     "composite_score": 90,
+     "severity": "Critical",
+     "previous_severity": null
+    }
+   ],
+   "skipped": [],
+   "message": "Recalculated 20 day(s): 0 created, 0 updated, 20 unchanged."
+  }
+ }
+}

@@ -14,6 +14,8 @@ import SeverityBadge from '../../components/signals/SeverityBadge';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 import { createFhirIngestionClient } from '../../data-access/fhirIngestion';
+import { createDynamicSurveillanceClient, type DynamicSignal } from '../../data-access/dynamicSurveillance';
+import { DYNAMIC_LABEL, INSUFFICIENT_BASELINE_TEXT, NO_DATA_TEXT, formatSurveillanceDate } from '../../lib/dynamicSurveillance';
 import { describeDataError } from '../../data-access/hooks';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
 import { endSession, restoreSession, type SmartSession } from '../../smart/client';
@@ -98,11 +100,94 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+/** The latest DYNAMIC regional signal (API mode, when chosen in the sidecar). */
+function DynamicRegional({ baseUrl }: { baseUrl: string }) {
+  const client = useMemo(() => createDynamicSurveillanceClient(baseUrl), [baseUrl]);
+  const [state, setState] = useState<
+    { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; signal: DynamicSignal | null }
+  >({ status: 'loading' });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    client
+      .signalFor(null, controller.signal)
+      .then((signal) => !controller.signal.aborted && setState({ status: 'ready', signal }))
+      .catch((error) => !controller.signal.aborted && setState({ status: 'error', message: describeDataError(error) }));
+    return () => controller.abort();
+  }, [client]);
+
+  const intro = (
+    <p className="mt-1 text-xs text-muted">
+      <strong className="font-semibold text-ink">Dynamic Surveillance</strong> · {DYNAMIC_LABEL} Synthetic.
+    </p>
+  );
+  if (state.status === 'loading') {
+    return (
+      <>
+        {intro}
+        <p role="status" className="mt-2 text-sm text-muted">Loading the latest dynamic signal…</p>
+      </>
+    );
+  }
+  if (state.status === 'error') {
+    return (
+      <>
+        {intro}
+        <p role="alert" className="mt-2 text-sm text-severity-critical">{state.message}</p>
+      </>
+    );
+  }
+  const signal = state.signal;
+  if (signal === null) {
+    return (
+      <>
+        {intro}
+        <p className="mt-2 text-sm text-muted">No dynamic signal has been calculated yet.</p>
+      </>
+    );
+  }
+  return (
+    <>
+      {intro}
+      <dl className="mt-1 divide-y divide-hairline">
+        <Row label="Surveillance date">{formatSurveillanceDate(signal.signal_date)}</Row>
+        <Row label="Current severity">
+          {signal.severity ? <SeverityBadge severity={signal.severity} /> : 'Not calculated'}
+        </Row>
+        <Row label="Composite Outbreak Signal Score">
+          {signal.composite_score === null ? 'Not calculated' : `${signal.composite_score}/100`}
+        </Row>
+        <Row label="Data Confidence">
+          {signal.data_confidence_score === null ? 'Not assessed' : `${signal.data_confidence_score} · ${signal.data_confidence_level}`}
+        </Row>
+        <Row label="Affected facilities">
+          {signal.affected_facilities} of {signal.participating_facilities}
+        </Row>
+        <Row label="Affected geographic areas">{signal.affected_geographies.length}</Row>
+        <Row label="Last calculated">
+          {signal.calculated_at ? new Date(signal.calculated_at).toLocaleString('en-US') : '—'}
+        </Row>
+      </dl>
+      {signal.calculation_status !== 'CALCULATED' ? (
+        <p className="mt-1 text-xs text-muted">
+          {signal.calculation_status === 'NO_DATA' ? NO_DATA_TEXT : INSUFFICIENT_BASELINE_TEXT}
+        </p>
+      ) : null}
+      <Link to="/dynamic-surveillance" className="mt-2 inline-block text-xs font-medium text-brand hover:underline">
+        View Dynamic Surveillance
+      </Link>
+    </>
+  );
+}
+
 function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: () => void }) {
   const { currentDay, currentScenario, signalScore, dataConfidence, simulationDate, lastUpdated, dataSourceMode } =
     useSimulation();
   const { config } = useDataSourceContext();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  // Which surveillance the regional panel shows. Demo by default; Dynamic only
+  // when chosen (API mode), and always labelled — never switched silently.
+  const [surveillance, setSurveillance] = useState<'demo' | 'dynamic'>('demo');
   const discovery = useSmartDiscovery(session.serverUrl, detailsOpen);
   const ingestion = useMemo(
     () => (dataSourceMode === 'api' ? createFhirIngestionClient(config.apiBaseUrl) : null),
@@ -183,24 +268,48 @@ function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: ()
           <h2 id="regional" className="ls-label">
             Regional Respiratory Activity
           </h2>
-          <p className="mt-1 text-xs text-muted">
-            LabSentinel regional intelligence ({dataSourceMode === 'api' ? 'FastAPI + PostgreSQL' : 'local demo data'}),
-            simulation Day {currentDay} — synthetic.
-          </p>
-          <dl className="mt-1 divide-y divide-hairline">
-            <Row label="Current severity">
-              <SeverityBadge severity={signalScore.severity} />
-            </Row>
-            <Row label="Composite Outbreak Signal Score">{signalScore.composite}/100</Row>
-            <Row label="Data Confidence">
-              {dataConfidence.score} · {dataConfidence.level}
-            </Row>
-            <Row label="Affected facilities">{currentScenario.affectedHospitals.length} of 3</Row>
-            <Row label="Affected geographic areas">{currentScenario.affectedZipCodes.length}</Row>
-            <Row label="Last updated">
-              {simulationDate} (simulation) · {lastUpdated.toLocaleTimeString('en-US')}
-            </Row>
-          </dl>
+          {dataSourceMode === 'api' ? (
+            <div role="radiogroup" aria-label="Surveillance shown" className="mt-2 inline-flex rounded-lg border border-hairline p-0.5">
+              {(['demo', 'dynamic'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="radio"
+                  aria-checked={surveillance === mode}
+                  onClick={() => setSurveillance(mode)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                    surveillance === mode ? 'bg-brand text-white' : 'text-muted hover:text-ink'
+                  }`}
+                >
+                  {mode === 'demo' ? 'Demo Surveillance' : 'Dynamic Surveillance'}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {surveillance === 'dynamic' ? (
+            <DynamicRegional baseUrl={config.apiBaseUrl} />
+          ) : (
+            <>
+              <p className="mt-1 text-xs text-muted">
+                <strong className="font-semibold text-ink">Demo Surveillance</strong> · LabSentinel regional intelligence
+                ({dataSourceMode === 'api' ? 'FastAPI + PostgreSQL' : 'local demo data'}), simulation Day {currentDay} — synthetic.
+              </p>
+              <dl className="mt-1 divide-y divide-hairline">
+                <Row label="Current severity">
+                  <SeverityBadge severity={signalScore.severity} />
+                </Row>
+                <Row label="Composite Outbreak Signal Score">{signalScore.composite}/100</Row>
+                <Row label="Data Confidence">
+                  {dataConfidence.score} · {dataConfidence.level}
+                </Row>
+                <Row label="Affected facilities">{currentScenario.affectedHospitals.length} of 3</Row>
+                <Row label="Affected geographic areas">{currentScenario.affectedZipCodes.length}</Row>
+                <Row label="Last updated">
+                  {simulationDate} (simulation) · {lastUpdated.toLocaleTimeString('en-US')}
+                </Row>
+              </dl>
+            </>
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             <Link to="/dashboard" className="ls-btn-primary">
               View Regional Intelligence

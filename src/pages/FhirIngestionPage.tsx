@@ -10,6 +10,7 @@
  * no controls, no client, no requests.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '../components/common/Card';
 import { ErrorState, LoadingState } from '../components/common/States';
 import FhirPipeline from '../components/fhir/FhirPipeline';
@@ -27,6 +28,7 @@ import {
   type NormalizedObservation,
 } from '../data-access/fhirIngestion';
 import { describeDataError } from '../data-access/hooks';
+import { createDynamicSurveillanceClient, type RecalculateResult } from '../data-access/dynamicSurveillance';
 import {
   ISSUE_EXPLANATIONS,
   PROGRESS_STEPS,
@@ -424,6 +426,10 @@ function IngestionWorkspace() {
                 <p className="text-sm text-muted">Nothing ingested yet in this session.</p>
               ) : null}
 
+              {ingest.status === 'done' && ingest.reply.response.observations_created > 0 ? (
+                <DynamicRecalculatePrompt key={ingest.attempt} baseUrl={config.apiBaseUrl} />
+              ) : null}
+
               {reply && reply.response.results.length > 1 ? (
                 <div>
                   <label htmlFor="fhir-result" className="ls-label">
@@ -595,5 +601,61 @@ function IssueList({ reply }: { reply: IngestionReply }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+export const DYNAMIC_PROMPT = 'Observation persisted. Dynamic surveillance can now be recalculated.';
+
+/**
+ * After a successful ingestion: offer to re-run the dynamic surveillance
+ * engine (development only). Nothing is recalculated until asked, and the
+ * frozen classroom demonstration is never affected.
+ */
+function DynamicRecalculatePrompt({ baseUrl }: { baseUrl: string }) {
+  const client = useMemo(() => createDynamicSurveillanceClient(baseUrl), [baseUrl]);
+  const [state, setState] = useState<
+    | { status: 'idle' | 'running' | 'unavailable' }
+    | { status: 'done'; result: RecalculateResult }
+    | { status: 'error'; message: string }
+  >({ status: 'idle' });
+
+  const run = async () => {
+    setState({ status: 'running' });
+    try {
+      const result = await client.recalculate();
+      setState(result === 'unavailable' ? { status: 'unavailable' } : { status: 'done', result });
+    } catch (error) {
+      setState({ status: 'error', message: describeDataError(error) });
+    }
+  };
+
+  const latest = state.status === 'done' ? state.result.days[state.result.days.length - 1] : undefined;
+  return (
+    <div className="rounded-lg border border-brand/30 bg-brand-light px-3 py-2.5 text-sm text-ink">
+      <p className="font-medium">{DYNAMIC_PROMPT}</p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <button type="button" className="ls-btn" disabled={state.status === 'running'} onClick={run}>
+          {state.status === 'running' ? 'Recalculating…' : 'Recalculate Dynamic Surveillance'}
+        </button>
+        <Link to="/dynamic-surveillance" className="text-xs font-medium text-brand underline-offset-2 hover:underline">
+          Open Dynamic Surveillance
+        </Link>
+      </div>
+      <p role="status" aria-live="polite" className="mt-1.5 text-xs text-muted">
+        {state.status === 'done'
+          ? `${state.result.message}${
+              latest
+                ? ` Latest date ${latest.signal_date}: ${
+                    latest.composite_score === null ? latest.calculation_status : `${latest.composite_score} (${latest.severity})`
+                  }.`
+                : ''
+            }`
+          : state.status === 'unavailable'
+            ? 'Recalculation is available only when the backend runs in development.'
+            : state.status === 'error'
+              ? state.message
+              : 'The classroom demonstration is not affected: dynamic signals are calculated separately.'}
+      </p>
+    </div>
   );
 }

@@ -11,6 +11,13 @@
 > SMART sandbox integration demonstrates standards-based launch and FHIR
 > access using synthetic data. It is not a live Epic, Oracle Health or
 > MEDITECH production connection.
+>
+> A **dynamic surveillance engine** calculates surveillance signals from the
+> stored observations, kept apart from the frozen five-day classroom
+> demonstration (see
+> [Dynamic surveillance engine](#dynamic-surveillance-engine-development)).
+> The Dynamic Surveillance Engine is a capstone prototype model and is not
+> epidemiologically validated for production public-health decision-making.
 
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
@@ -57,7 +64,8 @@ backend/
 │   ├── config.py          environment-based settings
 │   ├── database.py        declarative Base, engine, session factory, get_db
 │   ├── api/               health, facilities, observations, signals, demo,
-│   │                      fhir (development ingestion) routes
+│   │                      fhir (development ingestion), surveillance
+│   │                      (dynamic signals) routes
 │   ├── fhir/              FHIR R4 parsing, validation, terminology, resolution,
 │   │                      normalization (no HTTP, no ORM)
 │   ├── core/vocabulary.py controlled vocabularies shared with the frontend
@@ -66,7 +74,10 @@ backend/
 │   │                      AuditEvent, DemoSimulationDay
 │   ├── schemas/           Pydantic response models (never ORM objects)
 │   ├── services/          query logic and FHIR ingestion used by the routes
-│   └── seed/              dataset fixture, idempotent seed, parity check
+│   ├── surveillance/      dynamic surveillance engine: aggregation, baseline,
+│   │                      scoring, persistence, `run` command
+│   └── seed/              dataset fixture, idempotent seed, parity check,
+│                          SMART sandbox facility, dynamic dataset
 ├── alembic/               migration environment and versions/
 ├── examples/fhir/         synthetic FHIR R4 fixtures (cases A-K)
 ├── tests/
@@ -326,7 +337,7 @@ Observations from either path are returned identically.
 | `/api/facilities/{id}` | One facility | `404` |
 | `/api/observations` | One page of observations, oldest first (see below) | `422` for invalid filters |
 | `/api/observations/{id}` | One observation | `404` |
-| `/api/signals` | Signal history, ordered by `signal_date` | none |
+| `/api/signals` | The frozen demonstration's signal history, ordered by `signal_date` (never a dynamic signal; see the [dynamic surveillance API](#api)) | none |
 | `/api/signals/current?day=1..5` | The signal for a capstone simulation day | `422` for a missing or out-of-range day |
 | `/api/signals/{id}` | One signal | `404` |
 
@@ -382,9 +393,10 @@ out-of-range `day` returns `422`.
 
 Only explicitly listed origins are allowed. The defaults are the Vite
 development server (`http://localhost:5173`, `http://127.0.0.1:5173`) and
-`vite preview` (`:4173`). A wildcard `*` is rejected at startup, and only
-`GET` is allowed, since the API is read-only. There is no production CORS
-configuration yet.
+`vite preview` (`:4173`). A wildcard `*` is rejected at startup. Only `GET`
+is allowed, except that `APP_ENV=development` also allows `POST` for the two
+development-only endpoints (FHIR ingestion and dynamic recalculation). There
+is no production CORS configuration yet.
 
 ## Running tests
 
@@ -1207,6 +1219,420 @@ The bridge needs API mode and, to store anything, `python -m app.seed.smart_sand
   session, no CDS Hooks, and no audit of who launched or what was sent
   beyond the backend's ingestion audit.
 
+## Dynamic surveillance engine (development)
+
+> The Dynamic Surveillance Engine is a capstone prototype model and is not
+> epidemiologically validated for production public-health decision-making.
+
+The dynamic surveillance engine calculates surveillance signals from the
+laboratory observations stored in PostgreSQL, instead of reading the frozen
+demonstration's exported values:
+
+```
+FHIR / normalized laboratory observations
+  -> PostgreSQL (lab_observation)
+  -> daily aggregation            app/surveillance/aggregator.py
+  -> dynamic baseline             app/surveillance/baseline.py
+  -> facility rule, geography,    app/surveillance/engine.py, geography.py
+     persistence
+  -> components, Composite Outbreak Signal Score,
+     Data Confidence              app/surveillance/scorer.py
+  -> persisted dynamic signal     app/surveillance/persistence.py
+     + audit events
+  -> /api/surveillance/dynamic -> Dynamic Surveillance page, SMART sidecar
+```
+
+No calculation happens in a route handler. The engine is pure Python plus
+one query per calculation, so it runs unchanged on PostgreSQL and on the
+SQLite unit-test database.
+
+### Two surveillance modes
+
+| | Classroom Demo Mode | Dynamic Surveillance Mode |
+|---|---|---|
+| Data | The frozen five-day simulation (699 seeded observations, Nov 3-7 2025) | Observations in PostgreSQL outside the demonstration period |
+| Signals | 5 seeded signals, `mode = 'demo'`, never recalculated | Calculated by the engine, `mode = 'dynamic'` |
+| Baseline | Fixed: 100 tests, 8 % | Rolling mean of prior days (below) |
+| Scores | 0 / 24 / 50 / 74 / 87 (Low, Watch, Moderate, High, Critical) | Whatever the data produce |
+| API | `/api/signals`, `/api/demo` (unchanged) | `/api/surveillance/dynamic` |
+| UI | Dashboard, Map, Signals, Simulation, header | `/dynamic-surveillance` (API mode), SMART sidecar when chosen |
+
+The two are never mixed: every query filters on `mode`, the demo endpoints
+return only demo signals, the dynamic endpoints only dynamic ones, and a
+dynamic signal's id is not found at `/api/signals/{id}` (and vice versa).
+
+### How the existing models are reused
+
+Inspection before building the engine found:
+
+- **LabObservation** already holds everything the engine needs: the mapped
+  syndrome, the normalized `Positive` / `Negative` result, facility,
+  surveillance area, effective and received times, specimen type and
+  terminology status. No observation column was added.
+- **SurveillanceSignal** had one row per (syndrome, date) and required a
+  score. Migration `0005` adds `mode`, keys signals on
+  (mode, syndrome, date), allows an unscored dynamic signal, and adds the
+  explainability columns. Demo rows are untouched.
+- **The scorer and Data Confidence** existed only in the frontend
+  (`src/lib/signalScore.ts`, `src/lib/dataConfidence.ts`); the backend
+  persisted their exported results. `app/surveillance/scorer.py` ports them
+  exactly: same weights, same normalization, same severity and confidence
+  bands, and the same half-up rounding as JavaScript's `Math.round`. A test
+  reads the weights out of the TypeScript source, and another feeds the
+  frozen demonstration's own inputs through the Python scorer and gets
+  0 / 24 / 50 / 74 / 87 (the demonstration itself is never recalculated).
+- **The demo-period rule** (FHIR ingestion rejects effective times inside
+  Nov 3-7 2025) is kept: the engine never reads that period and refuses to
+  score a date inside it.
+- **Facility participation** (Phase 6) decides who counts: development
+  sources such as the SMART sandbox facility never do.
+- **SimulationContext** and the classroom pages are not touched. The
+  dynamic UI is a separate route with its own client.
+
+### Eligible observations
+
+An observation counts towards a syndrome on a surveillance day when:
+
+1. its LOINC code is mapped to that syndrome (`terminology_status = 'mapped'`);
+2. its status is `final`, `amended` or `corrected`;
+3. it comes from an active **participating** facility;
+4. its effective time falls on that calendar day in `America/New_York`;
+5. it is outside the frozen demonstration period.
+
+Each such observation is one **test**. For **positivity**, only normalized
+`Positive` and `Negative` results count; any other result (a number, text)
+is a test with an indeterminate result, never a positive or a negative, and
+lowers Data Integrity. Unmapped observations are read only to measure
+terminology mapping quality.
+
+### Baseline method
+
+For surveillance date D, with `baseline_window_days = 7` and
+`min_baseline_days = 5` (development defaults, `app/surveillance/types.py`):
+
+- The window is **D-7 through D-1**. D and later days are never read: no
+  data leakage. (A test ingests 30 later observations and shows an earlier
+  day's calculation is unchanged.)
+- An **observed day** is a window day with at least one eligible test. Days
+  without data are left out, not counted as zero: a silent feed is unknown,
+  not a quiet day.
+- **Baseline volume** = total eligible tests / observed days.
+- **Baseline positivity** = total positives / total Positive-or-Negative
+  results over the observed days (pooled).
+- With fewer than 5 observed days there is **no baseline**: the signal is
+  stored as `INSUFFICIENT_BASELINE`, with no score, severity or baseline,
+  and the UI says: *Insufficient historical data to calculate a dynamic
+  surveillance baseline.* A date with no eligible observations is `NO_DATA`
+  (*absence of data is not evidence of normal activity*). Nothing is
+  invented.
+
+The same method gives each facility its own baseline.
+
+The frozen demonstration's 100 tests / 8 % is **not** used. For a
+demonstration, the synthetic dynamic dataset (below) provides 14 days of
+history. A plain rolling mean absorbs a sustained rise into its own baseline
+within a week; that is a known limitation of this first method.
+
+### Components and the Composite Outbreak Signal Score
+
+The existing LabSentinel weights, unchanged:
+
+| Component | Weight | Raw value | Normalized (0-100) |
+|---|---|---|---|
+| Test Volume | 25 % | (tests - baseline tests) / baseline tests x 100 | the percentage, clamped to 0-100 |
+| Positivity | 30 % | positivity - baseline positivity, in points | points / 15 x 100, clamped |
+| Affected Facilities | 20 % | abnormal / participating facilities | share x 100 |
+| Geographic Spread | 15 % | affected / participating surveillance areas | share x 100 |
+| Persistence | 10 % | consecutive abnormal days | days / 4 x 100, clamped |
+
+Composite = sum of normalized x weight, rounded half up. Severity:
+0-19 Low, 20-39 Watch, 40-64 Moderate, 65-84 High, 85-100 Critical.
+
+**Participating facilities** are the participating facilities that reported
+the syndrome on D or on any day of the baseline window. A facility that goes
+silent stays in the denominator (its silence lowers Data Confidence).
+**Participating areas** are those facilities' surveillance areas.
+
+### Affected-facility rule
+
+A facility is **ABNORMAL** on D when all hold:
+
+1. it has its own sufficient baseline;
+2. it reported at least **10** eligible tests on D (minimum observation count);
+3. its test volume is at least **+25 %** above its baseline mean, **or** its
+   positivity is at least **+5 percentage points** above its baseline
+   positivity (both thresholds inclusive).
+
+Otherwise it is NORMAL, BELOW_MINIMUM, INSUFFICIENT_BASELINE or
+NOT_REPORTING, and is not counted as affected. The reasons that met the rule
+are stored with each facility (for example `volume +30.0% (threshold +25%)`).
+
+### Geographic spread
+
+Affected areas are the surveillance areas (configured postal codes, with
+their subregion / region / country from the facility geography) of the
+abnormal facilities. No patient location is read. Counts are aggregates;
+the UI applies the existing small-count rule (fewer than 5 positives are
+shown as `<5` and reported at the broader level).
+
+### Persistence rule
+
+A day is **abnormal** when at least one facility is ABNORMAL. Persistence on
+D is 0 when D is not abnormal; otherwise 1 + the persistence of the stored
+dynamic signal for D-1 when that day was abnormal, else 1 (it resets). It is
+read from the **dynamic** signal history, never from the classroom
+demonstration. A range is always recalculated in date order, so each day
+builds on the one before.
+
+### Data Confidence
+
+Calculated with the prototype's framework and weights, stored in its own
+columns, never combined with the outbreak score:
+
+| Input (weight) | From the stored observations |
+|---|---|
+| Feed Freshness (30 %) | Each reporting facility's median reporting delay (received - effective time) through the prototype's curve (100 at 5 minutes or less, 0 at 120 or more), averaged; a facility without received times scores 0 |
+| Completeness (25 %) | Specimen type and received time populated, pooled |
+| Terminology Mapping (20 %) | Laboratory observations whose LOINC code is mapped, pooled |
+| Facility Participation (15 %) | Reporting / participating facilities |
+| Data Integrity (10 %) | 4 points lost per 1 % of eligible observations with an indeterminate result or a received time before the effective time |
+
+### Explainability
+
+Every dynamic signal stores its score and severity together with:
+
+- `calculation_status`
+- the five normalized component scores, as columns
+- `calculated_at`
+- `calculation_metadata`, a JSON object holding:
+  - the engine version and configuration, plus the method descriptions;
+  - current counts (tests, positive, negative, indeterminate);
+  - the baseline window, its observed days and its values;
+  - the volume and positivity changes;
+  - each component's raw values, normalized score, weighted contribution and points;
+  - the unrounded composite;
+  - per facility: tests, positives, positivity, own baseline, changes, status and reasons;
+  - participating and affected areas;
+  - persistence and the previous day it built on;
+  - the Data Confidence components.
+
+It holds aggregate counts only: no patient reference is stored or shown.
+
+### Database: migration 0005
+
+`alembic upgrade head` applies `0005_dynamic_surveillance_signals`:
+
+- `surveillance_signal.mode` (`demo` | `dynamic`, default `demo`: every
+  existing row becomes a demo signal);
+- unique key `(mode, syndrome, signal_date)` instead of `(syndrome, signal_date)`;
+- `calculation_status` (`CALCULATED` | `INSUFFICIENT_BASELINE` | `NO_DATA`);
+- `composite_score`, `severity`, `baseline_volume`, `baseline_positivity_rate`
+  become nullable. A check still requires them on every CALCULATED signal,
+  and another requires every demo signal to be CALCULATED;
+- five component-score columns (0-100 checked), `calculation_metadata`
+  (JSONB) and `calculated_at`.
+
+The downgrade refuses to run while dynamic signals exist (restoring NOT NULL
+would need values that were never calculated); clear them first with
+`python -m app.surveillance.run --clear`.
+
+### API
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/surveillance/dynamic/signals` | Dynamic signal history, oldest first. Filters: `syndrome`, `date_from`, `date_to`, `facility` (signals that facility contributed abnormal activity to) |
+| GET | `/api/surveillance/dynamic/signals/current` | The latest dynamic signal, or the one for `date`; `404` if none |
+| GET | `/api/surveillance/dynamic/signals/{id}` | One dynamic signal with its full `calculation`; `404` for a demo signal's id |
+| GET | `/api/surveillance/dynamic/summary` | Latest signal, history extent, method, weights, disclaimer, `recalculation_available` |
+| POST | `/api/surveillance/dynamic/recalculate` | **Development only** (`404` otherwise). Body `{}` (every date with eligible observations) or `{"date_from": "...", "date_to": "..."}`; runs the engine and returns what changed. It accepts no signal values, and demo-period dates are skipped |
+
+There is no endpoint that writes a signal's values. CORS allows `POST` only
+when `APP_ENV=development`.
+
+### Commands
+
+```powershell
+# from backend\
+python -m app.seed.dynamic_dataset                   # synthetic dynamic dataset, all 20 days
+python -m app.seed.dynamic_dataset --phase baseline  # Jan 1-14 only
+python -m app.seed.dynamic_dataset --phase outbreak  # Jan 15-20 only
+python -m app.seed.dynamic_dataset --remove          # remove its observations
+
+python -m app.surveillance.run                       # every date with eligible observations
+python -m app.surveillance.run --date 2026-01-20     # one date (persistence reads 2026-01-19)
+python -m app.surveillance.run --from 2026-01-01 --to 2026-01-20
+python -m app.surveillance.run --clear               # remove every dynamic signal
+```
+
+Both refuse to run with `APP_ENV=production`. The engine is idempotent:
+running a date again reconciles its signal (`unchanged` if nothing
+changed) instead of adding one.
+
+**Recalculation is manual.** FHIR ingestion does not trigger it, so a
+failed recalculation can never fail an ingestion. The FHIR Ingestion page
+offers a **Recalculate Dynamic Surveillance** button after a successful
+ingestion instead.
+
+Audit events use only aggregate figures:
+- `surveillance.dynamic.calculated`, when a new signal is stored;
+- `surveillance.dynamic.recalculated`, when a stored signal's values changed;
+- `surveillance.dynamic.severity_changed`;
+- `surveillance.dynamic.cleared`;
+- `seed.dynamic_dataset` and `seed.dynamic_dataset.removed`.
+
+The FHIR cleanup command above (`DELETE ... LIKE 'fhir:%'`) also removes
+the dynamic dataset, which is FHIR-ingested. To keep the dataset, add
+`AND source_system NOT LIKE 'fhir:urn:labsentinel:synthetic:dynamic-surveillance:%'`.
+
+### The synthetic dynamic dataset and its story
+
+`app/seed/dynamic_dataset.py` holds 1,167 deterministic synthetic FHIR R4
+Observations at the three participating facilities, January 1-20 2026. They
+are sent through the **real FHIR ingestion pipeline**, each with a simulated
+delivery time 12-54 minutes after collection. They are ordinary
+FHIR-ingested rows, separate from the demonstration's 699, and never reuse
+them. Shrewsbury Community also sends one SARS-CoV-2 result a day under
+LOINC 94309-2, which is not mapped: it is stored and never counted, and it
+shows in terminology mapping quality.
+
+What the engine calculates from them (dataset alone):
+
+| Date | What happens | Score |
+|---|---|---|
+| Jan 1-5 | History begins | INSUFFICIENT_BASELINE |
+| Jan 6-14 | Steady baseline, about 48 tests and 8 % positive a day | 0-6, Low |
+| Jan 15 | Worcester Central (HOSP-A): tests +30 %, positivity 15 % | 25, Watch |
+| Jan 16 | Central Mass Regional (HOSP-B) abnormal by positivity | 54, Moderate |
+| Jan 17 | Shrewsbury Community (HOSP-C) joins: all 3 facilities, 3 areas | 80, High |
+| Jan 18 | Persistence reaches 4 days | 85, Critical |
+| Jan 19-20 | Positivity keeps climbing | 90, Critical |
+
+Nothing sets a score: change the data and the scores change (the FHIR
+fixtures, for example, add results on Jan 12 and Jan 16).
+
+### Hand-calculated validation
+
+Jan 6, Jan 15, Jan 17 and Jan 20 were calculated by hand from the dataset's
+own table and are asserted exactly in `tests/test_dynamic_surveillance.py`,
+with the arithmetic in each test's docstring. Jan 15 is worked through here:
+
+```
+Baseline window Jan 8-14 (7 observed days)
+  tests      48+49+47+48+49+48+47 = 336  -> 48.0 a day
+  positives   3+ 4+ 3+ 4+ 3+ 5+ 3 =  25  -> 25/336 = 7.4405 %
+Jan 15: 26 + 16 + 12 = 54 tests, 4 + 1 + 1 = 6 positive -> 11.1111 %
+  volume      (54-48)/48 = +12.5 %                    -> 12.5000 x 0.25 =  3.1250
+  positivity  11.1111 - 7.4405 = +3.6706 pts / 15     -> 24.4709 x 0.30 =  7.3413
+  facilities  HOSP-A: 26 vs 20.0 (+30 %), 15.4 % vs 7.1 % -> abnormal
+              HOSP-B, HOSP-C within thresholds         -> 1/3 = 33.33 x 0.20 = 6.6667
+  geography   01604 of 3 areas                         -> 33.33 x 0.15 =  5.0000
+  persistence 1 day (Jan 14 not abnormal)              -> 25.00 x 0.10 =  2.5000
+  composite   24.6329 -> 25, Watch
+```
+
+### Frontend
+
+- **Dynamic Surveillance** (`/dynamic-surveillance`, listed in the
+  navigation in API mode only; local mode shows a notice and sends nothing).
+  It shows:
+  - a *DYNAMIC SURVEILLANCE MODE* banner, saying the classroom pages and the
+    header still show the frozen simulation;
+  - a surveillance date selector;
+  - syndrome, date, current and baseline tests, volume change, current and
+    baseline positivity, positivity change, affected facilities and areas,
+    persistence, the Composite Outbreak Signal Score, severity, Data
+    Confidence and last calculated time;
+  - the insufficient-baseline message;
+  - **Why this dynamic signal?** (the five questions and the weighted table,
+    labelled *Dynamic calculation from persisted laboratory observations*);
+  - aggregate provenance per facility, using the existing privacy rule;
+  - Data Confidence;
+  - the signal history and the method;
+  - **Recalculate Dynamic Surveillance** (development only).
+- **FHIR Ingestion**: after a successful ingestion, *Observation persisted.
+  Dynamic surveillance can now be recalculated.* with the recalculate button.
+- **SMART sidecar**: in API mode the Regional Respiratory Activity panel has
+  a **Demo Surveillance / Dynamic Surveillance** choice. The default is Demo,
+  and each view is labelled, so it never switches silently.
+
+### Manual full-stack demonstration (Windows PowerShell)
+
+```powershell
+# 1-2. PostgreSQL and FastAPI (from the repository root, then backend\)
+docker compose up -d db
+cd backend; .venv\Scripts\Activate.ps1; alembic upgrade head; python -m app.seed
+uvicorn app.main:app --reload --port 8000
+
+# 3. React in API mode (repository root, new terminal; add VITE_SMART_ENABLED=true for step 13)
+$env:VITE_DATA_SOURCE = "api"; $env:VITE_API_BASE_URL = "http://127.0.0.1:8000"; npm run dev
+```
+
+4. Open <http://localhost:5173/labsentinel/dynamic-surveillance>. With
+   nothing calculated it says so.
+5. `python -m app.seed.dynamic_dataset --phase baseline`, then
+   **Recalculate Dynamic Surveillance**. Jan 14 is Low with a baseline of
+   about 48 tests. Pick Jan 3 to show *Insufficient historical data*.
+6. `python -m app.seed.dynamic_dataset --phase outbreak` (FHIR observations
+   arriving). Optionally ingest the *Influenza A positive* fixture on the
+   FHIR Ingestion page and use its recalculate prompt.
+7. **Recalculate Dynamic Surveillance**.
+8-10. Jan 20: tests, positivity, affected facilities and areas, and the score
+   and severity. The history shows Watch, Moderate, High, then Critical.
+11. **Why this dynamic signal?** and the weighted table.
+12. Data Confidence, and why it is separate.
+13. Launch the SMART sidecar
+    ([SMART on FHIR sandbox launch](#smart-on-fhir-sandbox-launch-development)).
+14. Choose **Dynamic Surveillance** in its regional panel: the same dynamic
+    regional signal, labelled.
+15. Open **Simulation**: the frozen Day 1-5 scores are still 0, 24, 50, 74, 87.
+
+### Tests
+
+- `tests/test_surveillance_scorer.py` (no database, 28 tests):
+  - weights read from the TypeScript source;
+  - the frozen 0/24/50/74/87 reproduced from its own inputs;
+  - rounding, severity bands and each component;
+  - a hand-calculated composite and Data Confidence;
+  - the baseline window, leakage, days without data, insufficient history
+    and indeterminate results.
+- `tests/test_dynamic_surveillance.py` (27 tests), re-run on PostgreSQL by
+  `tests/integration/test_dynamic_surveillance_postgres.py`:
+  - the dataset through the FHIR pipeline;
+  - the hand-calculated dates, the facility rule (including the inclusive
+    +25 % boundary), geography, persistence progression and reset, no
+    leakage, and exclusion of development sources and the demonstration
+    period;
+  - Data Confidence, and the explainability metadata;
+  - idempotency, recalculation of the same row, and the audit events,
+    including a severity change;
+  - demo/dynamic separation, including that re-seeding the demonstration
+    leaves dynamic signals alone;
+  - the API with its filters and the development-only recalculation;
+  - the commands.
+- `tests/test_migrations.py`: 0005 keeps demo rows, enforces the new
+  constraints, and refuses to downgrade over dynamic signals.
+
+### Dynamic surveillance limitations
+
+- A capstone prototype model, not epidemiologically validated. The
+  thresholds (+25 %, +5 points, 10 tests, 5 of 7 days) are illustrative, not
+  production outbreak thresholds.
+- The baseline is a plain rolling mean: no seasonality, day-of-week
+  adjustment or guard band, so a sustained rise raises its own baseline.
+  CUSUM, EWMA, Farrington-type methods and machine learning are later phases.
+- Daily aggregation only, one time zone, one syndrome surveilled today.
+- Small counts make the facility rule noisy; the minimum-test rule only
+  partly guards against it.
+- Recalculation is manual (CLI or the development endpoint); there is no
+  scheduler or event-driven trigger, and a very long history is recalculated
+  in one request (up to 366 days).
+- Data Confidence's freshness is reporting delay (timeliness) of the stored
+  results, not a live feed heartbeat; there is no record of failed or
+  duplicate deliveries to feed Data Integrity.
+- The classroom pages (Dashboard, Map, Signals, Simulation, header) show only
+  the frozen demonstration. Dynamic signals appear on the Dynamic
+  Surveillance page and, when chosen, in the SMART sidecar.
+
 ## Current limitations
 
 - FHIR ingestion is development-only: no authentication of the caller, no
@@ -1225,17 +1651,20 @@ The bridge needs API mode and, to store anything, `python -m app.seed.smart_sand
   API mode against a development backend, and has no file upload,
   authentication or audit of who ingested what.
 - Resubmitted amendments (same identifier, changed content) are reported,
-  not applied. Ingested rows are not yet aggregated into surveillance
-  signals: the five-day demonstration stays frozen.
+  not applied. Ingested rows feed the dynamic surveillance engine; the
+  five-day demonstration stays frozen.
 - No authentication, users or role-based access control. The API is for local
   development only.
 - No production security hardening, TLS or secrets management.
-- The data are synthetic capstone demonstration data. Only the seed and the
-  development FHIR endpoint write data.
-- Apart from FHIR ingestion, the API is read-only. There is no endpoint for
-  audit events. Investigation and report state stay in the browser.
-- No signal computation in the backend. Scores and Data Confidence are the
-  prototype's own values, persisted as exported. Nothing is recalculated.
+- The data are synthetic capstone demonstration data. Observations are
+  written only by the seeds and the development FHIR endpoint; dynamic
+  signals only by the dynamic surveillance engine.
+- Apart from the two development-only POST endpoints, the API is read-only.
+  There is no endpoint for audit events. Investigation and report state stay
+  in the browser.
+- The frozen demonstration's scores and Data Confidence are the prototype's
+  own values, persisted as exported and never recalculated. Dynamic signals
+  are calculated by the engine (see its own limitations above).
 - `received_datetime` is null for every seeded observation, because the
   prototype records no receipt time. FHIR-ingested observations always have
   one.

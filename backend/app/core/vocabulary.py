@@ -45,6 +45,17 @@ RESULT_TYPES = ("coded", "quantity", "string", "boolean")
 # mapping and never shown as a participating facility.
 FACILITY_PARTICIPATIONS = ("participating", "development")
 
+# Where a surveillance signal came from. demo: the frozen five-day classroom
+# simulation (seeded, never recalculated). dynamic: calculated by the dynamic
+# surveillance engine (app/surveillance) from persisted observations. The two
+# are stored in one table but never returned together.
+SIGNAL_MODES = ("demo", "dynamic")
+
+# Whether a dynamic signal could be scored. A demo signal is always CALCULATED.
+#   INSUFFICIENT_BASELINE  too little history for a baseline; no score is produced
+#   NO_DATA                no eligible observations for the date; no score is produced
+CALCULATION_STATUSES = ("CALCULATED", "INSUFFICIENT_BASELINE", "NO_DATA")
+
 # Whether an observation's LOINC code maps to a LabSentinel test and syndrome.
 TERMINOLOGY_STATUSES = ("mapped", "unmapped")
 
