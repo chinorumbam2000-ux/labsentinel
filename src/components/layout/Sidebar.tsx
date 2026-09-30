@@ -22,10 +22,11 @@ const PRIMARY_NAV: NavItem[] = [
   { to: '/architecture', label: 'Architecture', icon: '⊞' },
 ];
 
-/** API capstone mode only: FHIR ingestion and the dynamic surveillance engine. */
+/** API capstone mode only: FHIR ingestion, the dynamic surveillance engine and the capstone evaluation. */
 const API_MODE_NAV: NavItem[] = [
   { to: '/fhir-ingestion', label: 'FHIR Ingestion', icon: '⇄' },
   { to: '/dynamic-surveillance', label: 'Dynamic Surveillance', icon: '∿' },
+  { to: '/evaluation', label: 'Capstone Evaluation', icon: '⚖' },
 ];
 
 /** Only when the build enables the SMART sandbox (VITE_SMART_ENABLED=true). */

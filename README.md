@@ -81,6 +81,23 @@ A laboratory-first, vendor-agnostic public-health early-warning prototype.
 > been epidemiologically validated for production decision-making. See
 > [CUSUM](backend/README.md#cusum-statistical-detector-and-three-method-comparison-experimental).
 >
+> A **capstone evaluation framework** runs the Composite, EWMA and CUSUM
+> methods, unchanged and with their defaults, on 15 synthetic scenarios with
+> known ground truth, 100 seeded repetitions each. The scenarios include:
+> - control, sudden, gradual, positivity-only and volume-only;
+> - single facility, regional spread and transient spike;
+> - reporting gap, delayed data, terminology problems and small counts;
+> - reduced facility coverage.
+>
+> It reports sensitivity, specificity, PPV and NPV with Wilson intervals,
+> detection delay, alert burden, stability and robustness to data quality.
+> It describes the tradeoffs between the methods and names no winner.
+> Results are in `backend/evaluation-results/`, and in API mode on the
+> **Capstone Evaluation** page (`/evaluation`). These evaluations use
+> synthetic scenarios and demonstrate technical behavior only. They do not
+> establish clinical or epidemiological validation. See
+> [Capstone evaluation framework](backend/README.md#capstone-evaluation-framework-synthetic-scenarios).
+>
 > Both modes show identical values. See
 > [Full-stack development](backend/README.md#full-stack-development-api-capstone-mode)
 > for how to run API mode. `main` and the `submission-v1.4` tag remain the

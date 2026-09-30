@@ -1,0 +1,46 @@
+scenario,name,outbreak_present,realizations,detector,tp,fn,fp,tn,sensitivity,specificity,median_delay_days,mean_delay_days,false_alert_days_per_100_normal_days,normal_day_transitions,data_confidence_outbreak_mean,data_confidence_normal_mean
+S01-control,No outbreak (control),False,100,composite,0,0,21,79,,0.79,,,0.524,43,,95.01
+S01-control,No outbreak (control),False,100,ewma,0,0,26,74,,0.74,,,1.786,98,,95.01
+S01-control,No outbreak (control),False,100,cusum,0,0,23,77,,0.77,,,4.524,65,,95.01
+S02-sudden,Sudden sharp outbreak,True,100,composite,100,0,0,0,1.0,,0.0,0.01,0.524,20,95.0,95.02
+S02-sudden,Sudden sharp outbreak,True,100,ewma,100,0,0,0,1.0,,0.0,0.2,1.714,39,95.0,95.02
+S02-sudden,Sudden sharp outbreak,True,100,cusum,100,0,0,0,1.0,,0.0,0.22,2.429,24,95.0,95.02
+S03-gradual,Slow gradual outbreak,True,100,composite,58,42,0,0,0.58,,11.0,10.81,0.524,20,95.0,95.02
+S03-gradual,Slow gradual outbreak,True,100,ewma,100,0,0,0,1.0,,8.0,7.93,1.714,39,95.0,95.02
+S03-gradual,Slow gradual outbreak,True,100,cusum,100,0,0,0,1.0,,8.0,7.53,2.429,24,95.0,95.02
+S04-positivity-only,Positivity-only rise,True,100,composite,82,18,0,0,0.82,,7.5,7.756,0.524,20,95.01,95.02
+S04-positivity-only,Positivity-only rise,True,100,ewma,100,0,0,0,1.0,,4.0,4.28,1.714,39,95.01,95.02
+S04-positivity-only,Positivity-only rise,True,100,cusum,100,0,0,0,1.0,,4.0,4.13,2.429,24,95.01,95.02
+S05-volume-only,Volume-only surge (no disease increase),False,100,composite,0,0,51,49,,0.49,,,1.429,113,,95.01
+S05-volume-only,Volume-only surge (no disease increase),False,100,ewma,0,0,100,0,,0.0,,,44.786,141,,95.01
+S05-volume-only,Volume-only surge (no disease increase),False,100,cusum,0,0,100,0,,0.0,,,45.0,130,,95.01
+S06-single-facility,Single-facility local cluster,True,100,composite,37,63,0,0,0.37,,7,6.892,0.524,20,95.01,95.02
+S06-single-facility,Single-facility local cluster,True,100,ewma,100,0,0,0,1.0,,5.0,5.19,1.714,39,95.01,95.02
+S06-single-facility,Single-facility local cluster,True,100,cusum,100,0,0,0,1.0,,6.0,5.17,2.429,24,95.01,95.02
+S07-regional-spread,Multi-facility regional spread,True,100,composite,90,10,0,0,0.9,,8.0,7.9,0.524,20,95.0,95.02
+S07-regional-spread,Multi-facility regional spread,True,100,ewma,100,0,0,0,1.0,,5.0,4.85,1.714,39,95.0,95.02
+S07-regional-spread,Multi-facility regional spread,True,100,cusum,100,0,0,0,1.0,,5.0,4.86,2.429,24,95.0,95.02
+S08-transient-spike,Transient one-day spike (no outbreak),False,100,composite,0,0,100,0,,0.0,,,2.81,233,,95.01
+S08-transient-spike,Transient one-day spike (no outbreak),False,100,ewma,0,0,95,5,,0.05,,,8.167,308,,95.01
+S08-transient-spike,Transient one-day spike (no outbreak),False,100,cusum,0,0,95,5,,0.05,,,23.81,292,,95.01
+S09-reporting-gap,Reporting gap / missing facility,True,100,composite,73,27,0,0,0.73,,6,7.329,0.524,20,93.81,95.02
+S09-reporting-gap,Reporting gap / missing facility,True,100,ewma,100,0,0,0,1.0,,5.0,4.46,1.714,39,93.81,95.02
+S09-reporting-gap,Reporting gap / missing facility,True,100,cusum,100,0,0,0,1.0,,5.0,4.5,2.429,24,93.81,95.02
+S10-delayed-data,Delayed data,True,100,composite,93,7,0,0,0.93,,8,8.29,0.524,20,70.0,86.68
+S10-delayed-data,Delayed data,True,100,ewma,100,0,0,0,1.0,,5.0,4.75,1.714,39,70.0,86.68
+S10-delayed-data,Delayed data,True,100,cusum,100,0,0,0,1.0,,5.0,4.86,2.429,24,70.0,86.68
+S11-terminology,Terminology quality problem,True,100,composite,89,11,0,0,0.89,,6,5.798,0.238,9,84.44,91.51
+S11-terminology,Terminology quality problem,True,100,ewma,100,0,0,0,1.0,,5.0,4.51,1.714,38,84.44,91.51
+S11-terminology,Terminology quality problem,True,100,cusum,100,0,0,0,1.0,,5.0,4.4,1.762,19,84.44,91.51
+S12-small-count,Small-count environment (no outbreak),False,100,composite,0,0,0,100,,1.0,,,0.0,0,,95.82
+S12-small-count,Small-count environment (no outbreak),False,100,ewma,0,0,38,62,,0.62,,,2.405,123,,95.82
+S12-small-count,Small-count environment (no outbreak),False,100,cusum,0,0,35,65,,0.65,,,5.738,135,,95.82
+S13-moderate,Moderate regional outbreak (clean reference),True,100,composite,88,12,0,0,0.88,,5.0,5.341,0.524,20,95.0,95.02
+S13-moderate,Moderate regional outbreak (clean reference),True,100,ewma,100,0,0,0,1.0,,4.0,3.93,1.714,39,95.0,95.02
+S13-moderate,Moderate regional outbreak (clean reference),True,100,cusum,100,0,0,0,1.0,,4.0,3.85,2.429,24,95.0,95.02
+C2-coverage-2of3,Coverage: 2 of 3 facilities reporting,True,100,composite,97,3,0,0,0.97,,4,4.381,0.238,9,95.0,93.35
+C2-coverage-2of3,Coverage: 2 of 3 facilities reporting,True,100,ewma,100,0,0,0,1.0,,4.5,4.39,1.238,36,95.0,93.35
+C2-coverage-2of3,Coverage: 2 of 3 facilities reporting,True,100,cusum,100,0,0,0,1.0,,4.0,4.46,1.524,21,95.0,93.35
+C1-coverage-1of3,Coverage: 1 of 3 facilities reporting,True,100,composite,100,0,0,0,1.0,,3.0,3.74,0.238,9,95.01,91.7
+C1-coverage-1of3,Coverage: 1 of 3 facilities reporting,True,100,ewma,100,0,0,0,1.0,,4.5,4.23,1.81,49,95.01,91.7
+C1-coverage-1of3,Coverage: 1 of 3 facilities reporting,True,100,cusum,100,0,0,0,1.0,,4.0,4.03,2.714,44,95.01,91.7

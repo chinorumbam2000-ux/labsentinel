@@ -31,6 +31,16 @@
 > [CUSUM statistical detector](#cusum-statistical-detector-and-three-method-comparison-experimental)).
 > CUSUM is an experimental statistical surveillance method in this capstone
 > and has not been epidemiologically validated for production decision-making.
+>
+> A **capstone evaluation framework** (`app/evaluation`) runs the three
+> methods, unchanged, on 15 synthetic scenarios with known ground truth
+> (100 seeded repetitions each). It measures sensitivity, timeliness,
+> false alerts, stability and robustness to data-quality problems, and
+> describes the tradeoffs without naming a winner (see
+> [Capstone evaluation framework](#capstone-evaluation-framework-synthetic-scenarios)).
+> These evaluations use synthetic scenarios and demonstrate technical
+> behavior only. They do not establish clinical or epidemiological
+> validation.
 
 **All data is synthetic.** Nothing in this service connects to a real EHR,
 laboratory system or public-health authority.
@@ -91,9 +101,12 @@ backend/
 │   │                      scoring, persistence, `run` command
 │   ├── statistics/        experimental EWMA and CUSUM detectors: formulas,
 │   │                      series, comparison, persistence, `run` command
+│   ├── evaluation/        capstone evaluation: synthetic scenarios, generator,
+│   │                      runner, metrics, reports, `run` command
 │   └── seed/              dataset fixture, idempotent seed, parity check,
 │                          SMART sandbox facility, dynamic dataset
 ├── alembic/               migration environment and versions/
+├── evaluation-results/    committed evaluation artifacts (JSON, CSV, report)
 ├── examples/fhir/         synthetic FHIR R4 fixtures (cases A-K)
 ├── tests/
 ├── alembic.ini
@@ -2330,6 +2343,456 @@ Audit events hold aggregate figures only:
 - One steep synthetic outbreak cannot establish sensitivity, specificity or
   timeliness, or distinguish the methods' speed on slower rises.
 
+## Capstone evaluation framework (synthetic scenarios)
+
+> **These evaluations use synthetic scenarios and demonstrate technical
+> behavior only. They do not establish clinical or epidemiological
+> validation.**
+
+Experimental capstone evaluation using synthetic scenarios. It adds no
+detector, changes no formula or parameter, and does not touch the frozen
+Day 1-5 demonstration (still 0 / 24 / 50 / 74 / 87), the dynamic
+development dataset, the FHIR fixtures or the SMART sandbox data. The
+Composite Outbreak Signal Score, EWMA and CUSUM run **unchanged, with their
+application defaults**, on synthetic scenarios whose ground truth is known
+by design.
+
+### Objectives
+
+The evaluation answers, for each method:
+
+- **Sensitivity**: does it detect a known synthetic outbreak?
+- **Timeliness**: how many days after the true onset?
+- **False alerts**: how often does it alert when nothing is happening?
+- **Stability**: how often does it flip between states on normal days?
+- **Data quality**: what do missing facilities, delayed results and
+  unmapped terminology do to detection?
+- **Coverage**: how do 3/3, 2/3 and 1/3 reporting facilities change it?
+- **Tradeoffs**: how do Composite, EWMA and CUSUM differ? No method is
+  declared best.
+
+### Design
+
+- **Calendar:** 28 reference days from 2024-03-01, then 42 monitored days
+  (2024-03-29 to 2024-05-09). True onset for every outbreak scenario:
+  **2024-04-19** (monitored day 21); outbreaks last to the end of the
+  series.
+- **Facilities:** three fictional facilities, `EVAL-A`, `EVAL-B` and `EVAL-C`
+  (mean 20, 16 and 12 tests a day; postal areas E-001 to E-003; country
+  `ZZ`). The small-count scenario uses means of 4, 3 and 2.
+- **Generation:** daily tests are Poisson, positives Bernoulli at the
+  scenario's positivity (baseline 5 %). Rows are ordinary `LabObservation`
+  records with `source_system = eval:<scenario>` and synthetic `EVAL-PT-…`
+  patient references. No real patient data.
+- **Seeds:** every (repetition, facility, day) cell has its own seed:
+  `base*1_000_003 + repetition*10_007 + facility*1_009 + day`. A scenario and
+  its data-quality variant therefore share the same underlying draws
+  (common random numbers), so differences come from the condition, not from
+  chance.
+- **Isolation:** each realization runs in its own throwaway SQLite database,
+  built from the real Alembic migrations and deleted afterwards. The
+  application's PostgreSQL database is never read or written. The
+  PostgreSQL integration test shows identical results on PostgreSQL.
+- **Detectors, unchanged:** `app.surveillance.persistence.recalculate`
+  (Composite), `app.statistics.service.calculate` (EWMA) and
+  `app.statistics.cusum_service.calculate` (CUSUM) run on that database
+  exactly as they run on the application's.
+- **Real-time replay (delayed data):** results arrive 1-3 days late. The
+  scenario is replayed day by day: on each day D only the results received
+  by the end of D are loaded, the last 3 days are recalculated as late
+  results arrive, and a method "sees" the outbreak on the first D at which
+  any of its results for a date between onset and D is an alert.
+
+### Scenarios and ground truth
+
+| # | Scenario | Ground truth | What it tests |
+|---|---|---|---|
+| S01 | No outbreak (control) | none | False alerts on stable data |
+| S02 | Sudden sharp outbreak | all facilities from onset | Volume ×1.6, positivity 30 % from day 0 |
+| S03 | Slow gradual outbreak | all facilities from onset | Volume +2 %/day (cap ×1.4), positivity +0.5 pp/day |
+| S04 | Positivity-only rise | all facilities from onset | Positivity +1.5 pp/day (cap 26 %), volume flat |
+| S05 | Volume-only surge | **none** | Volume +12 %/day (cap ×2.2), positivity flat: more testing, no more disease |
+| S06 | Single-facility local cluster | EVAL-A only | Volume +8 %/day (cap ×1.6), positivity +2 pp/day (cap 28 %) at one facility |
+| S07 | Multi-facility regional spread | A, then B (+4 d), then C (+8 d) | Staggered spread |
+| S08 | Transient one-day spike | **none** | One day at ×2 volume and 25 % positivity |
+| S09 | Reporting gap | all facilities from onset | S13 with EVAL-B silent for outbreak days 0-4 |
+| S10 | Delayed data | all facilities from onset | S13 with results 1-3 days late from a week before onset; scored in real time |
+| S11 | Terminology quality problem | all facilities from onset | S13 with 50 % unmapped code (LOINC 94309-2) at A and B, 25 % missing specimen |
+| S12 | Small-count environment | none | Means 4 / 3 / 2 tests a day |
+| S13 | Moderate regional outbreak | all facilities from onset | Clean reference: volume +5 %/day (cap ×1.5), positivity +1.5 pp/day (cap 23 %) |
+| C2 | Coverage 2 of 3 | all facilities from onset | S13 with EVAL-C silent from a week before onset |
+| C1 | Coverage 1 of 3 | all facilities from onset | S13 with EVAL-B and EVAL-C silent |
+
+Each scenario records `outbreak_present`, `true_outbreak_start`,
+`true_outbreak_end`, `true_affected_facilities`, `true_affected_geographies`
+and a description. The coverage variants are reported separately and are not
+pooled.
+
+### Detection definitions (fixed before any result was seen)
+
+| Method | Detection event |
+|---|---|
+| Composite | First monitored date with severity **High or Critical** |
+| EWMA | First monitored date whose overall state is **STATISTICAL ALERT** |
+| CUSUM | First monitored date on which **either metric's CUSUM ≥ h** |
+
+Secondary (earlier, lower-level) events are reported but are not
+detections: Composite Watch or above, Composite Moderate or above, and EWMA
+Watch or above.
+
+### Metrics and units
+
+Two units of analysis, always labelled:
+
+- **Realization (one simulated run).** In an outbreak scenario, TP if the
+  method alerts on any outbreak day, otherwise FN. In a no-outbreak
+  scenario, FP if it alerts on any monitored day, otherwise TN.
+- **Day (one monitored day).** An outbreak day in alert is TP, not in alert
+  FN; a normal day in alert is FP, not in alert TN.
+
+For both units the evaluation reports:
+
+- TP / FP / TN / FN, sensitivity, specificity, PPV (precision), NPV, false
+  positive rate and false negative rate;
+- every proportion as a count with a **Wilson 95 % interval**
+  (z = 1.959964).
+
+It also reports:
+
+- **Timeliness:** the detection-delay distribution (days after true onset:
+  median, mean, IQR, range and full counts), and pairwise lead/lag between
+  methods.
+- **Alert burden:** alert days and episodes, false-alert days and episodes,
+  false-alert days per 100 normal days, and runs with any false alert.
+- **Stability:** state changes on normal days per 100 normal days,
+  false-episode length, and the share of normal days in alert.
+- **Data quality:** Data Confidence on normal and outbreak days, and the mean
+  outbreak composite score.
+
+ROC/AUC is not reported. The methods run at fixed operational thresholds, so
+threshold effects are shown in the separate sensitivity analyses instead.
+
+### Repetitions and reproducibility
+
+100 realizations per scenario, base seed 20260930: 1,500 realizations,
+about 4 minutes on 12 worker processes. Two full runs produced
+byte-identical report and CSV files and identical JSON. The same seed
+always gives the same result; the tests check this.
+
+```powershell
+# from backend\
+.\.venv\Scripts\python.exe -m app.evaluation.run --all --repetitions 100 --seed 20260930
+# one or more scenarios, quicker
+.\.venv\Scripts\python.exe -m app.evaluation.run --scenario S13-moderate --scenario S10-delayed-data --repetitions 20
+```
+
+Options: `--all`, `--scenario ID` (repeatable), `--repetitions N`
+(default 100), `--seed N` (default 20260930), `--output DIR` (default
+`backend/evaluation-results`) and `--workers N`.
+
+Artifacts in `backend/evaluation-results/` (committed, about 440 KB):
+
+- `evaluation-summary.json`: everything, including one representative daily
+  timeline per scenario (repetition 0);
+- `evaluation-summary.csv`: one row per scenario and method;
+- `evaluation-report.md`: a readable report.
+
+### Results (100 repetitions, seed 20260930)
+
+Pooled over the 13 primary scenarios (900 outbreak and 400 no-outbreak
+realizations):
+
+| Metric | Composite | EWMA | CUSUM |
+|---|---|---|---|
+| Sensitivity (runs) | 710/900 = 78.9 % (76.1-81.4) | 900/900 = 100 % (99.6-100) | 900/900 = 100 % (99.6-100) |
+| Specificity (runs) | 228/400 = 57.0 % (52.1-61.8) | 141/400 = 35.2 % (30.7-40.1) | 147/400 = 36.8 % (32.2-41.6) |
+| PPV (runs, design-dependent) | 710/882 = 80.5 % | 900/1159 = 77.6 % | 900/1153 = 78.1 % |
+| Sensitivity (days) | 1595/18900 = 8.4 % | 14734/18900 = 78.0 % | 14958/18900 = 79.1 % |
+| Specificity (days) | 35407/35700 = 99.2 % | 32976/35700 = 92.4 % | 31934/35700 = 89.5 % |
+| Median delay (IQR), days | 6 (3-9), n = 710 | 5 (3-6), n = 900 | 5 (3-6), n = 900 |
+| False-alert days per 100 normal days | 0.82 | 7.63 | 10.55 |
+
+By scenario (detected, or runs with a false alert; median delay in days):
+
+| Scenario | Composite | EWMA | CUSUM |
+|---|---|---|---|
+| S01 control | 21/100 false | 26/100 false | 23/100 false |
+| S02 sudden | 100/100, 0 | 100/100, 0 | 100/100, 0 |
+| S03 gradual | 58/100, 11 | 100/100, 8 | 100/100, 8 |
+| S04 positivity only | 82/100, 7.5 | 100/100, 4 | 100/100, 4 |
+| S05 volume only | 51/100 false | 100/100 false | 100/100 false |
+| S06 single facility | 37/100, 7 | 100/100, 5 | 100/100, 6 |
+| S07 regional spread | 90/100, 8 | 100/100, 5 | 100/100, 5 |
+| S08 one-day spike | 100/100 false | 95/100 false | 95/100 false |
+| S09 reporting gap | 73/100, 6 | 100/100, 5 | 100/100, 5 |
+| S10 delayed (real time) | 93/100, 8 | 100/100, 5 | 100/100, 5 |
+| S11 terminology | 89/100, 6 | 100/100, 5 | 100/100, 5 |
+| S12 small counts | 0/100 false | 38/100 false | 35/100 false |
+| S13 moderate (clean) | 88/100, 5 | 100/100, 4 | 100/100, 4 |
+| C2 coverage 2/3 | 97/100, 4 | 100/100, 4.5 | 100/100, 4 |
+| C1 coverage 1/3 | 100/100, 3 | 100/100, 4.5 | 100/100, 4 |
+
+### Interpretation: tradeoffs, not a winner
+
+- **The statistical methods are more sensitive and usually earlier, at the
+  cost of far more false-alert days.**
+  - EWMA and CUSUM detected every synthetic outbreak, usually 1-3 days
+    before the composite on gradual, positivity-only, spreading and
+    moderate outbreaks.
+  - They also produced 9-13× the composite's false-alert days on normal
+    days, and alerted in every volume-only surge.
+- **The composite is conservative.**
+  - Its day-level specificity is 99.2 %.
+  - Its day-level sensitivity is only 8.4 %: its rolling 7-day baseline
+    absorbs a sustained rise, so it signals the change, not the ongoing
+    elevation.
+  - It missed 42 % of slow gradual and 63 % of single-facility outbreaks at
+    the High cutoff.
+- **EWMA and CUSUM behave very similarly here.**
+  - They detected on the same day in most runs.
+  - CUSUM had more false-alert days (10.5 vs 7.6 per 100), because it has
+    no reset after an alert.
+- **Volume-only surges** (more testing, no more disease) alert the volume
+  metrics of EWMA and CUSUM in every run. The composite alerted in half of
+  them.
+- **Transient spikes** trigger all three methods. The composite reached High
+  in every run: a one-day doubling of volume with a positivity jump moves
+  several of its components at once. EWMA and CUSUM alerted in 95/100.
+- **Small counts:** the composite never alerted: its affected-facility rule
+  needs 10 tests. EWMA and CUSUM false-alerted in about a third of runs.
+- **Secondary events:** Composite Moderate detects every outbreak with a
+  median delay of 1 day, but at a false-alert burden (88.5 % of no-outbreak
+  runs) similar to EWMA/CUSUM. This is an exploratory reading of the
+  existing bands, not a change.
+
+### Robustness to data-quality problems
+
+Compared with the clean S13 (composite 88/100, median 5; EWMA/CUSUM
+100/100, median 4):
+
+- **Reporting gap (S09):** composite 73/100 (median 6); EWMA/CUSUM
+  unchanged in detection, median +1 day. Data Confidence dips on outbreak
+  days (mean 93.8, minimum 90).
+- **Delayed results (S10, real time):**
+  - composite 93/100, median 8; retrospectively 88/100, median 5;
+  - EWMA/CUSUM median 5 in real time vs 4 retrospectively;
+  - waiting for data costs about 1-3 days;
+  - Data Confidence falls to 70 on outbreak days.
+- **Terminology problems (S11):** 50 % unmapped codes at two facilities
+  lower the counts the methods see. Composite 89/100 (median 6); EWMA/CUSUM
+  median 5. Data Confidence falls to 84.4 (minimum 79).
+- **Coverage (C2, C1):** fewer reporting facilities made the composite
+  detect *more often and earlier* (97/100 and 100/100). Its facility
+  denominator shrinks, so the one affected facility weighs more. This
+  reflects less information, not better performance. Data Confidence
+  returns to 95 on outbreak days, because a facility that stopped reporting
+  more than a week earlier drops out of its window.
+
+### Parameter and cutoff sensitivity (secondary, not persisted)
+
+These are recomputed from each run's daily series. The defaults are not
+changed.
+
+- **EWMA λ 0.15-0.30:** detection unchanged (100 %), median delay 4-5 days,
+  and 59-65 % of no-outbreak runs with a false alert. λ matters little
+  here.
+- **CUSUM k and h:** a clear speed-versus-false-alert tradeoff:
+  - k 0.25, h 4: median delay 2 days, 88 % of no-outbreak runs false-alert;
+  - default k 0.5, h 5: median delay 5, 63 %;
+  - k 0.75, h 6: median delay 6, 47 %.
+- **Composite cutoff (exploratory):**
+
+  | Cutoff | Detected | Median delay (days) | No-outbreak runs with a false alert |
+  |---|---|---|---|
+  | Watch | 100 % | 0 | 100 % |
+  | Moderate | 100 % | 1 | 88.5 % |
+  | High (the default) | 78.3 % | 6 | 43 % |
+  | Critical | 12.1 % | 0 (n = 109) | 22 % |
+
+  The cutoff analysis uses retrospective states, so High shows 705
+  rather than the primary 710 (the S10 real-time difference).
+
+### CDC/WHO surveillance-evaluation attributes
+
+| Attribute | Status here | How / why not |
+|---|---|---|
+| Sensitivity | evaluated technically | Share of synthetic outbreak runs (and days) detected |
+| Positive predictive value | evaluated technically, design-dependent | Precision over the designed scenario mix; real PPV depends on real outbreak frequency |
+| Timeliness | evaluated technically | Delay from the known onset, including real-time replay with delayed results |
+| Data quality | evaluated technically | Missing facility, delays, unmapped terminology, incomplete records; Data Confidence alongside |
+| Stability | evaluated technically | State changes, false-alert episodes, share of normal days in alert |
+| Flexibility | partly (design only) | Configurable parameters, syndrome-agnostic engine; not exercised on other syndromes |
+| Simplicity | described, not measured | Plain-language explanations; no user study |
+| Representativeness | cannot be established | Synthetic facilities and populations; no real denominator |
+| Acceptability | cannot be established | No real users, workflow or public-health partners |
+| Usefulness | cannot be established | No real public-health action was informed by these signals |
+
+### Threats to validity
+
+- Synthetic scenarios may not reflect real outbreaks: their shapes, speeds
+  and sizes were designed, not observed.
+- The parameters (composite bands, EWMA λ/k, CUSUM k/h) are illustrative and
+  were not clinically validated.
+- Only one respiratory syndrome is evaluated.
+- The facility and geographic structure is simplified: three fictional
+  facilities in three areas.
+- Test-seeking is synthetic (Poisson volumes, Bernoulli positives), with no
+  weekday, holiday or policy effects.
+- There is no real population denominator.
+- There is no seasonality: every scenario starts from a flat baseline.
+- No workflow or acceptability evaluation was done.
+- There is no external epidemiological gold standard: the ground truth is
+  the scenario design itself.
+- Realization-level PPV depends on the designed mix of outbreak and
+  no-outbreak scenarios.
+- Outbreaks last to the end of each series, so recovery after an outbreak is
+  not evaluated.
+
+### What real-world validation would require
+
+- Retrospective, de-identified laboratory data with governance approval
+  (IRB, data-use agreements), covering several seasons and syndromes.
+- An external reference standard: confirmed outbreak investigations,
+  reportable-disease records or expert-adjudicated events.
+- Real population denominators and facility catchments, with day-of-week,
+  holiday and seasonal adjustment of the baselines.
+- Prospective shadow-mode operation beside an existing surveillance system,
+  measuring timeliness against it and alert burden on real analysts.
+- Workflow, usability and acceptability studies with public-health staff.
+- Parameters calibrated on data separate from the data used to evaluate
+  them.
+
+### Weaknesses found (recommendations, not redesigns)
+
+Nothing below was changed in Phase 10. Each is a recommendation for future
+work.
+
+1. **Data Confidence forgets silent facilities.** A facility that stops
+   reporting is penalised only while it is inside the 7-day window. After
+   that, confidence returns to normal. Recommendation: compare coverage
+   against the expected participating facilities, not recent reporters.
+2. **The composite's facility denominator shrinks with coverage.** With
+   fewer reporting facilities, one affected facility weighs more, so
+   detection rises as information falls. Recommendation: use expected
+   facilities as the denominator, or show coverage beside the score.
+3. **Rolling-baseline absorption.** The composite's 7-day baseline follows
+   a sustained rise, so it signals change rather than elevation, and slow or
+   local outbreaks are often missed. Recommendation: consider a lagged or
+   guarded baseline that excludes recent days.
+4. **Small-count false alerts for EWMA and CUSUM.** With a few tests a day,
+   positivity is very noisy. Recommendation: add a minimum-count guard, or
+   binomial variance weighted by test count.
+5. **Volume-only surges.** EWMA and CUSUM volume metrics alert on more
+   testing without more disease. Recommendation: interpret volume alerts
+   together with positivity, or label them "testing-volume anomaly".
+6. **Transient spikes.** A single anomalous day triggers all three
+   methods. Recommendation: add a persistence requirement (for example two
+   consecutive days) as an option, and evaluate its delay cost.
+7. **Real-time delay cost.** Late results delay detection by 1-3 days.
+   Recommendation: nowcasting, or showing recent days as provisional, as
+   already hinted by Data Confidence.
+
+### API (development only, read-only)
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/evaluation/summary` | The summary without per-scenario timelines |
+| GET | `/api/evaluation/scenarios` | Scenario list and ground truth |
+| GET | `/api/evaluation/scenarios/{id}` | One scenario with its representative timeline |
+
+- The endpoints read the committed artifacts
+  (`EVALUATION_RESULTS_DIR`, default `evaluation-results`).
+- They answer **404** outside `ENVIRONMENT=development`, or when no results
+  have been produced.
+- There is **no endpoint that runs or writes an evaluation**. Evaluations
+  run only through the command line.
+
+### UI: `/evaluation` (API capstone mode)
+
+The **Capstone Evaluation** page is in the API-mode navigation. It is
+labelled *Experimental capstone evaluation using synthetic scenarios.* and
+carries the disclaimer banner. It shows:
+
+- how the run was made, and the fixed detection definitions;
+- the overall comparison table (counts, Wilson intervals, no winner);
+- confusion matrices, with the unit labelled;
+- a scenario selector with the ground truth and data-quality conditions;
+- the three methods' detection, timing, alert burden and stability;
+- lead/lag between the methods, and the secondary events;
+- a scenario timeline: tests and positivity with the true outbreak shaded,
+  each method's first detection marked, and a daily state strip per method;
+- **Robustness to Data Quality Problems**, facility coverage, the parameter
+  and cutoff sensitivity tables, the CDC/WHO attributes and the threats to
+  validity.
+
+Local demo mode (GitHub Pages) shows a notice only and makes no request.
+
+### Manual demonstration (Windows PowerShell)
+
+Run the full stack as in
+[Full-stack development](#full-stack-development-api-capstone-mode), then:
+
+1. Open **Capstone Evaluation** in the sidebar. Read the disclaimer and the
+   label.
+2. Under *How this evaluation was run*: 100 repetitions, seed 20260930, and
+   the reproduce command.
+3. **Overall comparison:** composite 710/900 (78.9 %), EWMA and CUSUM
+   900/900. Note that no method is declared best.
+4. **Confusion matrices:** composite TP 710 / FN 190 per run. The day-level
+   unit is shown separately.
+5. Pick **S01 No outbreak (control)**: ground truth *No*; 21 / 26 / 23 runs
+   with a false alert.
+6. Pick **S13 Moderate regional outbreak**: onset 2024-04-19; composite
+   88/100, median 5; EWMA and CUSUM 100/100, median 4.
+7. Read the timeline: the shaded true outbreak, three detection markers and
+   the state strip.
+8. Read the lead/lag table: EWMA and CUSUM are usually first against the
+   composite, and usually the same day as each other.
+9. Pick **S03 Slow gradual outbreak**: composite 58/100, median 11.
+10. Pick **S05 Volume-only surge**: no outbreak, and EWMA/CUSUM false-alert
+    in 100/100 runs.
+11. Pick **S12 Small-count environment**: composite 0/100, EWMA 38/100 and
+    CUSUM 35/100 false.
+12. Pick **S10 Delayed data**: the real-time timing is next to the
+    retrospective timing.
+13. **Robustness to Data Quality Problems:** compare S09, S10 and S11 with
+    S13, and read Data Confidence.
+14. **Facility coverage:** the composite detects more often with fewer
+    facilities. This is recommendation 2 above.
+15. The **sensitivity tables** show the CUSUM k/h tradeoff. Simulation Day
+    1-5 still reads 0 / 24 / 50 / 74 / 87.
+
+### Tests
+
+- `tests/test_evaluation.py` (16, no PostgreSQL):
+  - scenarios and ground truth;
+  - reproducible, seed-dependent generation, and common random numbers;
+  - the data-quality conditions and small counts;
+  - the detectors running unchanged, and the as-of replay;
+  - the Wilson interval and confusion metrics;
+  - the outcome (delay, burden, stability), realization- and day-level
+    summaries, lead/lag and repeated-run aggregation;
+  - identical results from the same seed, and the artifacts;
+  - the read-only, development-only API.
+- `tests/integration/test_evaluation_postgres.py` (2): S13 and S10 give
+  identical results on PostgreSQL and SQLite.
+- `src/pages/__tests__/evaluationPage.test.tsx` (9), from a fixture trimmed
+  from the real artifacts:
+  - the label and disclaimer, and the pooled table with no winner;
+  - confusion-matrix units, the scenario selector, ground truth, results,
+    timeline and real-time detection;
+  - robustness, sensitivity, attributes and threats;
+  - the not-run and error states, and local mode.
+
+### Evaluation limitations
+
+- Everything is synthetic. See the threats to validity above.
+- One run of 100 repetitions per scenario. The intervals describe
+  simulation uncertainty, not real-world uncertainty.
+- The representative timeline is one run (repetition 0), not an average.
+- Parameter sensitivity is recomputed from each run's daily series. It is
+  explanatory and never persisted.
+
 ## Current limitations
 
 - FHIR ingestion is development-only: no authentication of the caller, no
@@ -2370,5 +2833,6 @@ Audit events hold aggregate figures only:
   are still computed in the browser, because they are not persisted yet.
 - The API is not deployed anywhere. API mode is for local development, and
   the public GitHub Pages site stays in local mode.
-- No statistical detection (CUSUM, EWMA) and no machine learning.
+- No machine learning. EWMA and CUSUM are experimental, and the capstone
+  evaluation uses synthetic scenarios only (see its limitations above).
 - No real public-health reporting.

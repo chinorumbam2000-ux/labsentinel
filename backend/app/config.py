@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     # Largest request body POST /api/fhir/ingest accepts, in bytes.
     fhir_max_request_bytes: int = Field(default=5_000_000, ge=1_000, le=50_000_000)
 
+    # Where `python -m app.evaluation.run` writes, and the development-only
+    # /api/evaluation endpoints read, the capstone evaluation artifacts.
+    # Relative paths are relative to backend/.
+    evaluation_results_dir: str = "evaluation-results"
+
     # Comma-separated in the environment, e.g.
     # CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
     cors_origins: Annotated[list[str], NoDecode] = Field(

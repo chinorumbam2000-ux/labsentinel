@@ -65,6 +65,7 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
     expect(await screen.findByRole('heading', { name: 'Why this dynamic signal?' })).toBeTruthy();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(within(nav).getByRole('link', { name: /Dynamic Surveillance/ })).toBeTruthy();
+    expect(within(nav).getByRole('link', { name: /Capstone Evaluation/ }).getAttribute('href')).toBe('/evaluation');
     expect(screen.queryByText('Dynamic Surveillance requires LabSentinel API Capstone Mode.')).toBeNull();
   });
 });

@@ -15,6 +15,7 @@ import ReportsPage from './pages/ReportsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import FhirIngestionPage from './pages/FhirIngestionPage';
 import DynamicSurveillancePage from './pages/DynamicSurveillancePage';
+import EvaluationPage from './pages/EvaluationPage';
 import SmartLaunchPage from './pages/smart/SmartLaunchPage';
 import SmartCallbackPage from './pages/smart/SmartCallbackPage';
 import SmartSidecarPage from './pages/smart/SmartSidecarPage';
@@ -77,6 +78,8 @@ export default function App() {
             <Route path="/fhir-ingestion" element={<FhirIngestionPage />} />
             {/* Dynamic surveillance (API mode), kept apart from the classroom demonstration. */}
             <Route path="/dynamic-surveillance" element={<DynamicSurveillancePage />} />
+            {/* Capstone evaluation results (API mode, development, read-only). */}
+            <Route path="/evaluation" element={<EvaluationPage />} />
             {/* SMART sandbox demo. Without VITE_SMART_ENABLED it shows a notice only. */}
             <Route path="/smart-demo" element={<SmartDemoPage />} />
             <Route path="/index.html" element={<Navigate to="/dashboard" replace />} />

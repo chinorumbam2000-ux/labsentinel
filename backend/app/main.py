@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api import cusum, demo, facilities, fhir, health, observations, signals, statistics, surveillance
+from app.api import cusum, demo, evaluation, facilities, fhir, health, observations, signals, statistics, surveillance
 from app.config import get_settings
 from app.core.logging import configure_logging
 
@@ -59,6 +59,9 @@ def create_app() -> FastAPI:
     # Experimental CUSUM detector and the three-method comparison: GET-only
     # reads, plus a development-only recalculation (it accepts no values).
     app.include_router(cusum.router)
+    # Capstone evaluation results: development-only reads of the artifacts
+    # written by `python -m app.evaluation.run` (no write endpoint).
+    app.include_router(evaluation.router)
     # The one write path: development-only FHIR ingestion (404 unless
     # APP_ENV=development). There are no generic POST/PUT/DELETE endpoints.
     app.include_router(fhir.router)
