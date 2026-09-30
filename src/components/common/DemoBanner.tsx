@@ -8,7 +8,7 @@ export default function DemoBanner() {
       <span aria-hidden="true">⚠</span>
       <span>
         DEMO ENVIRONMENT — Synthetic data only.
-        <span className="ml-1.5 hidden font-normal text-[#7A5D02]/80 sm:inline">
+        <span className="ml-1.5 hidden font-normal text-[#7A5D02] sm:inline">
           All hospitals, patients, laboratory observations and vendor environments are
           fictional. No live Epic, Oracle Health or MEDITECH system is connected.
         </span>

@@ -530,7 +530,7 @@ function SignalView({ signal }: { signal: DynamicSignal }) {
           title="Contributing facilities"
           subtitle="Aggregate provenance: tests and results per facility, never patient records."
           bodyClassName="p-0"
-          className="xl:col-span-3"
+          className="min-w-0 xl:col-span-3"
         >
           <DynamicProvenance signal={signal} />
         </Card>
@@ -575,7 +575,7 @@ function SignalHistory({
   onSelect: (date: string) => void;
 }) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Dynamic signal history">
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <caption className="sr-only">Every calculated dynamic signal, oldest first</caption>
         <thead>

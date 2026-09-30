@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 
 interface CardProps {
+  /** Optional anchor, e.g. for Presentation Mode's scroll-to-step. */
+  id?: string;
   title?: ReactNode;
   subtitle?: ReactNode;
   action?: ReactNode;
@@ -11,6 +13,7 @@ interface CardProps {
 
 /** The standard white rounded card used across every page. */
 export default function Card({
+  id,
   title,
   subtitle,
   action,
@@ -19,7 +22,7 @@ export default function Card({
   bodyClassName = 'p-5',
 }: CardProps) {
   return (
-    <section className={`ls-card flex flex-col ${className}`}>
+    <section id={id} className={`ls-card flex flex-col scroll-mt-4 ${className}`}>
       {title ? (
         <header className="ls-card-header">
           <div className="min-w-0">

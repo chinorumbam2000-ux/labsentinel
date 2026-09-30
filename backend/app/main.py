@@ -10,7 +10,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api import cusum, demo, evaluation, facilities, fhir, health, observations, signals, statistics, surveillance
+from app.api import (
+    cusum,
+    demo,
+    evaluation,
+    facilities,
+    fhir,
+    health,
+    observations,
+    readiness,
+    signals,
+    statistics,
+    surveillance,
+)
 from app.config import get_settings
 from app.core.logging import configure_logging
 
@@ -35,11 +47,12 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
-        # Browsers may only read — except, in development, POST for the FHIR
+        # Browsers may only read — except where the development-only endpoints
+        # are available (APP_ENV=development, or a private presentation
+        # deployment with DEMO_ENDPOINTS_ENABLED=true): POST for the FHIR
         # ingestion demonstration and the dynamic-surveillance, EWMA and CUSUM
-        # recalculations (the only POST routes, all 404 outside development).
-        # Other environments allow GET only.
-        allow_methods=["GET", "POST"] if settings.app_env == "development" else ["GET"],
+        # recalculations (the only POST routes, all 404 elsewhere).
+        allow_methods=["GET", "POST"] if settings.demo_endpoints_available else ["GET"],
         allow_headers=["Content-Type", "Authorization"],
     )
 
@@ -62,8 +75,10 @@ def create_app() -> FastAPI:
     # Capstone evaluation results: development-only reads of the artifacts
     # written by `python -m app.evaluation.run` (no write endpoint).
     app.include_router(evaluation.router)
-    # The one write path: development-only FHIR ingestion (404 unless
-    # APP_ENV=development). There are no generic POST/PUT/DELETE endpoints.
+    # Capstone presentation readiness checklist: development-only, read-only.
+    app.include_router(readiness.router)
+    # The one write path: development-only FHIR ingestion (404 unless the
+    # development-only endpoints are available). There are no generic POST/PUT/DELETE endpoints.
     app.include_router(fhir.router)
     return app
 

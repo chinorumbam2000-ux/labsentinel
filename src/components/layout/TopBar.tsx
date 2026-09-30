@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
+import type { AppMode } from '../../lib/appModes';
 import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
 import DataSourceIndicator from './DataSourceIndicator';
+import ModeChip from './ModeChip';
 
-export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
+/**
+ * The top bar. On Classroom Demo screens it carries the frozen Day 1-5
+ * controls and the demonstration's Composite score. Everywhere else it names
+ * the mode instead, so the classroom score is never read as, say, a dynamic
+ * signal.
+ */
+export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMode; onOpenNav: () => void }) {
+  const classroom = mode === 'classroom';
   const {
     currentDay,
     currentScenario,
@@ -36,51 +45,61 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         ☰
       </button>
 
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="min-w-0">
-          <p className="ls-label">Simulation Day</p>
-          <p className="truncate text-sm font-semibold text-ink">
-            Day {currentDay} of 5
-            <span className="ml-2 font-normal text-muted">{currentScenario.stage}</span>
-          </p>
-        </div>
-      </div>
+      {classroom ? (
+        <>
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="min-w-0">
+              <p className="ls-label">Simulation Day</p>
+              <p className="truncate text-sm font-semibold text-ink">
+                Day {currentDay} of 5
+                <span className="ml-2 font-normal text-muted">{currentScenario.stage}</span>
+              </p>
+            </div>
+          </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={previousDay}
-          disabled={isFirstDay}
-          className="ls-btn min-w-[34px] px-2.5 py-1.5"
-          aria-label="Previous simulation day"
-          title={isFirstDay ? 'Already at Day 1' : 'Previous day'}
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          onClick={nextDay}
-          disabled={isLastDay}
-          className="ls-btn min-w-[34px] px-2.5 py-1.5"
-          aria-label="Next simulation day"
-          title={isLastDay ? 'Already at Day 5' : 'Next day'}
-        >
-          ›
-        </button>
-        <button type="button" onClick={resetSimulation} className="ls-btn px-3 py-1.5">
-          Reset
-        </button>
-      </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={previousDay}
+              disabled={isFirstDay}
+              className="ls-btn min-w-[34px] px-2.5 py-1.5"
+              aria-label="Previous simulation day"
+              title={isFirstDay ? 'Already at Day 1' : 'Previous day'}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={nextDay}
+              disabled={isLastDay}
+              className="ls-btn min-w-[34px] px-2.5 py-1.5"
+              aria-label="Next simulation day"
+              title={isLastDay ? 'Already at Day 5' : 'Next day'}
+            >
+              ›
+            </button>
+            <button type="button" onClick={resetSimulation} className="ls-btn px-3 py-1.5">
+              Reset
+            </button>
+          </div>
+
+          <ModeChip mode="classroom" />
+        </>
+      ) : (
+        <div className="flex min-w-0 items-center">
+          <ModeChip mode={mode} withDescription />
+        </div>
+      )}
 
       <div className="ml-auto flex items-center gap-3">
         <DataSourceIndicator />
 
-        <div className="hidden text-right lg:block">
-          <p className="ls-label">Simulation date</p>
-          <p className="text-sm font-medium text-ink">
-            {formatSimulationDate(simulationDate)}
-          </p>
-        </div>
+        {classroom ? (
+          <div className="hidden text-right lg:block">
+            <p className="ls-label">Simulation date</p>
+            <p className="text-sm font-medium text-ink">{formatSimulationDate(simulationDate)}</p>
+          </div>
+        ) : null}
 
         <div className="hidden text-right md:block">
           <p className="ls-label">Session updated</p>
@@ -94,13 +113,15 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
           </button>
         </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
-          <SeverityBadge severity={signalScore.severity} />
-          <span className="text-sm font-semibold tabular-nums text-ink">
-            {signalScore.composite}
-            <span className="text-muted">/100</span>
-          </span>
-        </div>
+        {classroom ? (
+          <div className="hidden items-center gap-2 sm:flex">
+            <SeverityBadge severity={signalScore.severity} />
+            <span className="text-sm font-semibold tabular-nums text-ink">
+              {signalScore.composite}
+              <span className="text-muted">/100</span>
+            </span>
+          </div>
+        ) : null}
 
         <div className="relative">
           <button

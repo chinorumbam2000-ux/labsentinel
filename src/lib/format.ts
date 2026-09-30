@@ -45,10 +45,10 @@ export const SEVERITY_STYLES: Record<
   },
   Critical: {
     badge:
-      'bg-severity-critical/10 text-severity-critical ring-1 ring-inset ring-severity-critical/30',
+      'bg-severity-critical/10 text-[#B91C1C] ring-1 ring-inset ring-severity-critical/30',
     accent: 'bg-severity-critical',
     soft: 'bg-severity-critical/5 border-severity-critical/30',
-    text: 'text-severity-critical',
+    text: 'text-[#B91C1C]',
   },
 };
 

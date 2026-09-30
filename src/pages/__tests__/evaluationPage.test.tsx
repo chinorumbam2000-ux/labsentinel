@@ -96,6 +96,23 @@ describe('Capstone Evaluation — API Capstone Mode', () => {
     expect(cells[2]).toMatch(/^900\/900 = 100\.0%/);
   });
 
+  it('summarises the tradeoffs from the committed results, without a winner', async () => {
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Evaluation summary: tradeoffs' });
+    const card = heading.closest('section') as HTMLElement;
+    const column = (name: string) => (within(card).getByRole('heading', { name }).parentElement as HTMLElement).textContent ?? '';
+    expect(card.textContent).toContain('100 runs per scenario, seed 20260930');
+    expect(card.textContent).toContain(NO_WINNER);
+    expect(column('Composite')).toContain('Lowest false-alert burden: 0.82 false-alert days per 100 normal days.');
+    expect(column('Composite')).toContain('detected 710/900 outbreak runs (78.9%)');
+    expect(column('Composite')).toContain('slow gradual 58/100, single facility 37/100');
+    expect(column('EWMA')).toContain('detected 900/900 outbreak runs, median delay 5 days (composite 6)');
+    expect(column('EWMA')).toContain('slow gradual median 8 vs 11 days');
+    expect(column('EWMA')).toContain('7.63 false-alert days per 100 normal days; alerted in 100/100 volume-only surges');
+    expect(column('CUSUM')).toContain('Highest false-alert burden of the three here: 10.55 false-alert days per 100 normal days.');
+    for (const name of ['Composite', 'EWMA', 'CUSUM']) expect(column(name)).not.toMatch(/\bbest\b|winner/i);
+  });
+
   it('labels the unit of analysis on each confusion matrix', async () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Confusion matrices' });

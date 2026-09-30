@@ -111,23 +111,26 @@ export default function EwmaTrendChart({ history, selectedDate }: { history: Ewm
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-          <table className="sr-only">
-            <caption>{label}: observed value, EWMA, upper control limit and state per monitored day</caption>
-            <thead>
-              <tr><th scope="col">Date</th><th scope="col">Observed</th><th scope="col">EWMA</th><th scope="col">UCL</th><th scope="col">State</th></tr>
-            </thead>
-            <tbody>
-              {points.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.signal_date}</td>
-                  <td>{metricValue(metric, p.observed_value)}</td>
-                  <td>{metricValue(metric, p.ewma_value, 2)}</td>
-                  <td>{metricValue(metric, p.upper_control_limit, 2)}</td>
-                  <td>{p.alert_state ? STATE_LABEL[p.alert_state] : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* sr-only on a wrapper: a table ignores the 1px width and would stretch the scroller. */}
+          <div className="sr-only">
+            <table>
+              <caption>{label}: observed value, EWMA, upper control limit and state per monitored day</caption>
+              <thead>
+                <tr><th scope="col">Date</th><th scope="col">Observed</th><th scope="col">EWMA</th><th scope="col">UCL</th><th scope="col">State</th></tr>
+              </thead>
+              <tbody>
+                {points.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.signal_date}</td>
+                    <td>{metricValue(metric, p.observed_value)}</td>
+                    <td>{metricValue(metric, p.ewma_value, 2)}</td>
+                    <td>{metricValue(metric, p.upper_control_limit, 2)}</td>
+                    <td>{p.alert_state ? STATE_LABEL[p.alert_state] : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </div>

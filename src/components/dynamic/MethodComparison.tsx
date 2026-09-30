@@ -48,6 +48,7 @@ export default function MethodComparison({
 
   return (
     <Card
+      id="method-comparison"
       title="Three-Method Comparison"
       subtitle={`${formatSurveillanceDate(comparison.signal_date)} · Composite, EWMA and CUSUM side by side. They are never combined into one number.`}
       bodyClassName="p-0"

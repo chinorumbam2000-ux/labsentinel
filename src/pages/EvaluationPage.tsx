@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/common/Card';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
+import EvaluationSummaryCard from '../components/evaluation/EvaluationSummary';
 import EvaluationTimeline from '../components/evaluation/EvaluationTimeline';
 import {
   AttributesTable,
@@ -111,6 +112,8 @@ function EvaluationResults({ summary, client }: { summary: EvaluationSummary; cl
 
   return (
     <>
+      <EvaluationSummaryCard summary={summary} />
+
       <Card title="How this evaluation was run" subtitle="Deterministic and reproducible">
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Fact term="Repetitions per scenario" detail={String(summary.repetitions)} />
@@ -128,7 +131,7 @@ function EvaluationResults({ summary, client }: { summary: EvaluationSummary; cl
         <p className="mt-3 text-xs text-muted">
           {summary.definitions.parameters} {summary.definitions.confidence_interval} {summary.definitions.roc_auc}
         </p>
-        <p className="mt-2 text-xs text-muted">
+        <p className="mt-2 text-xs text-muted" data-dev-detail>
           Reproduce: <code className="font-mono">{summary.reproduce}</code>
         </p>
       </Card>
@@ -246,11 +249,11 @@ function ScenarioExplorer({ summary, client }: { summary: EvaluationSummary; cli
   return (
     <>
       <Card bodyClassName="flex flex-wrap items-end gap-4 p-4">
-        <div>
+        <div className="w-full min-w-0 sm:w-auto">
           <label htmlFor="evaluation-scenario" className="ls-label">
             Scenario
           </label>
-          <select id="evaluation-scenario" className="ls-select mt-1 block" value={id} onChange={(event) => setId(event.target.value)}>
+          <select id="evaluation-scenario" className="ls-select mt-1 block w-full max-w-full" value={id} onChange={(event) => setId(event.target.value)}>
             {summary.scenarios.map((s) => (
               <option key={s.id} value={s.id}>
                 {scenarioLabel(s)}
@@ -359,7 +362,7 @@ function ScenarioExplorer({ summary, client }: { summary: EvaluationSummary; cli
 
 function LeadLagTable({ leadLag }: { leadLag: Record<string, LeadLag> }) {
   return (
-    <div className="overflow-x-auto px-5 py-4">
+    <div className="overflow-x-auto px-5 py-4" tabIndex={0} role="region" aria-label="Lead / lag between methods">
       <table className="w-full min-w-[640px] border-collapse text-xs">
         <caption className="pb-2 text-left text-sm font-semibold text-ink">Lead / lag between methods (runs where both detected)</caption>
         <thead>

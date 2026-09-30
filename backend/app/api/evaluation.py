@@ -23,7 +23,7 @@ SUMMARY_FILE = "evaluation-summary.json"
 
 
 def require_development() -> None:
-    if get_settings().app_env != "development":
+    if not get_settings().demo_endpoints_available:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 

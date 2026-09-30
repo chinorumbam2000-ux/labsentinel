@@ -100,12 +100,12 @@ def summary(syndrome: str = Syndrome, db: Session = Depends(get_db)) -> DynamicS
         first_date=first,
         last_date=last,
         latest=None if latest is None else service.to_read(latest),
-        recalculation_available=get_settings().app_env == "development",
+        recalculation_available=get_settings().demo_endpoints_available,
     )
 
 
 def require_development() -> None:
-    if get_settings().app_env != "development":
+    if not get_settings().demo_endpoints_available:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 

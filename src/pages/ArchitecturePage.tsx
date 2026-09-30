@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
+import { useDataSourceContext } from '../data-access/DataSourceProvider';
 import FlowDiagram, { type FlowStep } from '../components/architecture/FlowDiagram';
 import FederatedConcept from '../components/architecture/FederatedConcept';
 import StatusBadge, { StatusLegend } from '../components/architecture/StatusBadge';
@@ -16,8 +18,68 @@ import {
   getActiveSourceTypes,
 } from '../lib/surveillanceSources';
 
-/* ---------------------------- Section 1 ---------------------------- */
+/* ------------------------------ Implemented ------------------------------ */
 
+/** The API capstone pipeline: built, tested and running in API Capstone Mode. */
+const FULL_STACK_FLOW: FlowStep[] = [
+  {
+    nodes: [
+      { label: 'Synthetic FHIR R4 Observations', detail: 'Development ingestion endpoint and the SMART sidecar bridge. Synthetic data only.', status: 'IMPLEMENTED' },
+      { label: 'SMART on FHIR sandbox', detail: 'SMART App Launch 2.2 against the public SMART Health IT sandbox: public client, PKCE, read-only scope.', status: 'IMPLEMENTED' },
+    ],
+  },
+  {
+    nodes: [
+      { label: 'FastAPI: validation and normalization', detail: 'FHIR R4B models, LOINC → syndrome, SNOMED CT → result, facility resolution, salted patient pseudonyms, duplicate detection.', status: 'IMPLEMENTED' },
+    ],
+  },
+  {
+    nodes: [
+      { label: 'PostgreSQL', detail: 'Observations, signals, statistical results and an append-only audit trail. Alembic migrations.', status: 'IMPLEMENTED' },
+    ],
+  },
+  {
+    nodes: [
+      { label: 'Dynamic Surveillance Engine', detail: 'Daily aggregation, rolling 7-day baseline, five weighted components, Data Confidence kept separate.', status: 'IMPLEMENTED' },
+    ],
+  },
+  {
+    nodes: [
+      { label: 'Composite Outbreak Signal Score', detail: 'Severity bands Low → Critical. Prototype method, not validated.', status: 'IMPLEMENTED' },
+      { label: 'EWMA detector', detail: 'λ 0.25, k 3, 28-day reference. Experimental.', status: 'IMPLEMENTED' },
+      { label: 'CUSUM detector', detail: 'k 0.5, h 5, same reference. Experimental.', status: 'IMPLEMENTED' },
+    ],
+  },
+  {
+    nodes: [
+      { label: 'React: three-method comparison', detail: 'Side by side with an agreement count; never combined into one score.', status: 'IMPLEMENTED' },
+      { label: 'Capstone Evaluation framework', detail: '15 synthetic scenarios × 100 seeded runs, known ground truth, Wilson intervals.', status: 'IMPLEMENTED' },
+    ],
+  },
+];
+
+const IMPLEMENTED = [
+  ['React frontend', 'TypeScript, Vite, Recharts, Leaflet; Local Demo and API Capstone modes.'],
+  ['FastAPI backend', 'Typed read API, development-only write paths, environment gating.'],
+  ['PostgreSQL', 'Alembic-migrated schema; seeded frozen demonstration and dynamic dataset.'],
+  ['FHIR ingestion', 'FHIR R4 Observations and Bundles, normalized and pseudonymised.'],
+  ['Dynamic surveillance', 'Signals recalculated from stored observations.'],
+  ['EWMA', 'Experimental statistical detector on test volume and positivity.'],
+  ['CUSUM', 'Experimental detector, compared with Composite and EWMA.'],
+  ['SMART sandbox', 'Standards-based launch and sidecar against a public synthetic sandbox.'],
+  ['Evaluation framework', 'Reproducible synthetic evaluation with documented threats to validity.'],
+] as const;
+
+/* ------------------------------- Prototype -------------------------------- */
+
+const PROTOTYPE = [
+  ['Vendor sidecars', 'One sidecar inside simulated Epic, Oracle Health and MEDITECH environments. No live vendor connection.'],
+  ['Simulated reporting', 'A public-health reporting workflow with an audit timeline; nothing is sent anywhere.'],
+  ['Classroom demo', 'The frozen Day 1–5 outbreak story (0 / 24 / 50 / 74 / 87), identical in both modes.'],
+  ['Data Confidence model', 'Freshness, completeness, terminology, participation and integrity, kept separate from severity.'],
+] as const;
+
+/** The classroom demonstration pipeline: runs in the browser on the frozen dataset. */
 const CURRENT_FLOW: FlowStep[] = [
   {
     nodes: [
@@ -85,27 +147,59 @@ const CURRENT_FLOW: FlowStep[] = [
   },
 ];
 
-/* ---------------------------- Section 2 ---------------------------- */
+/* ---------------------------- Planned / Future ---------------------------- */
 
-const PLANNED_FLOW: FlowStep[] = [
-  { nodes: [{ label: 'Real FHIR endpoints', detail: 'SMART on FHIR / bulk-FHIR per participating organization, with OAuth 2.0 client credentials.', status: 'PLANNED' }] },
-  { nodes: [{ label: 'Backend API', detail: 'Authenticated service boundary. None exists today — this prototype has no backend.', status: 'PLANNED' }] },
-  { nodes: [{ label: 'Persistent Database', detail: 'Durable storage for observations, aggregates and review state, replacing browser session storage.', status: 'PLANNED' }] },
-  { nodes: [{ label: 'Event Processing', detail: 'Streaming ingestion so signals update continuously rather than on a five-step timer.', status: 'PLANNED' }] },
-  { nodes: [{ label: 'Normalization Layer', detail: 'Hosted terminology service for LOINC, SNOMED CT and UCUM with version pinning and a mapping-review workflow.', status: 'PLANNED' }] },
-  { nodes: [{ label: 'Surveillance Signal Engine', detail: 'Established aberration detection — EARS, Farrington-style regression, CUSUM/EWMA, space-time scan — replacing the fixed-weight score.', status: 'PLANNED' }] },
-  { nodes: [{ label: 'Geospatial Intelligence', detail: 'Real boundary data, cluster detection and a documented disclosure-review process.', status: 'PLANNED' }] },
-  {
-    nodes: [
-      { label: 'Public Health Portal', detail: 'Multi-tenant, role-scoped, audited.', status: 'PLANNED' },
-      { label: 'SMART on FHIR Clinical Sidecar', detail: 'Registered app launched in EHR context, plus CDS Hooks.', status: 'PLANNED' },
-      { label: 'Reporting Interfaces', detail: 'Genuine eCR / ELR pipelines and jurisdiction onboarding.', status: 'PLANNED' },
-    ],
-  },
+const PLANNED: { label: string; detail: string; status: 'PLANNED' | 'FUTURE' }[] = [
+  { label: 'Production vendor registration', detail: 'Registered SMART / bulk-FHIR clients per participating organization, with vendor review.', status: 'PLANNED' },
+  { label: 'Production authentication', detail: 'Identity provider, role-based access control, per-jurisdiction authorization, audited access.', status: 'PLANNED' },
+  { label: 'Real public-health reporting', detail: 'Genuine eCR / ELR pipelines and jurisdiction onboarding.', status: 'PLANNED' },
+  { label: 'Epidemiological validation', detail: 'Retrospective real data with an external reference standard, then prospective shadow operation.', status: 'PLANNED' },
+  { label: 'Multi-source surveillance', detail: 'Emergency department, hospitalization, wastewater and pharmacy streams beside laboratory results.', status: 'FUTURE' },
+  { label: 'Federated architecture', detail: 'Local computation at each facility; only aggregates shared regionally.', status: 'FUTURE' },
 ];
+
+/* ------------------------------- Future work ------------------------------- */
+
+const EVALUATION_FINDINGS = [
+  ['Data Confidence should remember silent facilities', 'A facility that stops reporting is penalised only while inside the 7-day window.'],
+  ['Composite facility denominator', 'With fewer reporting facilities, one affected facility weighs more: detection rises as information falls.'],
+  ['Rolling baseline absorbs sustained increases', 'The 7-day baseline follows a slow rise, so gradual and local outbreaks are often missed.'],
+  ['EWMA / CUSUM small-count behavior', 'With a few tests a day, positivity is noisy: about a third of small-count runs false-alerted.'],
+  ['Volume-only surge false alerts', 'More testing without more disease alerts the volume metrics of EWMA and CUSUM.'],
+  ['One-day spike false alerts', 'A single anomalous day triggers all three methods.'],
+  ['Delayed reporting effects', 'Late results delayed real-time detection by about 1–3 days.'],
+] as const;
+
+const BEYOND = [
+  'Real epidemiological validation',
+  'Multi-syndrome support',
+  'Seasonality and day-of-week adjustment',
+  'Population denominators',
+  'Production authentication and RBAC',
+  'Production vendor registration',
+  'Production public-health reporting',
+  'Real-world workflow and acceptability evaluation',
+] as const;
+
+function ItemGrid({ items, status }: { items: readonly (readonly [string, string])[]; status: 'IMPLEMENTED' | 'PROTOTYPE' }) {
+  return (
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {items.map(([label, detail]) => (
+        <li key={label} className="rounded-xl border border-hairline bg-white p-3 shadow-card">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="text-sm font-semibold text-ink">{label}</p>
+            <StatusBadge status={status} />
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-muted">{detail}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function ArchitecturePage() {
   const activeSources = getActiveSourceTypes();
+  const { source } = useDataSourceContext();
 
   return (
     <div className="space-y-5">
@@ -115,8 +209,8 @@ export default function ArchitecturePage() {
             LabSentinel Architecture
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            What exists today, what is scoped next, and what remains a longer-term
-            direction — kept visually separate so the three are never confused.
+            What is implemented, what is a prototype, and what is planned or a longer-term
+            direction — kept visually separate so they are never confused.
           </p>
         </div>
         <PageMeta />
@@ -126,22 +220,44 @@ export default function ArchitecturePage() {
         <StatusLegend />
         <p className="mt-4 text-xs leading-relaxed text-muted">
           Solid cards are built. Dashed, muted cards are not — they describe intent, not
-          capability. Nothing marked PLANNED or FUTURE exists in this prototype in any
-          form.
+          capability. Nothing marked PLANNED or FUTURE exists in LabSentinel in any form.
+          IMPLEMENTED means built and tested; the data are still synthetic and the
+          surveillance methods are prototypes, not validated.
         </p>
       </Card>
 
-      {/* ============ SECTION 1 ============ */}
+      {/* ============ IMPLEMENTED ============ */}
       <Card
-        title="Section 1 — Current prototype"
-        subtitle="The pipeline that actually runs when you use this application"
+        title="Implemented"
+        subtitle="The full-stack capstone: React + FastAPI + PostgreSQL"
         action={<StatusBadge status="IMPLEMENTED" />}
       >
-        <FlowDiagram steps={CURRENT_FLOW} tone="current" />
+        <ItemGrid items={IMPLEMENTED} status="IMPLEMENTED" />
+        <h3 className="mt-5 text-sm font-semibold text-ink">The API capstone pipeline</h3>
+        <FlowDiagram steps={FULL_STACK_FLOW} tone="current" className="mt-3" />
+        {source.mode === 'local' ? (
+          <p className="mt-4 rounded-lg bg-canvas p-3 text-xs leading-relaxed text-muted">
+            This build runs in Local Demo Mode: only the classroom demonstration below runs, in your
+            browser. The backend, FHIR ingestion, dynamic surveillance, EWMA, CUSUM, SMART and the
+            evaluation run in API Capstone Mode (see the repository README).
+          </p>
+        ) : null}
+      </Card>
+
+      {/* ============ PROTOTYPE ============ */}
+      <Card
+        title="Prototype"
+        subtitle="Built, but simulated or simplified by design"
+        action={<StatusBadge status="PROTOTYPE" />}
+      >
+        <ItemGrid items={PROTOTYPE} status="PROTOTYPE" />
+        <h3 className="mt-5 text-sm font-semibold text-ink">The classroom demonstration pipeline</h3>
+        <FlowDiagram steps={CURRENT_FLOW} tone="current" className="mt-3" />
         <p className="mt-4 rounded-lg bg-canvas p-3 text-xs leading-relaxed text-muted">
-          Everything above runs entirely in your browser against deterministic synthetic
-          data. There is no backend, no database, no authentication and no live
-          connection to any hospital, laboratory, EHR vendor or public-health authority.
+          The classroom demonstration runs on a frozen, deterministic synthetic dataset — in the
+          browser in Local Demo Mode, or read from PostgreSQL in API Capstone Mode, with identical
+          values. It has no live connection to any hospital, laboratory, EHR vendor or
+          public-health authority.
         </p>
       </Card>
 
@@ -263,50 +379,64 @@ export default function ArchitecturePage() {
         </p>
       </Card>
 
-      {/* ============ SECTION 2 ============ */}
+      {/* ============ PLANNED / FUTURE ============ */}
       <Card
-        title="Section 2 — Next capstone development stage"
-        subtitle="Scoped, not built. None of the following exists in this prototype."
+        title="Planned and future"
+        subtitle="Scoped or envisioned, not built. None of the following exists in LabSentinel."
         action={<StatusBadge status="PLANNED" />}
       >
-        <FlowDiagram steps={PLANNED_FLOW} tone="planned" />
-      </Card>
-
-      {/* ============ SECTION 3 ============ */}
-      <Card
-        title="Section 3 — Future architecture"
-        subtitle="Longer-term directions beyond the next development stage"
-        action={<StatusBadge status="FUTURE" />}
-      >
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-          {[
-            {
-              label: 'Federated surveillance',
-              detail:
-                'Local computation at each facility, with only aggregates shared regionally. Detailed below.',
-            },
-            {
-              label: 'Multi-source surveillance',
-              detail:
-                'Emergency department, hospitalization, wastewater and pharmacy streams alongside laboratory results.',
-            },
-            {
-              label: 'Regional and national integration',
-              detail:
-                'Interoperation with jurisdictional surveillance systems, with governance and data-use agreements per participating organization.',
-            },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="rounded-xl border border-dashed border-muted/30 p-4"
-            >
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {PLANNED.map((item) => (
+            <li key={item.label} className="rounded-xl border border-dashed border-muted/40 bg-canvas p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-muted">{item.label}</p>
-                <StatusBadge status="FUTURE" />
+                <StatusBadge status={item.status} />
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-muted">{item.detail}</p>
-            </div>
+            </li>
           ))}
+        </ul>
+      </Card>
+
+      {/* ============ FUTURE WORK ============ */}
+      <Card
+        id="future-work"
+        title="Future work"
+        subtitle="Documented as recommendations. Nothing below was changed in the evaluated system."
+        action={<StatusBadge status="PLANNED" />}
+      >
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Found by the Phase 10 evaluation</h3>
+            <ul className="mt-2 space-y-2">
+              {EVALUATION_FINDINGS.map(([label, detail]) => (
+                <li key={label} className="rounded-lg border border-dashed border-muted/40 p-3">
+                  <p className="text-sm font-medium text-ink">{label}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted">{detail}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Beyond the prototype</h3>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-ink">
+              {BEYOND.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs leading-relaxed text-muted">
+              The Composite, EWMA and CUSUM formulas and parameters, and the Phase 10 evaluation,
+              are frozen for the capstone: weaknesses are recorded here rather than tuned away.
+            </p>
+            <p className="mt-3 flex flex-wrap gap-2">
+              <Link to="/evaluation" className="ls-btn">
+                See the evaluation
+              </Link>
+              <Link to="/overview" className="ls-btn">
+                Capstone overview
+              </Link>
+            </p>
+          </div>
         </div>
       </Card>
 
@@ -317,10 +447,11 @@ export default function ArchitecturePage() {
           Nothing on this page marked PLANNED or FUTURE is implemented.
         </p>
         <p className="mt-2 text-xs leading-relaxed text-muted">
-          LabSentinel is a prototype using synthetic data. It is not connected to any real
-          hospital, patient record, laboratory, EHR vendor or public-health authority, and
-          the Composite Outbreak Signal Score is an illustrative, non-validated
-          demonstration model.
+          LabSentinel is a capstone prototype using synthetic data. It is not connected to any real
+          hospital, patient record, laboratory, EHR vendor or public-health authority; the SMART
+          connection uses a public sandbox. The Composite Outbreak Signal Score, EWMA and CUSUM are
+          prototype surveillance methods, and the Phase 10 evaluation demonstrates technical
+          behavior on synthetic scenarios, not clinical or epidemiological validation.
         </p>
       </div>
     </div>

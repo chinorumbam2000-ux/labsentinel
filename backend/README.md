@@ -253,7 +253,9 @@ cp .env.example .env        # PowerShell: Copy-Item .env.example .env
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `APP_ENV` | `development` | `development`, `test` or `production` |
+| `APP_ENV` | `development` | `development`, `test`, `presentation` or `production` (see [Environments](#environments-and-development-only-endpoints)) |
+| `DEMO_ENDPOINTS_ENABLED` | `false` | With `APP_ENV=presentation` only: serve the development-only endpoints in a private presentation deployment. Rejected with `production` |
+| `EVALUATION_RESULTS_DIR` | `evaluation-results` | Where the evaluation artifacts are read from (relative to `backend/`) |
 | `API_HOST` | `127.0.0.1` | Host the API binds to |
 | `API_PORT` | `8000` | Port the API binds to |
 | `DATABASE_URL` | `postgresql+psycopg://labsentinel:labsentinel@127.0.0.1:5432/labsentinel` | Must use the `postgresql+psycopg://` driver |
@@ -2793,6 +2795,143 @@ Run the full stack as in
 - Parameter sensitivity is recomputed from each run's daily series. It is
   explanatory and never persisted.
 
+## Capstone presentation tooling and deployment (Phase 11)
+
+Final capstone polish. **No detector, formula, parameter, evaluation scenario
+or evaluation result changed**, and the frozen Day 1-5 demonstration is
+untouched (0 / 24 / 50 / 74 / 87). Synthetic data only.
+
+### Environments and development-only endpoints
+
+The development-only endpoints are the FHIR ingestion demonstration
+(`/api/fhir/*`), the dynamic / EWMA / CUSUM recalculations, the evaluation
+reads (`/api/evaluation/*`) and the readiness checklist (`/api/readiness`).
+One setting decides whether they exist (`Settings.demo_endpoints_available`):
+
+| `APP_ENV` | Development-only endpoints | CORS methods |
+|---|---|---|
+| `development` | available | GET, POST |
+| `test` | 404 | GET |
+| `presentation` | 404, unless `DEMO_ENDPOINTS_ENABLED=true` (private presentation deployment) | GET (+ POST when enabled) |
+| `production` | always 404; `DEMO_ENDPOINTS_ENABLED=true` is rejected at startup | GET |
+
+A presentation deployment with the endpoints enabled must also set its own
+`FHIR_PSEUDONYM_SALT` (the development default is rejected at startup). The
+endpoints have no authentication: keep such a deployment private and turn the
+flag off afterwards. Templates for each environment are in
+[`../deploy/env/`](../deploy/env/); the deployment plan is
+[docs/deployment.md](../docs/deployment.md).
+
+### Commands
+
+```powershell
+# from backend\
+.\.venv\Scripts\python -m app.demo.readiness          # read-only checklist, exit 1 if NOT READY
+.\.venv\Scripts\python -m app.demo.reset              # dry run: what a reset would change
+.\.venv\Scripts\python -m app.demo.reset --yes        # clean presentation state, one transaction
+.\.venv\Scripts\python -m app.demo.prepare            # verify, reset, verify again → READY / NOT READY
+.\.venv\Scripts\python -m app.demo.prepare --check    # verify only
+.\.venv\Scripts\python -m app.demo.evaluation_summary # regenerate docs/evaluation-summary.md (--check to verify)
+```
+
+**Reset** (`python -m app.demo.reset --yes`) returns the development data to
+the clean presentation state:
+
+- removes the FHIR observations left by earlier live demonstrations (every
+  `fhir:` row outside the dynamic dataset, including SMART-bridge rows);
+- removes and re-ingests the synthetic dynamic dataset through the real FHIR
+  pipeline (2,589 observations);
+- clears and recalculates the dynamic, EWMA and CUSUM results with the
+  unchanged engines and defaults.
+
+The result is the documented clean story (Jan 15 25 Watch, Jan 16 54
+Moderate, Jan 17 80 High, Jan 18 85 Critical, Jan 19-20 90 Critical).
+
+It never touches the frozen demonstration, facilities (including the
+optional SMART-SANDBOX facility), migrations or the evaluation artifacts. The
+audit trail stays append-only; the reset adds one `demo.reset` event.
+Investigation and reporting state live in the browser session: use the app's
+Reset button or a new browser session.
+
+Safeguards:
+
+- It refuses `APP_ENV=test` or `production`.
+- It refuses a database that is not at the migration head, whose frozen
+  demonstration differs from the committed fixture, or whose participating
+  facilities are missing.
+- It deletes only `fhir:` rows.
+- It runs in one transaction and rolls everything back if the frozen
+  demonstration changed.
+- Without `--yes` it is a dry run.
+- It prints only the database name, never the host, user or password.
+
+It is a command only: there is no HTTP endpoint for it.
+
+**Prepare** (`python -m app.demo.prepare`) runs these steps:
+
+1. database connection;
+2. migrations at head;
+3. frozen seed intact;
+4. clear presentation leftovers;
+5. restore the dynamic dataset and the three detectors;
+6. FHIR fixtures;
+7. evaluation artifacts;
+8. health endpoints;
+9. **READY / NOT READY**.
+
+Serious problems (steps 1-3, changed evaluation artifacts) are reported and
+never silently repaired. It refuses `test` and `production` unless `--check`.
+
+### Readiness checklist
+
+`python -m app.demo.readiness`, `GET /api/readiness` (development-only) and
+the **Presentation readiness** panel on `/overview` share one checklist:
+
+| Check | PASS when |
+|---|---|
+| Environment | `APP_ENV` is development or presentation |
+| Database health | `SELECT 1` succeeds |
+| Migration version | the database is at the Alembic head |
+| Frozen Day 1-5 demonstration | field-for-field parity with the committed fixture; scores 0 / 24 / 50 / 74 / 87 |
+| Participating facilities | HOSP-A, HOSP-B, HOSP-C |
+| FHIR ingestion | all 10 synthetic fixtures accepted or rejected as documented, in a rolled-back dry run |
+| Dynamic surveillance engine | the full dynamic dataset and dynamic signals are present (WARN if live-demo rows are left over) |
+| EWMA / CUSUM detectors | stored results exist |
+| Evaluation artifacts | present, 15 scenarios × 100 runs, seed 20260930, SHA-256 identical to the committed Phase 10 files (line endings normalized) |
+| SMART sandbox bridge | the SMART-SANDBOX facility exists (WARN otherwise: the sidecar still works, its ingestion bridge rejects rows) |
+
+Each check is PASS, WARN or FAIL. The response holds no connection string,
+host, password, salt or token.
+
+### Container image
+
+`backend/Dockerfile` builds a Python 3.13 slim image that runs as a non-root
+user. Configuration comes only from environment variables, and `.env` is never
+copied in. Migrations and seeding are explicit release steps:
+
+```bash
+docker build -t labsentinel-api backend/
+docker run --rm --env-file <env> labsentinel-api alembic upgrade head
+docker run --rm --env-file <env> labsentinel-api python -m app.seed
+docker run --rm -p 8000:8000 --env-file <env> labsentinel-api
+```
+
+### Tests
+
+`tests/test_demo_tooling.py` (13), re-run on PostgreSQL by
+`tests/integration/test_demo_tooling_postgres.py`, covers:
+
+- environment gating and the unsafe-configuration guards;
+- the readiness checklist, its FHIR dry run leaving nothing behind, and
+  leftover and problem detection;
+- no secrets in the output;
+- evaluation drift detection, with CRLF tolerated;
+- the reset (clean state, frozen demonstration unchanged, documented Jan
+  15-20 scores, audit event);
+- the reset's refusals;
+- the development-only readiness endpoint;
+- the generated evaluation summary.
+
 ## Current limitations
 
 - FHIR ingestion is development-only: no authentication of the caller, no
@@ -2831,8 +2970,9 @@ Run the full stack as in
 - The frontend calls this API only in API mode (`VITE_DATA_SOURCE=api`).
   Per-facility and per-area daily breakdowns, alert detection and feed health
   are still computed in the browser, because they are not persisted yet.
-- The API is not deployed anywhere. API mode is for local development, and
-  the public GitHub Pages site stays in local mode.
+- The API is not deployed anywhere yet. A deployment plan, environment
+  templates and a container image are ready (docs/deployment.md); the public
+  GitHub Pages site stays in local mode.
 - No machine learning. EWMA and CUSUM are experimental, and the capstone
   evaluation uses synthetic scenarios only (see its limitations above).
 - No real public-health reporting.

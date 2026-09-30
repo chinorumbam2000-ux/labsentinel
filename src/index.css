@@ -203,3 +203,22 @@
 .ls-map-tooltip::before {
   display: none;
 }
+
+/* ------------------------------------------------------------------ *
+ * Presentation Mode (?presentation=true; src/lib/presentation.ts)
+ *
+ * The real application, slightly larger for a projector, with developer
+ * details hidden and room left for the step bar at the bottom. Behaviour is
+ * unchanged: only presentation.
+ * ------------------------------------------------------------------ */
+html.ls-presentation {
+  font-size: 17px;
+}
+
+html.ls-presentation [data-dev-detail] {
+  display: none !important;
+}
+
+html.ls-presentation #ls-main > div {
+  padding-bottom: 9rem;
+}

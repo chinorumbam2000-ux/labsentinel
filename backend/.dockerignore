@@ -1,0 +1,13 @@
+# Keep secrets, local state and tooling out of the image.
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tests/
+*.db
+*.log
+Dockerfile
+.dockerignore

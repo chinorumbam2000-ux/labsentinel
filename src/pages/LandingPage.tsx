@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import BrandMark from '../components/common/BrandMark';
 
 /**
- * Deliberately minimal opening screen: brand mark, title, subtitle, one button.
+ * Deliberately minimal opening screen: brand mark, title, subtitle, one button
+ * (and a quiet link to the capstone overview).
  *
  * The demonstration disclosures (synthetic data, simulated vendors, the
  * non-validated score) all live inside the app, on the persistent banner and on
@@ -36,6 +37,13 @@ export default function LandingPage() {
         className="mt-10 inline-flex items-center justify-center rounded-lg bg-brand px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar sm:text-lg"
       >
         Enter Demo →
+      </Link>
+
+      <Link
+        to="/overview"
+        className="mt-5 text-sm font-medium text-white/80 underline-offset-4 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+      >
+        Capstone overview
       </Link>
     </main>
   );

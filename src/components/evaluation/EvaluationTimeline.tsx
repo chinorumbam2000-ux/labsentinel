@@ -163,37 +163,40 @@ export default function EvaluationTimeline({ scenario }: { scenario: ScenarioSum
         </p>
       ) : null}
 
-      <table className="sr-only">
-        <caption>{scenario.name}: daily values and detector states for one representative run</caption>
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Truth</th>
-            <th scope="col">Tests</th>
-            <th scope="col">Positivity</th>
-            <th scope="col">Composite</th>
-            <th scope="col">EWMA</th>
-            <th scope="col">CUSUM</th>
-          </tr>
-        </thead>
-        <tbody>
-          {days.map((d) => (
-            <tr key={d.date}>
-              <td>{d.date}</td>
-              <td>{d.truth}</td>
-              <td>{d.volume}</td>
-              <td>{value(d.positivity, 2)}</td>
-              {DETECTORS.map((det) => (
-                <td key={det}>
-                  {cellState(d, det)}
-                  {alertOn(d, det) ? ' (detection)' : ''}
-                  {detections[det] === d.date ? ' — first detection' : ''}
-                </td>
-              ))}
+      {/* sr-only on a wrapper: a table ignores the 1px width and would stretch the scroller. */}
+      <div className="sr-only">
+        <table>
+          <caption>{scenario.name}: daily values and detector states for one representative run</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Truth</th>
+              <th scope="col">Tests</th>
+              <th scope="col">Positivity</th>
+              <th scope="col">Composite</th>
+              <th scope="col">EWMA</th>
+              <th scope="col">CUSUM</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {days.map((d) => (
+              <tr key={d.date}>
+                <td>{d.date}</td>
+                <td>{d.truth}</td>
+                <td>{d.volume}</td>
+                <td>{value(d.positivity, 2)}</td>
+                {DETECTORS.map((det) => (
+                  <td key={det}>
+                    {cellState(d, det)}
+                    {alertOn(d, det) ? ' (detection)' : ''}
+                    {detections[det] === d.date ? ' — first detection' : ''}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

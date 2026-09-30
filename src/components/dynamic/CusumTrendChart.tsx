@@ -102,23 +102,26 @@ export default function CusumTrendChart({
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-          <table className="sr-only">
-            <caption>{label}: cumulative sum and decision limit per monitored day</caption>
-            <thead>
-              <tr><th scope="col">Date</th><th scope="col">Standardized deviation</th><th scope="col">CUSUM</th><th scope="col">Decision limit</th><th scope="col">State</th></tr>
-            </thead>
-            <tbody>
-              {points.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.signal_date}</td>
-                  <td>{sum(p.z_score)}</td>
-                  <td>{sum(p.cusum_value)}</td>
-                  <td>{sum(p.h, 1)}</td>
-                  <td>{p.alert_state ? CUSUM_STATE_LABEL[p.alert_state] : '—'}{p.approaching_limit ? ' (approaching)' : ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* sr-only on a wrapper: a table ignores the 1px width and would stretch the scroller. */}
+          <div className="sr-only">
+            <table>
+              <caption>{label}: cumulative sum and decision limit per monitored day</caption>
+              <thead>
+                <tr><th scope="col">Date</th><th scope="col">Standardized deviation</th><th scope="col">CUSUM</th><th scope="col">Decision limit</th><th scope="col">State</th></tr>
+              </thead>
+              <tbody>
+                {points.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.signal_date}</td>
+                    <td>{sum(p.z_score)}</td>
+                    <td>{sum(p.cusum_value)}</td>
+                    <td>{sum(p.h, 1)}</td>
+                    <td>{p.alert_state ? CUSUM_STATE_LABEL[p.alert_state] : '—'}{p.approaching_limit ? ' (approaching)' : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </div>

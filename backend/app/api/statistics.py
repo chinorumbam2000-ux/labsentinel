@@ -66,7 +66,7 @@ def summary(syndrome: str = Syndrome, db: Session = Depends(get_db)) -> EwmaSumm
         result_count=len(stored),
         detection=service.detection_analysis(run, service.dynamic_signals(db, syndrome)) if run else None,
         agreement_rule=service.AGREEMENT_RULE,
-        recalculation_available=get_settings().app_env == "development",
+        recalculation_available=get_settings().demo_endpoints_available,
     )
 
 
@@ -99,7 +99,7 @@ def history(
 
 
 def require_development() -> None:
-    if get_settings().app_env != "development":
+    if not get_settings().demo_endpoints_available:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 

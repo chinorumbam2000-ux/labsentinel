@@ -3,8 +3,10 @@ POST /api/fhir/ingest — CAPSTONE DEVELOPMENT INGESTION ENDPOINT.
 
 This endpoint is a capstone development ingestion endpoint and is not
 production-secured: no SMART on FHIR authorization, no authentication, no
-rate limiting. It exists only while APP_ENV=development and answers 404 in
-any other environment. Data must be synthetic.
+rate limiting. It exists only where the development-only endpoints are
+available (APP_ENV=development, or a private presentation deployment with
+DEMO_ENDPOINTS_ENABLED=true) and answers 404 anywhere else. Data must be
+synthetic.
 """
 
 import logging
@@ -29,7 +31,7 @@ ACCEPTED_CONTENT_TYPES = ("application/fhir+json", "application/json")
 
 def require_development() -> None:
     """The ingestion endpoint does not exist outside development."""
-    if get_settings().app_env != "development":
+    if not get_settings().demo_endpoints_available:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 

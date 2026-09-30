@@ -20,7 +20,7 @@ export default function DynamicProvenance({ signal }: { signal: DynamicSignal })
   }
   return (
     <>
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Facilities behind this signal">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <caption className="sr-only">Facilities and aggregate result counts behind this signal</caption>
           <thead>

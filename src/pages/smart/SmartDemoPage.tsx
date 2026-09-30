@@ -135,7 +135,7 @@ function Comparison() {
   ];
   return (
     <Card title="Simulated vendor sidecar vs live SMART sandbox session" bodyClassName="p-0">
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Simulated, sandbox and production integrations compared">
         <table className="w-full min-w-[640px] border-collapse">
           <caption className="sr-only">Comparison of simulated, sandbox and production integrations</caption>
           <thead className="border-b border-hairline bg-canvas">

@@ -68,7 +68,8 @@ def _isolated_settings(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     Keep a developer's backend/.env and shell environment out of the tests, and
     drop cached settings/engines so each test sees its own configuration.
     """
-    for name in ("APP_ENV", "API_HOST", "API_PORT", "DATABASE_URL", "CORS_ORIGINS"):
+    for name in ("APP_ENV", "API_HOST", "API_PORT", "DATABASE_URL", "CORS_ORIGINS", "DEMO_ENDPOINTS_ENABLED",
+                 "FHIR_PSEUDONYM_SALT", "EVALUATION_RESULTS_DIR"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setitem(Settings.model_config, "env_file", None)
 

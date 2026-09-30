@@ -10,7 +10,7 @@ docker-compose service also use.
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # The Vite dev server (5173) and `vite preview` (4173), under both spellings of
@@ -24,6 +24,9 @@ DEFAULT_DEV_ORIGINS = [
 ]
 
 
+DEVELOPMENT_SALT = "labsentinel-development-only-salt"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -31,7 +34,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_env: Literal["development", "test", "production"] = "development"
+    # development   local work: every development-only endpoint is available
+    # test          automated tests: development-only endpoints answer 404
+    # presentation  a private capstone presentation deployment: development-only
+    #               endpoints answer 404 unless DEMO_ENDPOINTS_ENABLED=true
+    # production    production-like: development-only endpoints always answer 404
+    app_env: Literal["development", "test", "presentation", "production"] = "development"
+    # Opt-in for a PRIVATE presentation deployment only (APP_ENV=presentation):
+    # enables the FHIR ingestion demo, the recalculations, the evaluation reads
+    # and the readiness checklist. Rejected with APP_ENV=production.
+    demo_endpoints_enabled: bool = False
     api_host: str = "127.0.0.1"
     api_port: int = 8000
 
@@ -46,7 +58,7 @@ class Settings(BaseSettings):
 
     # FHIR ingestion (development only). Patient references are replaced by a
     # salted one-way pseudonym before storage; change the salt per deployment.
-    fhir_pseudonym_salt: SecretStr = SecretStr("labsentinel-development-only-salt")
+    fhir_pseudonym_salt: SecretStr = SecretStr(DEVELOPMENT_SALT)
     # Largest request body POST /api/fhir/ingest accepts, in bytes.
     fhir_max_request_bytes: int = Field(default=5_000_000, ge=1_000, le=50_000_000)
 
@@ -76,6 +88,33 @@ class Settings(BaseSettings):
                 "Wildcard CORS is not permitted; list each allowed origin explicitly."
             )
         return origins
+
+    @model_validator(mode="after")
+    def _guard_demo_endpoints(self) -> "Settings":
+        if self.demo_endpoints_enabled and self.app_env == "production":
+            raise ValueError("DEMO_ENDPOINTS_ENABLED=true is not permitted with APP_ENV=production.")
+        if (
+            self.app_env == "presentation"
+            and self.demo_endpoints_enabled
+            and self.fhir_pseudonym_salt.get_secret_value() == DEVELOPMENT_SALT
+        ):
+            raise ValueError(
+                "A presentation deployment with demo endpoints needs its own FHIR_PSEUDONYM_SALT, "
+                "not the development default."
+            )
+        return self
+
+    @property
+    def demo_endpoints_available(self) -> bool:
+        """
+        Whether the development-only endpoints (FHIR ingestion, recalculations,
+        evaluation reads, readiness) are served: always in development, in a
+        private presentation deployment only when explicitly enabled, never in
+        test or production.
+        """
+        return self.app_env == "development" or (
+            self.app_env == "presentation" and self.demo_endpoints_enabled
+        )
 
     @field_validator("database_url")
     @classmethod

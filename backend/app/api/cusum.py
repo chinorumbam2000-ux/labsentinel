@@ -75,7 +75,7 @@ def summary(syndrome: str = Syndrome, db: Session = Depends(get_db)) -> CusumSum
         detection=detection,
         signal_rule=cusum_service.SIGNAL_RULE,
         detector_set=DETECTOR_SET,
-        recalculation_available=get_settings().app_env == "development",
+        recalculation_available=get_settings().demo_endpoints_available,
     )
 
 
@@ -119,7 +119,7 @@ def comparison(
 
 
 def require_development() -> None:
-    if get_settings().app_env != "development":
+    if not get_settings().demo_endpoints_available:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 

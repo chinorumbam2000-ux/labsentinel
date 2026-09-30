@@ -18,7 +18,7 @@ const TD = 'px-3 py-2 align-top tabular-nums';
 
 function Table({ caption, head, children, minWidth = 720 }: { caption: string; head: string[]; children: ReactNode; minWidth?: number }) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label={caption}>
       <table className="w-full border-collapse text-sm" style={{ minWidth }}>
         <caption className="sr-only">{caption}</caption>
         <thead>

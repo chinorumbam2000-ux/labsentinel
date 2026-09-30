@@ -405,7 +405,7 @@ export default function LaboratoryDataPage() {
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                             observation.result === 'Positive'
-                              ? 'bg-severity-critical/10 text-severity-critical ring-1 ring-inset ring-severity-critical/25'
+                              ? 'bg-severity-critical/10 text-[#B91C1C] ring-1 ring-inset ring-severity-critical/25'
                               : 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/20'
                           }`}
                         >
