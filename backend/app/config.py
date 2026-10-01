@@ -116,6 +116,20 @@ class Settings(BaseSettings):
             self.app_env == "presentation" and self.demo_endpoints_enabled
         )
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _use_psycopg3_driver(cls, value: object) -> object:
+        # Managed PostgreSQL providers (Render's fromDatabase connectionString,
+        # for example) hand out the driver-less "postgresql://" or legacy
+        # "postgres://" form. Both mean the same database; pin them to the
+        # psycopg 3 driver. Any other explicit driver is still rejected below.
+        raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+        if isinstance(raw, str):
+            for scheme in ("postgresql://", "postgres://"):
+                if raw.startswith(scheme):
+                    return "postgresql+psycopg://" + raw[len(scheme):]
+        return value
+
     @field_validator("database_url")
     @classmethod
     def _require_postgresql(cls, url: SecretStr) -> SecretStr:

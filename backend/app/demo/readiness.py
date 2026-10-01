@@ -83,6 +83,22 @@ def check_environment(settings: Settings) -> Check:
                  f"APP_ENV={settings.app_env}; development-only endpoints {endpoints}.")
 
 
+def check_cors(settings: Settings) -> Check:
+    """A deployment must name its exact HTTPS frontend origin(s); development may use the local defaults."""
+    origins = settings.cors_origins
+    shown = ", ".join(origins) or "none"
+    if settings.app_env in ("development", "test"):
+        return Check("cors", "CORS origins", "PASS", f"{shown} (local development).")
+    local = ("localhost", "127.0.0.1", "[::1]")
+    bad = [o for o in origins if not o.startswith("https://") or any(f"//{h}" in o for h in local)]
+    if not origins:
+        return Check("cors", "CORS origins", "FAIL", "CORS_ORIGINS is empty: set it to the frontend's https origin.")
+    if bad:
+        return Check("cors", "CORS origins", "FAIL",
+                     f"Not the deployed https frontend origin: {', '.join(bad)}. Set CORS_ORIGINS to https://<frontend-host>.")
+    return Check("cors", "CORS origins", "PASS", f"{shown}.")
+
+
 def check_database(session: Session) -> Check:
     try:
         session.execute(text("SELECT 1"))
@@ -263,7 +279,7 @@ def check_smart(session: Session) -> Check:
 
 def run_checks(session: Session, settings: Settings | None = None) -> list[Check]:
     settings = settings or get_settings()
-    checks = [check_environment(settings), check_database(session)]
+    checks = [check_environment(settings), check_cors(settings), check_database(session)]
     if checks[-1].status == "FAIL":
         return checks + [check_evaluation(settings)]
     checks.append(check_migrations(session))

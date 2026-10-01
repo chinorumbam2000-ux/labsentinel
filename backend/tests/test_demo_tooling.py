@@ -104,12 +104,23 @@ def test_readiness_checklist_on_a_prepared_database(scratch: Session) -> None:
     checks = readiness.run_checks(scratch, Settings())
     status = {c.key: c.status for c in checks}
     assert status == {
-        "environment": "PASS", "database": "PASS", "migrations": "PASS", "seed": "PASS",
+        "environment": "PASS", "cors": "PASS", "database": "PASS", "migrations": "PASS", "seed": "PASS",
         "facilities": "PASS", "fhir": "PASS", "dynamic": "PASS", "ewma": "PASS", "cusum": "PASS",
         "evaluation": "PASS", "smart": "WARN",
     }
     assert readiness.overall(checks) == "READY"
     assert "0 / 24 / 50 / 74 / 87" in by_key(checks)["seed"].detail
+
+
+def test_readiness_requires_the_deployed_https_origin_outside_development() -> None:
+    salt = {"fhir_pseudonym_salt": "a-private-salt", "demo_endpoints_enabled": True}
+    assert readiness.check_cors(Settings()).status == "PASS"  # development defaults
+    assert readiness.check_cors(Settings(app_env="presentation", **salt)).status == "FAIL"  # localhost defaults
+    assert readiness.check_cors(Settings(app_env="presentation", cors_origins=[], **salt)).status == "FAIL"
+    assert readiness.check_cors(Settings(app_env="presentation", cors_origins=["http://labsentinel.example"], **salt)).status == "FAIL"
+    ok = readiness.check_cors(Settings(app_env="presentation", cors_origins=["https://labsentinel.onrender.com"], **salt))
+    assert ok.status == "PASS" and "https://labsentinel.onrender.com" in ok.detail
+    assert readiness.check_cors(Settings(app_env="production", cors_origins=["https://labsentinel.onrender.com"])).status == "PASS"
 
 
 def test_readiness_fhir_dry_run_leaves_nothing_behind(scratch: Session) -> None:
@@ -221,7 +232,7 @@ def test_readiness_endpoint_development_only(demo_engine: Engine, monkeypatch: p
         assert response.status_code == 200
         body = response.json()
         assert body["status"] == "READY" and body["environment"] == "development"
-        assert [c["key"] for c in body["checks"]][:3] == ["environment", "database", "migrations"]
+        assert [c["key"] for c in body["checks"]][:4] == ["environment", "cors", "database", "migrations"]
         assert client.post("/api/readiness").status_code == 405
 
         for settings in (Settings(app_env="production"), Settings(app_env="presentation"), Settings(app_env="test")):

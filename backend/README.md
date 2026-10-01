@@ -2890,6 +2890,7 @@ the **Presentation readiness** panel on `/overview` share one checklist:
 | Check | PASS when |
 |---|---|
 | Environment | `APP_ENV` is development or presentation |
+| CORS origins | development: the local defaults; presentation / production: every origin is an `https://` deployed origin (not empty, http or localhost) |
 | Database health | `SELECT 1` succeeds |
 | Migration version | the database is at the Alembic head |
 | Frozen Day 1-5 demonstration | field-for-field parity with the committed fixture; scores 0 / 24 / 50 / 74 / 87 |
@@ -2915,6 +2916,24 @@ docker run --rm --env-file <env> labsentinel-api alembic upgrade head
 docker run --rm --env-file <env> labsentinel-api python -m app.seed
 docker run --rm -p 8000:8000 --env-file <env> labsentinel-api
 ```
+
+**On a platform (Render).** `python -m app.serve` is the platform start command
+(`render.yaml`):
+
+- it binds `0.0.0.0:$PORT` and trusts the platform's HTTPS proxy headers;
+- with `MIGRATE_ON_START=true` it runs `alembic upgrade head` once, before the
+  port opens, so no request meets a half-migrated schema;
+- at the head this is a no-op, so restarts change nothing;
+- it never seeds, resets or prepares data (that stays the explicit one-time
+  step in [docs/deployment.md](../docs/deployment.md)).
+
+`DATABASE_URL` may be given in the managed-provider form `postgresql://…` or
+`postgres://…` (Render's `fromDatabase` connection string); it is pinned to the
+psycopg 3 driver, and any other explicit driver is still rejected.
+
+Outside development, the readiness checklist also verifies **CORS**:
+`CORS_ORIGINS` must be the deployed frontend's `https://` origin, not empty,
+`http`, or localhost.
 
 ### Tests
 

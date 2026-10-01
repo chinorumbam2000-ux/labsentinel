@@ -31,11 +31,31 @@ def test_environment_variables_override_defaults(monkeypatch: pytest.MonkeyPatch
     assert settings.database_url.get_secret_value().endswith("@db.internal:6543/other")
 
 
-def test_database_url_must_use_psycopg3(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("DATABASE_URL", "postgresql://labsentinel:pw@localhost/labsentinel")
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgresql+psycopg2://labsentinel:pw@localhost/labsentinel",
+        "postgresql+asyncpg://labsentinel:pw@localhost/labsentinel",
+        "sqlite:///labsentinel.db",
+        "mysql://labsentinel:pw@localhost/labsentinel",
+    ],
+)
+def test_database_url_must_use_psycopg3(monkeypatch: pytest.MonkeyPatch, url: str) -> None:
+    monkeypatch.setenv("DATABASE_URL", url)
 
     with pytest.raises(ValidationError, match="psycopg 3"):
         Settings()
+
+
+@pytest.mark.parametrize("scheme", ["postgresql://", "postgres://"])
+def test_managed_postgres_urls_are_pinned_to_psycopg3(monkeypatch: pytest.MonkeyPatch, scheme: str) -> None:
+    # The form Render's fromDatabase connectionString (and similar providers) hand out.
+    monkeypatch.setenv("DATABASE_URL", f"{scheme}user:secret@dpg-example-a/labsentinel?sslmode=require")
+
+    url = Settings().database_url.get_secret_value()
+
+    assert url == "postgresql+psycopg://user:secret@dpg-example-a/labsentinel?sslmode=require"
+    assert "secret" not in repr(Settings())
 
 
 def test_database_url_is_hidden_from_repr(monkeypatch: pytest.MonkeyPatch) -> None:
