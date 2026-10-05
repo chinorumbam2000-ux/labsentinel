@@ -261,3 +261,19 @@
     background-image: none;
   }
 }
+
+/* A quiet scrollbar for the Ask LabSentinel conversation: visible, but thin. */
+.ls-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c5d3e3 transparent;
+}
+
+.ls-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ls-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: #c5d3e3 content-box;
+}

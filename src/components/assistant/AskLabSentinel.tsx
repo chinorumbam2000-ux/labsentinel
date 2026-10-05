@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { answerQuestion, suggestedQuestions } from '../../assistant/answerEngine';
 import { routeFromPath } from '../../assistant/context';
@@ -32,11 +32,15 @@ export default function AskLabSentinel() {
   const context: AssistantContext = { day: currentDay, route, alerts };
   const pageName = route === 'other' ? null : PAGES[route].nav;
 
-  const close = () => {
-    setOpen(false);
-    // Focus returns to the launcher that opened the panel.
-    launcherRef.current?.focus();
-  };
+  const close = () => setOpen(false);
+
+  // Focus returns to the launcher once the panel has closed and the launcher
+  // is showing again.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (wasOpen.current && !open) launcherRef.current?.focus();
+    wasOpen.current = open;
+  }, [open]);
 
   const ask = (question: string) => {
     const turn = answerQuestion(question, context, conversation);
@@ -66,7 +70,7 @@ export default function AskLabSentinel() {
           id={PANEL_ID}
           messages={messages}
           suggestions={suggestedQuestions(context)}
-          contextLabel={`Answering for Day ${currentDay} of 5${pageName ? ` · ${pageName}` : ''}`}
+          contextLabel={`Day ${currentDay} of 5${pageName ? ` · ${pageName}` : ''}`}
           onAsk={ask}
           onClear={clear}
           onClose={close}
