@@ -95,24 +95,6 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             </li>
           ))}
         </ul>
-
-        <div className="my-4 border-t border-white/10" />
-
-        <ul className="space-y-0.5">
-          <li>
-            <NavLink to="/" className={linkClasses} onClick={onNavigate} end>
-              {({ isActive }) => (
-                <>
-                  <ActiveMarker isActive={isActive} />
-                  <span aria-hidden="true" className="w-4 text-center text-xs opacity-80">
-                    ⌾
-                  </span>
-                  <span className="flex-1 truncate">About this demo</span>
-                </>
-              )}
-            </NavLink>
-          </li>
-        </ul>
       </div>
 
       <div className="border-t border-white/10 px-5 py-4">

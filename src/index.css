@@ -203,3 +203,61 @@
 .ls-map-tooltip::before {
   display: none;
 }
+
+/* ------------------------------------------------------------------ *
+ * Sign-in screen
+ *
+ * Reuses the workspace's surveillance backdrop (the same asset and the same
+ * three layers as #ls-main above; the asset itself is unchanged) on the
+ * solid #F5F8FC canvas, so the access screen and the application share one
+ * visual system. The brand block sits directly on the field, so it gets the
+ * same feathered canvas-colour halo as page headers; the form is an opaque
+ * card. The reduced-transparency and high-contrast preferences behave as
+ * they do for #ls-main.
+ * ------------------------------------------------------------------ */
+.ls-auth-backdrop {
+  background-image:
+    radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.155) 0%, rgba(112, 146, 186, 0) 58%),
+    radial-gradient(100% 80% at 6% 96%, rgba(126, 156, 192, 0.130) 0%, rgba(126, 156, 192, 0) 62%),
+    url('./assets/surveillance-backdrop.svg');
+  background-position: center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: cover, cover, cover;
+  isolation: isolate;
+}
+
+.ls-auth-brand {
+  position: relative;
+}
+
+.ls-auth-brand::before {
+  content: '';
+  position: absolute;
+  /* Kept inside the 1rem page gutter, so it never widens the screen. */
+  inset: -1.25rem -1rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(245, 248, 252, 0.95) 0%,
+    rgba(245, 248, 252, 0.9) 50%,
+    rgba(245, 248, 252, 0) 100%
+  );
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .ls-auth-backdrop {
+    background-image:
+      radial-gradient(120% 90% at 82% 4%, rgba(112, 146, 186, 0.06) 0%, rgba(112, 146, 186, 0) 58%);
+  }
+
+  .ls-auth-brand::before {
+    background: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .ls-auth-backdrop {
+    background-image: none;
+  }
+}

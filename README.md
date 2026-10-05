@@ -116,7 +116,7 @@ banner.
 
 | Route | Screen | What it contains |
 |-------|--------|------------------|
-| `/` | Landing page | Entry point, disclaimer and the way into the prototype |
+| `/` | Sign in | Access screen (name, the fixed Public Health Analyst role, password). Every other screen requires a signed-in session and returns to the page originally requested; Sign Out in the top bar |
 | `/dashboard` | Public Health Dashboard | Six numbered sections: current situation (both scores), epidemiological indicators, geographic intelligence, data quality, current alert, day-to-day change |
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |

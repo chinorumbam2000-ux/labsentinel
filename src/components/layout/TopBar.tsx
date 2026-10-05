@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
+import { useDemoSession } from '../../context/DemoSessionContext';
+import { DEMO_ROLE, FALLBACK_INITIALS, FALLBACK_NAME, initialsFor } from '../../lib/demoSession';
 import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
 
@@ -23,6 +25,15 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   } = useSimulation();
   const navigate = useNavigate();
   const [showAlerts, setShowAlerts] = useState(false);
+  const { session, signOut } = useDemoSession();
+  const displayName = session?.name ?? FALLBACK_NAME;
+  const initials = session ? initialsFor(session.name) : FALLBACK_INITIALS;
+
+  // Ends the sign-in session only: the Day 1-5 simulation state is left as it is.
+  const handleSignOut = () => {
+    signOut();
+    navigate('/', { replace: true });
+  };
 
   return (
     <header className="relative z-30 flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-hairline bg-white px-4 py-3 lg:px-6">
@@ -185,12 +196,22 @@ export default function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
             aria-hidden="true"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-light text-xs font-semibold text-brand"
           >
-            PA
+            {initials}
           </span>
           <div className="hidden leading-tight sm:block">
-            <p className="text-sm font-medium text-ink">Demo User</p>
-            <p className="text-[11px] text-muted">Public Health Analyst</p>
+            <p className="max-w-[11rem] truncate text-sm font-medium text-ink" title={displayName}>
+              {displayName}
+            </p>
+            <p className="text-[11px] text-muted">{session?.role ?? DEMO_ROLE}</p>
           </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="ls-btn ml-1 px-2.5 py-1.5 text-xs"
+            aria-label={`Sign Out ${displayName}`}
+          >
+            Sign Out
+          </button>
         </div>
       </div>
     </header>
