@@ -121,18 +121,13 @@ export default function AssistantPanel({
         tabIndex={0}
         className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3"
       >
-        {messages.length === 0 ? (
-          <p className="text-sm leading-relaxed text-muted">
-            Answers come from the same synthetic data shown on screen, for the simulation day you are viewing.
-            Everything runs in your browser; questions are not sent anywhere.
-          </p>
-        ) : (
+        {messages.length > 0 ? (
           <ol className="space-y-3">
             {messages.map((message) => (
               <AssistantMessage key={message.id} message={message} />
             ))}
           </ol>
-        )}
+        ) : null}
       </div>
 
       {chips.length > 0 ? (
