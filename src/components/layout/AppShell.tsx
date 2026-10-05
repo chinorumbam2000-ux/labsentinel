@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import AskLabSentinel from '../assistant/AskLabSentinel';
 import DemoBanner from '../common/DemoBanner';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -64,12 +65,15 @@ export default function AppShell() {
             id="ls-main"
             className="relative isolate min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain scroll-smooth"
           >
-            <div className="mx-auto w-full max-w-[1500px] px-4 py-6 lg:px-8">
+            {/* Bottom padding keeps the last content clear of the Ask LabSentinel launcher. */}
+            <div className="mx-auto w-full max-w-[1500px] px-4 pb-20 pt-6 lg:px-8">
               <Outlet />
             </div>
           </main>
         </div>
       </div>
+
+      <AskLabSentinel />
     </div>
   );
 }

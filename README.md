@@ -133,6 +133,26 @@ with a link back to the dashboard.
 Routes are served from the GitHub Pages sub-path `/labsentinel/`, so the live
 URLs are `https://chinorumbam2000-ux.github.io/labsentinel/dashboard` and so on.
 
+### Ask LabSentinel
+
+After sign-in, an **Ask LabSentinel** button in the lower-right corner opens a
+small assistant that answers questions about the current signal, day-to-day
+changes, facilities, surveillance areas, trends, Data Confidence, navigation
+and how LabSentinel works (including FHIR, SMART on FHIR and LOINC).
+
+- It runs entirely in the browser. There is no AI service, no API key and no
+  network request; questions are never stored or sent anywhere.
+- Answers are read from the same modules that power the screens
+  (`getScoreForDay`, `getScenario`, `getDataConfidence`,
+  `getDayOverDayComparison`, the facility and area selectors and the
+  geographic-privacy rules), for the simulation day and page being viewed. If
+  the Dashboard shows 87, the assistant says 87.
+- Area counts the Map suppresses (fewer than 5) stay suppressed.
+- It declines medical diagnosis or treatment questions and unrelated topics, and
+  says so when the demo has no data for a question.
+- Code: `src/assistant/` (knowledge, intent matching, answer engine, day facts)
+  and `src/components/assistant/` (launcher, panel, messages).
+
 ### Accessibility and resilience notes
 
 - Every surveillance area can be opened from the **Surveillance areas table** as
