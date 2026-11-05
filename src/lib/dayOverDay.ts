@@ -115,7 +115,7 @@ export const compareDays = (
       direction: directionOf(positivityDelta),
     },
     countMetric(
-      'Affected hospitals',
+      'Affected facilities',
       previous.affectedHospitals.length,
       current.affectedHospitals.length,
     ),

@@ -98,7 +98,7 @@ export default function AssistantPanel({
         <div className="min-w-0 flex-1">
           <h2 id={headingId} className="text-[15px] font-semibold leading-tight tracking-tight text-ink">
             Roella
-            <span className="block text-[11px] font-medium tracking-normal text-muted sm:ml-1.5 sm:inline">ProbeSyQ Intelligence Assistant</span>
+            <span className="block text-[11px] font-medium tracking-normal text-muted sm:ml-1.5 sm:inline">ProbeSyQ AI Assistant</span>
           </h2>
           <p className="mt-0.5 text-[11px] font-medium text-muted">{contextLabel}</p>
           {/* Shown while the conversation is empty; kept for screen readers after. */}

@@ -22,6 +22,7 @@ import {
 import Card from '../common/Card';
 import SeverityBadge from '../signals/SeverityBadge';
 import EwmaTrendChart, { EwmaSparkline, monitored } from './EwmaTrendChart';
+import MethodDetails from './MethodDetails';
 
 export function EwmaStateBadge({ state, overall = false }: { state: EwmaState; overall?: boolean }) {
   return (
@@ -63,21 +64,25 @@ function MetricPanel({ metric, point, history }: { metric: EwmaMetric; point: Ew
                 (SD {metricValue(metric, point.baseline_stddev).replace(' tests', '')})
               </span>
             </Fact>
-            <Fact label="EWMA">
-              <span className="text-xs font-normal text-muted">{metricValue(metric, point.previous_ewma, 2)} → </span>
-              {metricValue(metric, point.ewma_value, 2)}
-            </Fact>
-            <Fact label="Upper control limit">{metricValue(metric, point.upper_control_limit, 2)}</Fact>
-            <Fact label="Warning limit">{metricValue(metric, point.warning_limit, 2)}</Fact>
             <Fact label="Crossed the limit?">{crossedText(point)}</Fact>
-            <Fact label="Lambda · k">
-              {point.lambda_value} · {point.k_value}
-            </Fact>
-            <Fact label="Historical period">
-              {point.reference_first} to {point.reference_last} ({point.reference_days} days)
-            </Fact>
           </dl>
           <p className="mt-2 text-sm text-ink">{point.explanation}</p>
+          <MethodDetails className="mt-2">
+            <dl className="divide-y divide-hairline">
+              <Fact label="EWMA">
+                <span className="text-xs font-normal text-muted">{metricValue(metric, point.previous_ewma, 2)} → </span>
+                {metricValue(metric, point.ewma_value, 2)}
+              </Fact>
+              <Fact label="Upper control limit">{metricValue(metric, point.upper_control_limit, 2)}</Fact>
+              <Fact label="Warning limit">{metricValue(metric, point.warning_limit, 2)}</Fact>
+              <Fact label="Lambda · k">
+                {point.lambda_value} · {point.k_value}
+              </Fact>
+              <Fact label="Historical period">
+                {point.reference_first} to {point.reference_last} ({point.reference_days} days)
+              </Fact>
+            </dl>
+          </MethodDetails>
           <div className="mt-2">
             <EwmaSparkline points={monitored(history, metric)} />
             <p className="text-[11px] text-muted">
@@ -265,10 +270,13 @@ export default function StatisticalSurveillance({
 
       <DetectionTiming summary={summary} />
 
-      <p className="text-[11px] leading-relaxed text-muted">
-        {EWMA_DISCLAIMER} Formula: {summary.formula.ewma}; {summary.formula.ucl}. Reference period{' '}
-        {summary.references.volume ? `${summary.references.volume.first} to ${summary.references.volume.last}` : '—'}.
-      </p>
+      <p className="text-[11px] leading-relaxed text-muted">{EWMA_DISCLAIMER}</p>
+      <MethodDetails label="View EWMA method details">
+        <p className="text-[11px] leading-relaxed text-muted">
+          Formula: {summary.formula.ewma}; {summary.formula.ucl}. Reference period{' '}
+          {summary.references.volume ? `${summary.references.volume.first} to ${summary.references.volume.last}` : '—'}.
+        </p>
+      </MethodDetails>
     </section>
   );
 }

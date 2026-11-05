@@ -114,6 +114,7 @@ const ROUTES: AssistantRoute[] = [
   'laboratory-data',
   'signals',
   'hospitals',
+  'investigations',
   'analytics',
   'simulation',
   'reports',
@@ -125,8 +126,12 @@ const ROUTES: AssistantRoute[] = [
   'smart-demo',
 ];
 
+/** Addresses that are another name for a known page. */
+const ALIASES: Record<string, AssistantRoute> = { facilities: 'hospitals' };
+
 /** The assistant's route from a router pathname (relative to the app base). */
 export const routeFromPath = (pathname: string): AssistantRoute => {
   const first = pathname.replace(/^\/+/, '').split('/')[0] ?? '';
+  if (first in ALIASES) return ALIASES[first];
   return (ROUTES as string[]).includes(first) ? (first as AssistantRoute) : 'other';
 };

@@ -14,6 +14,7 @@ export type AssistantRoute =
   | 'laboratory-data'
   | 'signals'
   | 'hospitals'
+  | 'investigations'
   | 'analytics'
   | 'simulation'
   | 'reports'

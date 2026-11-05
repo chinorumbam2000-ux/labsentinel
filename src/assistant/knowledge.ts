@@ -41,6 +41,8 @@ export interface PageInfo {
   use: string;
   /** What the page needs to show its content: the API backend, or the SMART sandbox build flag. */
   requires?: 'api' | 'smart';
+  /** The sidebar section the page sits in, when it is not part of the analyst workflow. */
+  section?: 'System';
 }
 
 /** What each screen shows, in the words of its own headings. */
@@ -74,11 +76,17 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     use: 'Acknowledge new alerts, then open Investigate to see the detection-time evidence and record review steps.',
   },
   hospitals: {
-    nav: 'Hospitals',
-    title: 'Hospitals & Vendor Sidecar',
+    nav: 'Facilities',
+    title: 'Facilities',
     shows:
-      'a dashboard per facility (tests, positives, positivity, trends), feed health, data confidence, interoperability status and the vendor sidecar inside each simulated EHR environment.',
-    use: 'Switch between the three simulated vendor environments to compare facilities.',
+      'every participating facility\'s status (reporting, freshness, completeness, LOINC mapping, contribution to the signal), then a dashboard for the selected facility, its data confidence and feed health, and the clinician sidecar inside each simulated EHR environment.',
+    use: 'Choose a facility in the status table to see its details.',
+  },
+  investigations: {
+    nav: 'Investigations',
+    title: 'Investigations',
+    shows: 'every detected signal with the status of its human review and of its public-health report.',
+    use: 'Open an investigation to review the detection-time evidence and record review steps; reports follow on Reports.',
   },
   analytics: {
     nav: 'Analytics',
@@ -100,19 +108,22 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
   },
   architecture: {
     nav: 'Architecture',
+    section: 'System',
     title: 'ProbeSyQ Signal Architecture',
     shows:
       'the current prototype pipeline, the configurable geography, future multi-source surveillance, the next development stage and the longer-term architecture, each labelled with its status.',
     use: 'Read the status labels to separate what this prototype implements from what is planned.',
   },
   overview: {
-    nav: 'Capstone Overview',
+    nav: 'Project Overview',
+    section: 'System',
     title: 'Laboratory-First Public Health Early Warning',
     shows: 'the end-to-end workflow, the routes to every part of the application, and the status of this build.',
     use: 'Start here for a tour, then follow a card to the screen it describes.',
   },
   'fhir-ingestion': {
-    nav: 'FHIR Ingestion',
+    nav: 'Data Ingestion',
+    section: 'System',
     title: 'FHIR Laboratory Ingestion',
     shows:
       'the development FHIR R4 ingestion pipeline: a synthetic Observation or Bundle is validated, its facility and LOINC test are resolved, and the normalized record is compared with the original.',
@@ -120,7 +131,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     requires: 'api',
   },
   'dynamic-surveillance': {
-    nav: 'Dynamic Surveillance',
+    nav: 'Detection Methods',
+    section: 'System',
     title: 'Dynamic Surveillance',
     shows:
       'signals calculated by the dynamic engine from stored observations against a rolling baseline, with the EWMA and CUSUM statistical detectors alongside.',
@@ -128,14 +140,16 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     requires: 'api',
   },
   evaluation: {
-    nav: 'Capstone Evaluation',
+    nav: 'Validation',
+    section: 'System',
     title: 'Capstone Evaluation',
     shows: 'how the surveillance methods performed on synthetic scenarios with known ground truth: sensitivity, timeliness and false alerts.',
     use: 'Compare the methods scenario by scenario; the results describe synthetic data only.',
     requires: 'api',
   },
   'smart-demo': {
-    nav: 'SMART Sandbox',
+    nav: 'Integration Testing',
+    section: 'System',
     title: 'SMART on FHIR Sandbox',
     shows: 'the SMART on FHIR configuration and the launch into the public SMART Health IT synthetic sandbox.',
     use: 'Launch from here to see the clinician-facing sidecar read synthetic Observations.',
@@ -160,7 +174,8 @@ export const NAVIGATION: Array<{ words: string[]; route: Exclude<AssistantRoute,
   { words: ['hospital', 'facility', 'facilities', 'vendor', 'sidecar', 'feed'], route: 'hospitals', what: 'facility-level details, feed health and the vendor sidecar' },
   { words: ['trend', 'chart', 'over time', 'history', 'analytics'], route: 'analytics', what: 'score, volume, positivity and spread trends across the simulated days' },
   { words: ['observation', 'lab data', 'laboratory', 'records', 'results', 'loinc'], route: 'laboratory-data', what: 'the synthetic laboratory Observation records' },
-  { words: ['alert', 'signal', 'investigat', 'acknowledge'], route: 'signals', what: 'alerts, acknowledgement and the investigation workflow' },
+  { words: ['investigation', 'investigat', 'case review'], route: 'investigations', what: 'every detected signal and the status of its review' },
+  { words: ['alert', 'signal', 'acknowledge'], route: 'signals', what: 'alerts, acknowledgement and each signal\'s evidence' },
   { words: ['report'], route: 'reports', what: 'the simulated public-health reporting workflow' },
   { words: ['fhir ingestion', 'ingest', 'upload a fhir', 'submit a fhir'], route: 'fhir-ingestion', what: 'the development FHIR R4 ingestion pipeline' },
   { words: ['ewma', 'cusum', 'dynamic surveillance', 'statistical'], route: 'dynamic-surveillance', what: 'dynamic signals and the EWMA and CUSUM detectors' },
@@ -224,7 +239,7 @@ export const fhirInThisBuild = (mode: DataMode): string =>
 export const smartInThisBuild = (smartEnabled: boolean): string =>
   smartEnabled
     ? 'In this build, the SMART Sandbox page can launch ProbeSyQ Signal against the public SMART Health IT synthetic sandbox, with read-only access to Observations. No real EHR is involved.'
-    : "In this build no SMART launch happens: the vendor sidecar on the Hospitals page shows where a SMART-launched view would sit inside each simulated EHR environment. ProbeSyQ Signal's full-stack build can enable a SMART launch against a public synthetic sandbox.";
+    : "In this build no SMART launch happens: the vendor sidecar on the Facilities page shows where a SMART-launched view would sit inside each simulated EHR environment. ProbeSyQ Signal's full-stack build can enable a SMART launch against a public synthetic sandbox.";
 
 export const OUT_OF_SCOPE =
   'I can help with ProbeSyQ Signal, its surveillance data, outbreak signals, facilities, trends, analytics, and how the application works.';
@@ -239,7 +254,8 @@ export const PAGE_QUESTIONS: Record<AssistantRoute, string[]> = {
   map: ['Which ZIP codes are affected?', 'Which area is most affected?', 'Why are some counts shown as <5?'],
   'laboratory-data': ['How many laboratory observations are there?', 'Which LOINC tests are included?', 'What is the positivity rate?'],
   signals: ['Which alerts are active?', 'What should I investigate next?', 'Why is the score this high?'],
-  hospitals: ['Which hospitals are affected?', 'Which facility has the highest positivity?', 'What vendor environment does each facility represent?'],
+  hospitals: ['Which facilities are affected?', 'Which facility has the highest positivity?', 'What vendor environment does each facility represent?'],
+  investigations: ['What should I investigate next?', 'Which alerts are active?', 'What does this page show?'],
   analytics: ['What trend do you see?', 'Is positivity increasing?', 'When did the signal become High?'],
   simulation: ['What changed since the previous day?', 'What happens on Day 1?', 'Summarize the current outbreak situation.'],
   reports: ['What does the Reports page show?', 'What should I investigate next?', 'Summarize the current outbreak situation.'],

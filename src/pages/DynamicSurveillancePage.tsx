@@ -18,6 +18,7 @@ import DynamicWhyThisSignal from '../components/dynamic/DynamicWhyThisSignal';
 import StatisticalSurveillance, { type EwmaRecalc } from '../components/dynamic/StatisticalSurveillance';
 import CusumSurveillance, { type CusumRecalc } from '../components/dynamic/CusumSurveillance';
 import MethodComparison from '../components/dynamic/MethodComparison';
+import StatisticalConfirmation from '../components/dynamic/StatisticalConfirmation';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { useDataSourceContext } from '../data-access/DataSourceProvider';
 import { isAbortError } from '../data-access/apiClient';
@@ -341,6 +342,9 @@ function DynamicWorkspace() {
       ) : (
         <>
           <SignalView signal={selected.signal} />
+          {cusum.status === 'ready' && cusumDay && cusumDay.date === selected.signal.signal_date && cusumDay.comparison ? (
+            <StatisticalConfirmation comparison={cusumDay.comparison} />
+          ) : null}
           {cusum.status === 'ready' && cusumDay && cusumDay.date === selected.signal.signal_date && cusumDay.comparison ? (
             <MethodComparison
               comparison={cusumDay.comparison}

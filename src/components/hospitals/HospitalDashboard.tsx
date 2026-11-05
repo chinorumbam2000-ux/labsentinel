@@ -68,7 +68,7 @@ export default function HospitalDashboard({
         : 'No signal through the current day',
     },
     {
-      label: 'Last Sync',
+      label: 'Last updated',
       value: formatClockTime(lastUpdated),
       note: 'Session clock (real time)',
     },
@@ -176,7 +176,7 @@ export default function HospitalDashboard({
             message="This facility has not delivered any synthetic laboratory observations for the current simulation day."
           />
         ) : (
-          <div className="w-full overflow-x-auto">
+          <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Recent observations table">
             <table className="w-full min-w-[720px] border-collapse">
               <thead className="border-b border-hairline bg-canvas">
                 <tr>

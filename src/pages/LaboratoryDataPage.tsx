@@ -25,7 +25,7 @@ const API_SEARCH_DEBOUNCE_MS = 300;
 
 const COLUMNS: Array<{ key: SortKey | null; label: string; className?: string }> = [
   { key: 'effectiveDateTime', label: 'Date/Time' },
-  { key: 'hospitalName', label: 'Hospital' },
+  { key: 'hospitalName', label: 'Facility' },
   { key: 'vendor', label: 'Vendor' },
   { key: 'patientId', label: 'Patient ID' },
   { key: 'result', label: 'Result' },
@@ -172,7 +172,7 @@ export default function LaboratoryDataPage() {
               id="lab-search"
               type="search"
               className="ls-input mt-1"
-              placeholder="Patient ID, hospital, test, LOINC, ZIP…"
+              placeholder="Patient ID, facility, test, LOINC, ZIP…"
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
@@ -198,7 +198,7 @@ export default function LaboratoryDataPage() {
           </div>
 
           <div>
-            <label htmlFor="filter-hospital" className="ls-label">Hospital</label>
+            <label htmlFor="filter-hospital" className="ls-label">Facility</label>
             <select
               id="filter-hospital"
               className="ls-select mt-1 block"
@@ -208,7 +208,7 @@ export default function LaboratoryDataPage() {
                 setPage(1);
               }}
             >
-              <option value="all">All hospitals</option>
+              <option value="all">All facilities</option>
               {facilities.map((hospital) => (
                 <option key={hospital.id} value={hospital.id}>
                   {hospital.name}

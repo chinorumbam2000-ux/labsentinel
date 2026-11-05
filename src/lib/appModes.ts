@@ -3,7 +3,8 @@
  * another. Every route belongs to exactly one; the top bar names it.
  *
  * The data source (Local Demo Mode vs API Capstone Mode) is a separate,
- * build-time axis, shown by the data-source indicator.
+ * build-time axis. It is an implementation detail, so the data-source
+ * indicator appears only on the System (technical) pages.
  */
 
 export type AppMode = 'overview' | 'classroom' | 'api' | 'dynamic' | 'smart' | 'evaluation';
@@ -48,7 +49,10 @@ export const MODES: Record<AppMode, ModeDefinition> = {
   },
 };
 
-const CLASSROOM_ROUTES = ['dashboard', 'map', 'laboratory-data', 'signals', 'hospitals', 'analytics', 'simulation', 'reports'];
+// 'hospitals' is the Facilities page's former address (it redirects).
+const CLASSROOM_ROUTES = [
+  'dashboard', 'map', 'laboratory-data', 'signals', 'facilities', 'hospitals', 'investigations', 'analytics', 'simulation', 'reports',
+];
 
 /** The mode a path (relative to the router basename) belongs to. */
 export const modeForPath = (pathname: string): AppMode => {

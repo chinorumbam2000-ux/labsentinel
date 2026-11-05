@@ -105,7 +105,7 @@ describe('Roella says only what is true of the build it runs in', () => {
     expect(page).toContain('needs the ProbeSyQ Signal API');
     expect(ask('What does this page show?', api(5, 'fhir-ingestion')).text).not.toContain('needs the ProbeSyQ Signal API');
     expect(ask('What does this page show?', api(5, 'dynamic-surveillance')).text).toContain('EWMA and CUSUM');
-    expect(ask('Where can I see EWMA?', local()).text).toContain('Open Dynamic Surveillance');
+    expect(ask('Where can I see EWMA?', local()).text).toContain('Open System → Detection Methods');
   });
 });
 

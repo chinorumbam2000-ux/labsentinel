@@ -103,7 +103,7 @@ export default function ZipDetailPanel({
             </dd>
           </div>
           <div className="flex items-start justify-between gap-4 py-2.5">
-            <dt className="text-sm text-muted">Participating Hospital</dt>
+            <dt className="text-sm text-muted">Participating Facility</dt>
             <dd className="max-w-[60%] text-right text-sm font-medium text-ink">
               {metrics.hospitalName}
             </dd>

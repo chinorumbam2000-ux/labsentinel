@@ -19,6 +19,7 @@ import SimulationPage from './pages/SimulationPage';
 import ReportsPage from './pages/ReportsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import OverviewPage from './pages/OverviewPage';
+import InvestigationsPage from './pages/InvestigationsPage';
 
 /*
  * The API-capstone and SMART pages are loaded on demand: the public GitHub
@@ -58,6 +59,12 @@ function SimulationLayout() {
       <Outlet />
     </SimulationProvider>
   );
+}
+
+/** Sends an old address to its new one, keeping the query string and hash. */
+function RenamedRoute({ to }: { to: string }) {
+  const { search, hash } = useLocation();
+  return <Navigate to={`${to}${search}${hash}`} replace />;
 }
 
 /**
@@ -109,7 +116,10 @@ export default function App() {
               <Route path="/map" element={<MapPage />} />
               <Route path="/laboratory-data" element={<LaboratoryDataPage />} />
               <Route path="/signals" element={<SignalsPage />} />
-              <Route path="/hospitals" element={<HospitalsPage />} />
+              <Route path="/facilities" element={<HospitalsPage />} />
+              {/* The page's former address; old links and bookmarks keep working. */}
+              <Route path="/hospitals" element={<RenamedRoute to="/facilities" />} />
+              <Route path="/investigations" element={<InvestigationsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/simulation" element={<SimulationPage />} />
               <Route path="/reports" element={<ReportsPage />} />

@@ -16,6 +16,7 @@ import {
 import { formatLead } from '../../lib/ewma';
 import Card from '../common/Card';
 import CusumTrendChart from './CusumTrendChart';
+import MethodDetails from './MethodDetails';
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -60,25 +61,29 @@ function CusumPanel({ metric, point }: { metric: EwmaMetric; point: CusumPoint |
           <dl className="mt-2 divide-y divide-hairline">
             <Fact label="Observed today">{metricValue(metric, point.observed_value)}</Fact>
             <Fact label="Historical mean">{metricValue(metric, point.baseline_mean)}</Fact>
-            <Fact label="Standard deviation">{metricValue(metric, point.baseline_stddev).replace(' tests', '')}</Fact>
-            <Fact label="Standardized deviation (z)">
-              {sum(point.z_score)}{' '}
-              <span className="block text-[11px] font-normal text-muted">{deviationText(point)}</span>
-            </Fact>
-            <Fact label="Previous CUSUM">{sum(point.previous_cusum)}</Fact>
-            <Fact label="Added today (z − k)">
-              {signedSum(point.increment)}{' '}
-              <span className="block text-[11px] font-normal text-muted">then floored at zero</span>
-            </Fact>
-            <Fact label="Current CUSUM">{sum(point.cusum_value)}</Fact>
-            <Fact label="Decision limit h">{sum(point.h, 1)}</Fact>
             <Fact label="Crossed the limit?">{crossedLimit(point)}</Fact>
-            <Fact label="Reference value k">{sum(point.k, 2)}</Fact>
-            <Fact label="Historical period">
-              {point.reference_first} to {point.reference_last} ({point.reference_days} days)
-            </Fact>
           </dl>
           <p className="mt-2 text-sm text-ink">{point.explanation}</p>
+          <MethodDetails className="mt-2">
+            <dl className="divide-y divide-hairline">
+              <Fact label="Standard deviation">{metricValue(metric, point.baseline_stddev).replace(' tests', '')}</Fact>
+              <Fact label="Standardized deviation (z)">
+                {sum(point.z_score)}{' '}
+                <span className="block text-[11px] font-normal text-muted">{deviationText(point)}</span>
+              </Fact>
+              <Fact label="Previous CUSUM">{sum(point.previous_cusum)}</Fact>
+              <Fact label="Added today (z − k)">
+                {signedSum(point.increment)}{' '}
+                <span className="block text-[11px] font-normal text-muted">then floored at zero</span>
+              </Fact>
+              <Fact label="Current CUSUM">{sum(point.cusum_value)}</Fact>
+              <Fact label="Decision limit h">{sum(point.h, 1)}</Fact>
+              <Fact label="Reference value k">{sum(point.k, 2)}</Fact>
+              <Fact label="Historical period">
+                {point.reference_first} to {point.reference_last} ({point.reference_days} days)
+              </Fact>
+            </dl>
+          </MethodDetails>
         </>
       ) : (
         <p className="mt-2 text-sm text-muted">{point?.explanation ?? 'No CUSUM result for this date.'}</p>
@@ -172,11 +177,17 @@ export default function CusumSurveillance({
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6D28D9]">Experimental statistical detector · CUSUM</p>
             <h2 id="cusum-surveillance" className="text-lg font-semibold text-ink">CUSUM Surveillance</h2>
             <p className="mt-1 max-w-3xl text-sm text-muted">
-              A one-sided upper CUSUM (cumulative sum) for test volume and positivity. Each day's standardized excess over
-              the historical mean, less a reference value k, is added to a running sum that never falls below zero; a
-              statistical alert is raised when the sum reaches the decision limit h. It uses the same historical reference
-              period as EWMA. A statistical alert is not a confirmed outbreak.
+              A cumulative-sum detector for test volume and positivity: it raises a statistical alert when small daily
+              rises above the historical mean add up to a sustained shift. A statistical alert is not a confirmed outbreak.
             </p>
+            <MethodDetails className="mt-2">
+              <p className="max-w-3xl text-xs leading-relaxed text-muted">
+                A one-sided upper CUSUM (cumulative sum) for test volume and positivity. Each day's standardized excess
+                over the historical mean, less a reference value k, is added to a running sum that never falls below zero;
+                a statistical alert is raised when the sum reaches the decision limit h. It uses the same historical
+                reference period as EWMA.
+              </p>
+            </MethodDetails>
           </div>
           {onRecalculate ? (
             <div className="flex flex-col items-start gap-1 sm:items-end">
@@ -213,10 +224,14 @@ export default function CusumSurveillance({
       <CusumTiming summary={summary} />
 
       <p className="text-[11px] leading-relaxed text-muted">
-        {CUSUM_DISCLAIMER} {APPROACHING_NOTE} Formula: {summary.formula.z}; {summary.formula.cusum}; {summary.formula.decision}.
-        Daily positivity rates have different denominators, and this CUSUM does not yet model binomial variance by daily test
-        count.
+        {CUSUM_DISCLAIMER} {APPROACHING_NOTE}
       </p>
+      <MethodDetails label="View CUSUM method details">
+        <p className="text-[11px] leading-relaxed text-muted">
+          Formula: {summary.formula.z}; {summary.formula.cusum}; {summary.formula.decision}. Daily positivity rates have
+          different denominators, and this CUSUM does not yet model binomial variance by daily test count.
+        </p>
+      </MethodDetails>
     </section>
   );
 }

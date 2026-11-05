@@ -105,7 +105,8 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
       )}
 
       <div className="ml-auto flex items-center gap-3">
-        <DataSourceIndicator />
+        {/* Local vs API is an implementation detail: shown on System pages only. */}
+        {classroom ? null : <DataSourceIndicator />}
 
         {classroom ? (
           <div className="hidden text-right lg:block">

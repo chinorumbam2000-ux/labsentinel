@@ -168,7 +168,7 @@ const dayChange = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =>
       `Composite Outbreak Signal Score: ${a.score.composite} → ${b.score.composite} (${delta(a.score.composite, b.score.composite)})`,
       `Tests: ${a.scenario.totalTests} → ${b.scenario.totalTests} (${delta(a.scenario.totalTests, b.scenario.totalTests)})`,
       `Positivity: ${a.positivityText} → ${b.positivityText} (${formatPercentagePoints(b.scenario.positivityRate - a.scenario.positivityRate)})`,
-      `Affected hospitals: ${a.scenario.affectedHospitals.length} → ${b.scenario.affectedHospitals.length}`,
+      `Affected facilities: ${a.scenario.affectedHospitals.length} → ${b.scenario.affectedHospitals.length}`,
       `Affected geographic areas: ${a.scenario.affectedZipCodes.length} → ${b.scenario.affectedZipCodes.length}`,
       `Persistence: ${plural(a.scenario.persistenceDays, 'day')} → ${plural(b.scenario.persistenceDays, 'day')}`,
     ]));
@@ -177,7 +177,7 @@ const dayChange = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =>
   const newSites = b.hospitals.filter((h) => h.isAffected && !a.hospitals.find((x) => x.hospital.id === h.hospital.id)?.isAffected).map((h) => h.hospital.name);
   if (newSites.length) blocks.push(text(`Newly affected: ${joinAnd(newSites)}.`));
   blocks.push(...aheadNote(b.day, ctx));
-  return answer('day_change', blocks, ['Why is the score this high?', 'Which hospitals are affected?', 'What should I investigate next?']);
+  return answer('day_change', blocks, ['Why is the score this high?', 'Which facilities are affected?', 'What should I investigate next?']);
 };
 
 const dayOverview = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
@@ -255,7 +255,7 @@ const vendors = (ctx: AssistantContext): AssistantAnswer => {
     text('Each facility represents a different simulated EHR environment:'),
     list(f.hospitals.map((h) => `${h.hospital.name} (${h.hospital.zipCode}) — ${h.hospital.environmentLabel}`)),
     text(`${CONCEPTS.vendorAgnostic} The sidecar appears inside each environment on the Hospitals page.`),
-  ], ['What is SMART on FHIR?', 'Which hospitals are affected?']);
+  ], ['What is SMART on FHIR?', 'Which facilities are affected?']);
 };
 
 const geography = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
@@ -277,7 +277,7 @@ const geography = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =>
   }
   blocks.push(text(f.disclosure));
   blocks.push(...aheadNote(f.day, ctx));
-  return answer('geography', blocks, ['Which area is most affected?', 'Why are some counts shown as <5?', 'Which hospitals are affected?']);
+  return answer('geography', blocks, ['Which area is most affected?', 'Why are some counts shown as <5?', 'Which facilities are affected?']);
 };
 
 const areaRanking = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
@@ -296,7 +296,7 @@ const areaRanking = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer 
     list(sorted.map((a) => `${a.zipCode} ${a.city}: ${a.positivityDisplay} (${a.severity})`)),
   ];
   if (hidden.length) blocks.push(text(`${joinAnd(hidden.map((a) => a.zipCode))} ${hidden.length === 1 ? 'is' : 'are'} suppressed (fewer than ${MINIMUM_DISPLAY_COUNT} positives) and not compared.`));
-  return answer('area_ranking', [...blocks, ...aheadNote(f.day, ctx)], ['Which hospitals are affected?', 'What should I investigate next?']);
+  return answer('area_ranking', [...blocks, ...aheadNote(f.day, ctx)], ['Which facilities are affected?', 'What should I investigate next?']);
 };
 
 const positivity = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
@@ -426,7 +426,7 @@ const investigate = (ctx: AssistantContext): AssistantAnswer => {
   const f = factsFor(ctx.day, ctx);
   const steps: string[] = [];
   if (f.score.composite === 0) {
-    steps.push('No signal today: keep routine monitoring and confirm all facility feeds stay healthy on Hospitals.');
+    steps.push('No signal today: keep routine monitoring and confirm all facility feeds stay healthy on Facilities.');
     steps.push('Review Data Confidence to make sure the quiet baseline reflects complete data.');
   } else {
     const newSites = f.hospitals.filter((h) => h.firstSignalDay === f.day).map((h) => h.hospital.name);
@@ -446,22 +446,26 @@ const investigate = (ctx: AssistantContext): AssistantAnswer => {
     text(`Suggested surveillance review for Day ${f.day} (${f.score.severity}, score ${f.score.composite}):`),
     list(steps.slice(0, 6)),
     text('These are surveillance review steps, not clinical advice.'),
-  ], ['Which hospitals are affected?', 'Which ZIP codes are affected?', 'Summarize the current outbreak situation.']);
+  ], ['Which facilities are affected?', 'Which ZIP codes are affected?', 'Summarize the current outbreak situation.']);
 };
 
 const navigation = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
   const target = NAVIGATION.find((n) => n.words.some((w) => p.normalized.includes(w)));
   const smart = Boolean(ctx.smartEnabled);
   if (!target) {
+    const available = Object.values(PAGES).filter((pg) => !pageUnavailable(pg, modeOf(ctx), smart));
+    const system = available.filter((pg) => pg.section === 'System').map((pg) => pg.nav);
     return answer('navigation', [
       text('Use the sidebar on the left to move between screens:'),
-      list(Object.values(PAGES).filter((pg) => !pageUnavailable(pg, modeOf(ctx), smart)).map((pg) => `${pg.nav} — ${pg.shows}`)),
+      list(available.filter((pg) => !pg.section).map((pg) => `${pg.nav} — ${pg.shows}`)),
+      text(`Technical pages are under System, at the bottom of the sidebar: ${joinAnd(system)}.`),
     ], ['What does this page show?']);
   }
   const page = PAGES[target.route];
   const unavailable = pageUnavailable(page, modeOf(ctx), smart);
+  const where = page.section ? `${page.section} → ${page.nav}` : page.nav;
   return answer('navigation', [
-    text(`Open ${page.nav} in the sidebar for ${target.what}. ${page.use}`),
+    text(`Open ${where} in the sidebar for ${target.what}. ${page.use}`),
     ...(unavailable ? [text(unavailable)] : []),
   ], [`What does the ${page.nav} page show?`]);
 };

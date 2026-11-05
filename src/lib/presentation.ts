@@ -32,7 +32,7 @@ export const PRESENTATION_STEPS: PresentationStep[] = [
   },
   {
     title: 'Vendor-agnostic sidecar',
-    route: '/hospitals',
+    route: '/facilities',
     cue: 'One sidecar component inside simulated Epic, Oracle Health and MEDITECH environments. No live vendor connection.',
   },
   {

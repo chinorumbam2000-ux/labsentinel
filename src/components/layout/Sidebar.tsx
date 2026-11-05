@@ -1,40 +1,12 @@
-import { NavLink } from 'react-router-dom';
+import { useEffect, useId, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import BrandMark from '../common/BrandMark';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
+import { ANALYST_SECTIONS, SYSTEM_HEADING, isSystemPath, systemItems, type NavItem } from '../../lib/navigation';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
 
-interface NavItem {
-  to: string;
-  label: string;
-  icon: string;
-}
-
-/** The frozen Day 1-5 classroom demonstration (every build). */
-const PRIMARY_NAV: NavItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: '▦' },
-  { to: '/map', label: 'Outbreak Map', icon: '◎' },
-  { to: '/laboratory-data', label: 'Laboratory Data', icon: '≡' },
-  { to: '/signals', label: 'Signals', icon: '⚠' },
-  { to: '/hospitals', label: 'Hospitals', icon: '⌂' },
-  { to: '/reports', label: 'Reports', icon: '▤' },
-  { to: '/analytics', label: 'Analytics', icon: '◫' },
-  { to: '/simulation', label: 'Simulation', icon: '▶' },
-];
-
-/** API capstone mode only: FHIR ingestion, the dynamic surveillance engine and the capstone evaluation. */
-const API_MODE_NAV: NavItem[] = [
-  { to: '/fhir-ingestion', label: 'FHIR Ingestion', icon: '⇄' },
-  { to: '/dynamic-surveillance', label: 'Dynamic Surveillance', icon: '∿' },
-  { to: '/evaluation', label: 'Capstone Evaluation', icon: '⚖' },
-];
-
-/** Only when the build enables the SMART sandbox (VITE_SMART_ENABLED=true). */
-const SMART_NAV: NavItem[] = [{ to: '/smart-demo', label: 'SMART Sandbox', icon: '⚿' }];
 const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled;
-
-const OVERVIEW_NAV: NavItem[] = [{ to: '/overview', label: 'Capstone Overview', icon: '◈' }];
-const REFERENCE_NAV: NavItem[] = [{ to: '/architecture', label: 'Architecture', icon: '⊞' }];
 
 const linkClasses = ({ isActive }: { isActive: boolean }): string =>
   [
@@ -43,6 +15,8 @@ const linkClasses = ({ isActive }: { isActive: boolean }): string =>
       ? 'bg-white/10 font-semibold text-white'
       : 'font-medium text-white/60 hover:bg-white/5 hover:text-white/90',
   ].join(' ');
+
+const headingClasses = 'px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60';
 
 function ActiveMarker({ isActive }: { isActive: boolean }) {
   return (
@@ -55,19 +29,63 @@ function ActiveMarker({ isActive }: { isActive: boolean }) {
   );
 }
 
+function NavItems({
+  items,
+  onNavigate,
+  unacknowledgedCount,
+}: {
+  items: NavItem[];
+  onNavigate?: () => void;
+  unacknowledgedCount: number;
+}) {
+  return (
+    <ul className="space-y-0.5">
+      {items.map((item) => (
+        <li key={item.to}>
+          <NavLink to={item.to} className={linkClasses} onClick={onNavigate} title={item.hint}>
+            {({ isActive }) => (
+              <>
+                <ActiveMarker isActive={isActive} />
+                <span aria-hidden="true" className="w-4 text-center text-xs opacity-80">
+                  {item.icon}
+                </span>
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.to === '/signals' && unacknowledgedCount > 0 ? (
+                  <span
+                    className="rounded-full bg-severity-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+                    aria-label={`${unacknowledgedCount} alerts awaiting acknowledgement`}
+                  >
+                    {unacknowledgedCount}
+                  </span>
+                ) : null}
+              </>
+            )}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The analyst workflow first (Overview, Surveillance, Action), then System:
+ * the technical pages, kept out of the way in a disclosure that opens by
+ * itself on a System page. The grouping is organisational only; nothing in
+ * System is access-controlled.
+ */
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { currentDay, signalScore, unacknowledgedCount } = useSimulation();
   const { source } = useDataSourceContext();
-  // Grouped by mode, so the frozen classroom demonstration, the API capstone
-  // features and the SMART sandbox are never mixed up. Local mode (the public
-  // GitHub Pages site) shows no API or SMART entries.
-  const groups: { heading: string | null; items: NavItem[] }[] = [
-    { heading: null, items: OVERVIEW_NAV },
-    { heading: 'Classroom Demo', items: PRIMARY_NAV },
-    ...(source.mode === 'api' ? [{ heading: 'API Capstone', items: API_MODE_NAV }] : []),
-    ...(SMART_ENABLED ? [{ heading: 'SMART Sandbox', items: SMART_NAV }] : []),
-    { heading: 'Reference', items: REFERENCE_NAV },
-  ];
+  const { pathname } = useLocation();
+  const onSystemPage = isSystemPath(pathname);
+  const [systemOpen, setSystemOpen] = useState(onSystemPage);
+  const systemId = useId();
+  const system = systemItems(source.mode, SMART_ENABLED);
+
+  // Arriving on a System page (by link or address) shows where it lives.
+  useEffect(() => {
+    if (onSystemPage) setSystemOpen(true);
+  }, [onSystemPage]);
 
   return (
     <nav
@@ -84,7 +102,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="mx-5 mb-4 rounded-lg bg-white/5 px-3 py-2.5">
+      <div className="mx-5 mb-2 rounded-lg bg-white/5 px-3 py-2.5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">
           Simulation Day
         </p>
@@ -97,40 +115,35 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4">
-        {groups.map((group) => (
-          <div key={group.heading ?? 'overview'} className={group.heading ? 'mt-4' : undefined}>
-            {group.heading ? (
-              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">
-                {group.heading}
-              </p>
-            ) : null}
-            <ul className="space-y-0.5">
-              {group.items.map((item) => (
-                <li key={item.to}>
-                  <NavLink to={item.to} className={linkClasses} onClick={onNavigate}>
-                    {({ isActive }) => (
-                      <>
-                        <ActiveMarker isActive={isActive} />
-                        <span aria-hidden="true" className="w-4 text-center text-xs opacity-80">
-                          {item.icon}
-                        </span>
-                        <span className="flex-1 truncate">{item.label}</span>
-                        {item.label === 'Signals' && unacknowledgedCount > 0 ? (
-                          <span
-                            className="rounded-full bg-severity-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
-                            aria-label={`${unacknowledgedCount} alerts awaiting acknowledgement`}
-                          >
-                            {unacknowledgedCount}
-                          </span>
-                        ) : null}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+        {ANALYST_SECTIONS.map((section) => (
+          <div key={section.heading} role="group" aria-label={section.heading} className="mt-3">
+            <p aria-hidden="true" className={headingClasses}>
+              {section.heading}
+            </p>
+            <NavItems items={section.items} onNavigate={onNavigate} unacknowledgedCount={unacknowledgedCount} />
           </div>
         ))}
+
+        <div role="group" aria-label={SYSTEM_HEADING} className="mt-4 border-t border-white/10 pt-3">
+          <button
+            type="button"
+            onClick={() => setSystemOpen((open) => !open)}
+            aria-expanded={systemOpen}
+            aria-controls={systemId}
+            className="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60 hover:bg-white/5 hover:text-white/90"
+          >
+            {SYSTEM_HEADING}
+            <span aria-hidden="true" className={`text-xs transition-transform ${systemOpen ? 'rotate-90' : ''}`}>
+              ›
+            </span>
+          </button>
+          <div id={systemId} hidden={!systemOpen}>
+            <p className="px-3 pb-1.5 text-[11px] leading-snug text-white/60">
+              Technical pages. Organised apart from the analyst workflow; not access-controlled.
+            </p>
+            <NavItems items={system} onNavigate={onNavigate} unacknowledgedCount={0} />
+          </div>
+        </div>
       </div>
 
       <div className="border-t border-white/10 px-5 py-4">

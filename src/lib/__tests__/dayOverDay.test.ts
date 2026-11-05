@@ -52,8 +52,8 @@ describe('Day 4 to Day 5', () => {
   });
 
   it('reports no change for facilities and geography', () => {
-    expect(find(5, 'Affected hospitals')?.delta).toBe('No change');
-    expect(find(5, 'Affected hospitals')?.direction).toBe('none');
+    expect(find(5, 'Affected facilities')?.delta).toBe('No change');
+    expect(find(5, 'Affected facilities')?.direction).toBe('none');
     expect(find(5, 'Affected geographic areas')?.delta).toBe('No change');
   });
 
@@ -119,14 +119,14 @@ describe('every comparable day', () => {
 describe('Day 2 and Day 3 specifics', () => {
   it('Day 2 notes the first affected facility and area', () => {
     const comparison = getDayOverDayComparison(2);
-    expect(find(2, 'Affected hospitals')?.delta).toBe('+1');
+    expect(find(2, 'Affected facilities')?.delta).toBe('+1');
     expect(find(2, 'Affected geographic areas')?.delta).toBe('+1');
     expect(comparison.explanation).toMatch(/more facilities became affected/i);
   });
 
   it('Day 3 notes a second facility joining', () => {
-    expect(find(3, 'Affected hospitals')?.previous).toBe('1');
-    expect(find(3, 'Affected hospitals')?.current).toBe('2');
+    expect(find(3, 'Affected facilities')?.previous).toBe('1');
+    expect(find(3, 'Affected facilities')?.current).toBe('2');
     expect(find(3, 'Persistence')?.delta).toBe('+1 day');
   });
 });

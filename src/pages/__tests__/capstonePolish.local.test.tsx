@@ -45,14 +45,21 @@ const renderAt = (path: string) =>
 const topBar = () => screen.getAllByRole('banner').find((el) => el.tagName === 'HEADER' && el.querySelector('[data-mode]')) as HTMLElement;
 
 describe('mode labelling', () => {
-  it('names the Classroom Demo on frozen demonstration screens, with the Day 1-5 controls', async () => {
+  it('names the Classroom Demo on frozen demonstration screens, with the Day 1-5 controls and no implementation label', async () => {
     // (The dashboard's Leaflet map cannot render in jsdom; any classroom route shows the same top bar.)
     renderAt('/reports');
     await screen.findByRole('button', { name: 'Next simulation day' });
     const bar = topBar();
     expect(bar.querySelector('[data-mode]')?.getAttribute('data-mode')).toBe('classroom');
     expect(within(bar).getByText('Classroom Demo')).toBeTruthy();
-    expect(within(bar).getByText('Local Demo Mode')).toBeTruthy();
+    // Local vs API is an implementation detail: not on analyst screens.
+    expect(within(bar).queryByText('Local Demo Mode')).toBeNull();
+  });
+
+  it('shows the data source only on System pages', async () => {
+    renderAt('/overview');
+    await screen.findByRole('heading', { name: 'Laboratory-First Public Health Early Warning' });
+    expect(within(topBar()).getByText('Local Demo Mode')).toBeTruthy();
   });
 
   it('names the mode instead of the classroom controls elsewhere', async () => {
@@ -64,16 +71,19 @@ describe('mode labelling', () => {
     expect(within(bar).queryByText('/100')).toBeNull();
   });
 
-  it('groups the navigation by mode, with no API or SMART entries in local mode', async () => {
+  it('groups the navigation by the analyst workflow, with technical pages under System and no API or SMART entries in local mode', async () => {
     renderAt('/reports');
     await screen.findByRole('button', { name: 'Next simulation day' });
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
-    expect(nav.textContent).toContain('Capstone Overview');
-    expect(nav.textContent).toContain('Classroom Demo');
-    expect(nav.textContent).toContain('Reference');
-    expect(nav.textContent).not.toContain('API Capstone');
-    expect(nav.textContent).not.toContain('FHIR Ingestion');
-    expect(nav.textContent).not.toContain('SMART Sandbox');
+    for (const group of ['Overview', 'Surveillance', 'Action', 'System']) {
+      expect(within(nav).getByRole('group', { name: group })).toBeTruthy();
+    }
+    const system = within(nav).getByRole('group', { name: 'System' });
+    expect(system.textContent).toContain('Architecture');
+    expect(system.textContent).toContain('Project Overview');
+    for (const label of ['Classroom Demo', 'API Capstone', 'Capstone Overview', 'Reference', 'FHIR Ingestion', 'Data Ingestion', 'SMART Sandbox', 'Integration Testing', 'Hospitals']) {
+      expect(nav.textContent).not.toContain(label);
+    }
   });
 });
 

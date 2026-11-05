@@ -172,7 +172,7 @@ describe('Ask Roella', () => {
   it('opens as Roella, focuses the input and offers suggestions', async () => {
     const { panel } = await open();
     expect(within(panel).getByRole('heading', { name: /Roella/ })).toBeTruthy();
-    expect(within(panel).getByText('ProbeSyQ Intelligence Assistant')).toBeTruthy();
+    expect(within(panel).getByText('ProbeSyQ AI Assistant')).toBeTruthy();
     expect(within(panel).getByText(/Ask about active signals, trends, facilities, geography, analytics, or how ProbeSyQ Signal works\./)).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByLabelText('Ask Roella a question'));
     expect(within(panel).getByText('Suggested questions')).toBeTruthy();

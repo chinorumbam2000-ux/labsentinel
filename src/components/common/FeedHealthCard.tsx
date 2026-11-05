@@ -3,7 +3,7 @@ import { formatSimulationDateTime } from '../../lib/format';
 import { formatMinutesAgo } from '../../lib/dataConfidence';
 import { FEED_HEALTH_DISCLAIMER } from '../../data/feedHealth';
 
-const STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string }> = {
+export const FEED_STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string }> = {
   HEALTHY: {
     badge: 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/25',
     dot: 'bg-severity-low',
@@ -71,7 +71,7 @@ export default function FeedHealthCard({
 
       <ul className="divide-y divide-hairline">
         {feeds.map((feed) => {
-          const styles = STATUS_STYLES[feed.status];
+          const styles = FEED_STATUS_STYLES[feed.status];
           return (
             <li key={feed.hospitalId} className="px-5 py-3.5">
               <div className="flex flex-wrap items-start justify-between gap-2">

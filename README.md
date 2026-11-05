@@ -406,22 +406,42 @@ banner.
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
 | `/signals` | Signals & Alerts | Alert table, acknowledgement, Signal Investigation breakdown, Why This Signal, human-in-the-loop investigation workflow |
-| `/hospitals` | Hospitals | Per-facility dashboards, feed health, data confidence, FHIR/interoperability status and the vendor sidecar demonstration |
+| `/facilities` | Facilities | Facility status (reporting, freshness, completeness, LOINC mapping, signal contribution), the selected facility's dashboard, data confidence and feed health, the clinician sidecar demonstration, and collapsed integration details. `/hospitals` (its former address) redirects here |
+| `/investigations` | Investigations | Every detected signal with its review and report status; each opens its investigation on Signals |
 | `/analytics` | Analytics | Trends — test volume, positivity, signal score, geographic spread, each on its own scale |
 | `/simulation` | Simulation | Full five-day simulation controls and the day-by-day progression |
 | `/reports` | Reports | Simulated public-health reporting workflow and its audit timeline |
-| `/architecture` | Architecture | Current and future architecture, multi-source hooks, federated concept, status legend |
-| `/overview` | Capstone Overview | Workflow, links to every mode, key disclaimers, Presentation Mode, and (API mode, development) the readiness checklist |
-| `/fhir-ingestion` | FHIR Ingestion (API mode) | Synthetic FHIR ingestion, pipeline steps, source vs normalized record |
-| `/dynamic-surveillance` | Dynamic Surveillance (API mode) | Signals from stored observations, EWMA, CUSUM and the Three-Method Comparison |
-| `/evaluation` | Capstone Evaluation (API mode) | Synthetic scenarios, detector results, tradeoffs, robustness, CDC/WHO attributes |
-| `/smart-demo`, `/smart/sidecar` | SMART Sandbox (`VITE_SMART_ENABLED=true`) | SMART App Launch against the public sandbox and the clinical sidecar |
+| `/architecture` | System → Architecture | Current and future architecture, multi-source hooks, federated concept, status legend |
+| `/overview` | System → Project Overview | Workflow, links to every mode, key disclaimers, Presentation Mode, and (API mode, development) the readiness checklist |
+| `/fhir-ingestion` | System → Data Ingestion (API mode) | Synthetic FHIR ingestion, pipeline steps, source vs normalized record |
+| `/dynamic-surveillance` | System → Detection Methods (API mode) | Signals from stored observations, EWMA, CUSUM and the Three-Method Comparison |
+| `/evaluation` | System → Validation (API mode) | Synthetic scenarios, detector results, tradeoffs, robustness, CDC/WHO attributes |
+| `/smart-demo`, `/smart/sidecar` | System → Integration Testing: SMART Sandbox (`VITE_SMART_ENABLED=true`) | SMART App Launch against the public sandbox and the clinical sidecar |
 
 `/index.html` redirects to `/dashboard`. Any unknown path renders an in-app 404
 with a link back to the dashboard.
 
 Routes are served from the GitHub Pages sub-path `/labsentinel/`, so the live
 URLs are `https://chinorumbam2000-ux.github.io/labsentinel/dashboard` and so on.
+
+### Navigation
+
+The sidebar follows the Public Health Analyst's workflow: **Overview**
+(Dashboard, Simulation), **Surveillance** (Outbreak Map, Signals, Facilities,
+Laboratory Data, Analytics) and **Action** (Investigations, Reports). Technical
+pages sit under **System**, a collapsed group at the bottom: Data Ingestion
+(FHIR), Detection Methods (dynamic surveillance, EWMA, CUSUM), Integration
+Testing (SMART sandbox), Validation, Architecture and Project Overview. The
+grouping is organisational only; there is no role-based access control. Pages
+that need the API or the SMART build flag are listed only in builds that have
+them, and the Local/API data-source indicator appears only on System pages.
+
+On Detection Methods, a **Statistical confirmation** summary shows whether EWMA
+and CUSUM indicate elevated activity for the selected date, beside (never
+combined with) the Composite Outbreak Signal Score. Formulas, parameters
+(λ, k, h), control limits and reference periods are behind **View method
+details**. EWMA and CUSUM need a 28-day reference period, so they do not apply
+to the five-day replay.
 
 ### Ask Roella
 

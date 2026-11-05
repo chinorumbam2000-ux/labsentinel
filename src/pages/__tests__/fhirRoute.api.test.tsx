@@ -53,7 +53,8 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
     const heading = await screen.findByRole('heading', { name: 'FHIR Laboratory Ingestion' }, { timeout: 5000 });
     expect(heading).toBeTruthy();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
-    expect(within(nav).getByRole('link', { name: /FHIR Ingestion/ })).toBeTruthy();
+    // Under System, which opens by itself on a System page.
+    expect(within(within(nav).getByRole('group', { name: 'System' })).getByRole('link', { name: /Data Ingestion/ })).toBeTruthy();
     expect(await screen.findByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeTruthy();
     expect(screen.queryByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.')).toBeNull();
   });
@@ -67,8 +68,9 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
 
     expect(await screen.findByRole('heading', { name: 'Why this dynamic signal?' }, { timeout: 5000 })).toBeTruthy();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
-    expect(within(nav).getByRole('link', { name: /Dynamic Surveillance/ })).toBeTruthy();
-    expect(within(nav).getByRole('link', { name: /Capstone Evaluation/ }).getAttribute('href')).toBe('/evaluation');
+    const system = within(nav).getByRole('group', { name: 'System' });
+    expect(within(system).getByRole('link', { name: /Detection Methods/ }).getAttribute('href')).toBe('/dynamic-surveillance');
+    expect(within(system).getByRole('link', { name: /Validation/ }).getAttribute('href')).toBe('/evaluation');
     expect(screen.queryByText('Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.')).toBeNull();
   });
 });

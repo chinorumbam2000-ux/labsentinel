@@ -153,7 +153,7 @@ export default function DataConfidenceCard({
       ) : null}
 
       <p className="mt-3 text-[11px] leading-snug text-muted">
-        {CONFIDENCE_DISCLAIMER} It describes data quality only — it is separate from the
+        {CONFIDENCE_DISCLAIMER} It describes how far the data can be trusted — it never changes the
         Composite Outbreak Signal Score.
       </p>
     </section>

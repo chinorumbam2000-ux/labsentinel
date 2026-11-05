@@ -43,11 +43,12 @@ export default function DataSourceIndicator() {
       disabled={checkingHealth}
       className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-2.5 py-1 text-[11px] font-medium text-ink hover:bg-canvas disabled:cursor-progress"
       title={`API capstone mode · ${source.label} · ${detail}${checked}. Click to re-check.`}
-      aria-label={`Data source: ${detail}. Re-check connection.`}
     >
-      <span className="text-muted">API Capstone</span>
+      {/* The accessible name is this content: the visible words, then the detail for screen readers. */}
+      <span className="text-muted">API Capstone</span>{' '}
       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       <span>{state}</span>
+      <span className="sr-only">: {detail}. Re-check connection.</span>
     </button>
   );
 }

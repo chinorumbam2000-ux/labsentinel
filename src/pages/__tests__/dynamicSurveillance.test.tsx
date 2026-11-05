@@ -381,3 +381,39 @@ describe('CUSUM and the three-method comparison — API Capstone Mode', () => {
     expect(await screen.findByText('CUSUM has not been calculated yet')).toBeTruthy();
   });
 });
+
+describe('Detection Methods — the analyst presentation', () => {
+  it('summarises statistical confirmation from the stored results, with the Composite kept separate', async () => {
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Statistical confirmation' }, { timeout: 5000 });
+    const card = heading.closest('section')!;
+    // Recorded comparison for the selected date: EWMA and CUSUM both at Statistical Alert.
+    expect(within(card).getByText('2 of 2 statistical methods indicate elevated activity.')).toBeTruthy();
+    expect(within(card).getByText('EWMA')).toBeTruthy();
+    expect(within(card).getByText('CUSUM')).toBeTruthy();
+    expect(within(card).getAllByText('Statistical Alert')).toHaveLength(2);
+    expect(within(card).getByText('Operational signal')).toBeTruthy();
+    expect(within(card).getByText('Composite Outbreak Signal Score')).toBeTruthy();
+    expect(within(card).getByText(/never combined\s+with it into one score/)).toBeTruthy();
+  });
+
+  it('keeps every formula and parameter, behind "View method details"', async () => {
+    renderPage();
+    await screen.findByRole('heading', { name: 'CUSUM Surveillance' }, { timeout: 5000 });
+    const insideDetails = (text: string | RegExp) => {
+      const nodes = screen.getAllByText(text);
+      expect(nodes.length).toBeGreaterThan(0);
+      for (const node of nodes) expect(node.closest('details'), String(text)).not.toBeNull();
+    };
+    for (const label of ['Lambda · k', 'Upper control limit', 'Warning limit', 'Decision limit h', 'Reference value k', 'Standardized deviation (z)']) {
+      insideDetails(label);
+    }
+    insideDetails(/^Formula: /);
+    for (const details of document.querySelectorAll('details')) expect(details.open).toBe(false);
+    expect(screen.getAllByText('View method details').length).toBeGreaterThan(0);
+    // The analyst-level facts stay in view.
+    for (const label of ['Observed', 'Observed today', 'Crossed the limit?']) {
+      expect(screen.getAllByText(label, { selector: 'dt' }).some((node) => node.closest('details') === null)).toBe(true);
+    }
+  });
+});
