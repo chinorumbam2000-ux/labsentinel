@@ -95,16 +95,50 @@ describe('Scenario Replay routes', () => {
 });
 
 describe('simulated-data disclosure', () => {
-  it.each(ANALYST_ROUTES)('%s says the data is simulated where it is read', async (path) => {
+  it.each(ANALYST_ROUTES)('%s says once, beside the replay controls, that the data is simulated', async (path) => {
     renderAt(path);
     await screen.findByRole('heading', { level: 1 });
-    // The persistent banner, the replay indicator beside the day controls, and the sidebar note.
-    expect(screen.getByText('Simulated surveillance data.')).toBeTruthy();
+    // The Scenario Replay indicator is the disclosure, with a link to the full limitations.
     expect(within(topBar()).getByText('Scenario Replay')).toBeTruthy();
     expect(within(topBar()).getByText('Simulated surveillance data')).toBeTruthy();
+    expect(within(topBar()).getByRole('link', { name: 'About replay data' }).getAttribute('href')).toBe('/overview#about-the-data');
+    // No persistent banner, and no repeated warning block in the sidebar.
+    expect(screen.queryByText('Simulated surveillance data.')).toBeNull();
+    expect((document.body.textContent ?? '').match(/Simulated surveillance data/g)).toHaveLength(1);
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
-    expect(nav.textContent).toContain('Not validated for clinical or public-health decisions.');
-    expect(within(nav).getByRole('link', { name: 'About this data' }).getAttribute('href')).toBe('/overview');
+    expect(nav.textContent).not.toMatch(/Not validated|Simulated data|Demo Environment|Classroom Demo/);
+    expect(within(nav).getByRole('link', { name: 'About this data' }).getAttribute('href')).toBe('/overview#about-the-data');
+  });
+
+  it('keeps the full simulated-data banner and technical terms on System pages', async () => {
+    renderAt('/fhir-ingestion');
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.getByText('Simulated surveillance data.')).toBeTruthy();
+    expect(screen.getByText(/All facilities, patients, laboratory observations and vendor environments are\s+fictional/)).toBeTruthy();
+    // Technical wording is allowed here.
+    expect(document.body.textContent).toContain('API Capstone Mode');
+    expect(within(topBar()).getByText('Local Demo Mode')).toBeTruthy();
+  });
+
+  it('lands "About this data" on the limitations, which still say the data is synthetic and not validated', async () => {
+    renderAt('/overview#about-the-data');
+    const heading = await screen.findByRole('heading', { name: 'About this data' });
+    const card = heading.closest('section') as HTMLElement;
+    expect(card.id).toBe('about-the-data');
+    expect(card.textContent).toContain('Synthetic data only. No real patient data.');
+    expect(card.textContent).toMatch(/not validated for public-health decisions/);
+  });
+
+  it('keeps score and method notes one click away, with their text unchanged', async () => {
+    renderAt('/signals');
+    await screen.findByRole('heading', { level: 1 });
+    const note = screen.getAllByText(/illustrative, non-validated demonstration model/)[0];
+    const details = note.closest('details') as HTMLDetailsElement;
+    expect(details).not.toBeNull();
+    expect(details.open).toBe(false);
+    expect(within(details).getByText('About this score')).toBeTruthy();
+    // The operational warning stays in view.
+    expect(screen.getByText('Early-warning signal — not a confirmed outbreak. Epidemiological review required.').closest('details')).toBeNull();
   });
 
   it('keeps the simulated feed telemetry label on Facilities', async () => {
@@ -117,7 +151,8 @@ describe('simulated-data disclosure', () => {
 
 describe('analyst pages use product language', () => {
   const CLASSROOM = ['Classroom', 'classroom', 'Simulation Day', 'Simulation date', 'simulation day', 'Session updated', 'Session clock',
-    'session clock', 'Demo Environment', 'DEMO ENVIRONMENT', 'Capstone', 'capstone', 'Respiratory Outbreak Simulation', 'Reset Simulation'];
+    'session clock', 'Demo Environment', 'DEMO ENVIRONMENT', 'Capstone', 'capstone', 'Respiratory Outbreak Simulation', 'Reset Simulation',
+    'API Capstone', 'Local Demo Mode', 'Synthetic data only', 'Demo User', 'simulation time'];
 
   it.each(ANALYST_ROUTES)('%s', async (path) => {
     renderAt(path);

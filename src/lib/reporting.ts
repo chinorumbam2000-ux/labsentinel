@@ -33,7 +33,7 @@ export const REPORTING_DISCLAIMER =
   'Simulated reporting — no information is transmitted to any public-health authority.';
 
 export const REPORTING_SCOPE_NOTE =
-  'This prototype does not implement electronic case reporting (eCR), electronic laboratory reporting (ELR), or any connection to a state health department, the CDC or the WHO. Nothing leaves this browser.';
+  'ProbeSyQ Signal does not currently implement electronic case reporting (eCR), electronic laboratory reporting (ELR), or any connection to a state health department, the CDC or the WHO. Nothing leaves this browser.';
 
 interface ReportActionDefinition {
   action: ReportAction;

@@ -18,6 +18,7 @@ import DataConfidenceCard from '../common/DataConfidenceCard';
 import FeedHealthCard from '../common/FeedHealthCard';
 import DayOverDayChange from '../common/DayOverDayChange';
 import InvestigationWorkflowPanel from './InvestigationWorkflowPanel';
+import MethodNote from '../common/MethodNote';
 
 export type InvestigationMode = 'detection' | 'current';
 
@@ -353,7 +354,7 @@ export default function SignalInvestigation({
 
       <div className="ls-card border-l-4 border-l-severity-critical p-5">
         <p className="text-sm font-semibold text-ink">{SIGNAL_DISCLAIMER}</p>
-        <p className="mt-2 text-xs leading-relaxed text-muted">{SCORE_DISCLAIMER_TEXT}</p>
+        <MethodNote className="mt-2">{SCORE_DISCLAIMER_TEXT}</MethodNote>
       </div>
     </div>
   );

@@ -146,17 +146,14 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="border-t border-white/10 px-5 py-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-severity-watch">
-          Simulated data
-        </p>
-        <p className="mt-1 text-[11px] leading-snug text-white/60">
-          Fictional facilities, patients and observations. Not validated for clinical or public-health
-          decisions.{' '}
-          <NavLink to="/overview" onClick={onNavigate} className="font-medium text-white/80 underline underline-offset-2 hover:text-white">
-            About this data
-          </NavLink>
-        </p>
+      <div className="border-t border-white/10 px-5 py-3">
+        <NavLink
+          to="/overview#about-the-data"
+          onClick={onNavigate}
+          className="text-[11px] font-medium text-white/70 underline underline-offset-2 hover:text-white"
+        >
+          About this data
+        </NavLink>
       </div>
     </nav>
   );

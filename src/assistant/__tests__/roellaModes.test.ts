@@ -117,6 +117,9 @@ describe('Roella identity', () => {
     expect(intro.intent).toBe('greeting');
     expect(intro.text).toContain('Roella, the ProbeSyQ intelligence assistant');
     expect(ask('What is Roella?', local()).text).toContain('Roella');
+    const about = ask('What is ProbeSyQ Signal?', local()).text;
+    expect(about).toContain('outbreak intelligence and laboratory surveillance application from ProbeSyQ');
+    expect(about).not.toMatch(/prototype|classroom|capstone/i);
   });
 
   it('still recognises the legacy product name', () => {

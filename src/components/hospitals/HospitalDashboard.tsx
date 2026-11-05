@@ -69,7 +69,7 @@ export default function HospitalDashboard({
     {
       label: 'Surveillance date',
       value: formatSimulationDate(getScenario(currentDay).simulationDate),
-      note: `Replay Day ${currentDay} · simulated data`,
+      note: `Replay Day ${currentDay}`,
     },
   ];
 

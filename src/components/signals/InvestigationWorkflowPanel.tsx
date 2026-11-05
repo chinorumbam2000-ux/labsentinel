@@ -250,7 +250,7 @@ export default function InvestigationWorkflowPanel({
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-ink">{event.note}</p>
                 <p className="mt-1 text-[11px] text-muted">
-                  {formatSimulationDateTime(event.simulationAt)} (simulation time)
+                  {formatSimulationDateTime(event.simulationAt)} (scenario time)
                 </p>
               </li>
             ))}

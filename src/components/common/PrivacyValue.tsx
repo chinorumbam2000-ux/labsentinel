@@ -1,5 +1,6 @@
 import type { PrivacyResult } from '../../types';
 import { PRIVACY_DISCLAIMER, PRIVACY_TOOLTIP } from '../../lib/geographicPrivacy';
+import MethodNote from './MethodNote';
 
 /**
  * Renders a geographic count that may have been suppressed.
@@ -38,9 +39,10 @@ export function PrivacyValue({
 /** The standing explanation of the rule, for use under a table or panel. */
 export function PrivacyNote({ className = '' }: { className?: string }) {
   return (
-    <p className={`text-[11px] leading-snug text-muted ${className}`}>
-      {PRIVACY_TOOLTIP} {PRIVACY_DISCLAIMER}
-    </p>
+    <div className={className}>
+      <p className="text-[11px] leading-snug text-muted">{PRIVACY_TOOLTIP}</p>
+      <MethodNote label="About this privacy rule" className="mt-1">{PRIVACY_DISCLAIMER}</MethodNote>
+    </div>
   );
 }
 

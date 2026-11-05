@@ -13,6 +13,7 @@ import { SCORE_DISCLAIMER_TEXT } from '../lib/brand';
 import { formatPercent, formatSimulationDateTime } from '../lib/format';
 import { findDetection } from '../lib/alerts';
 import { useNavigate } from 'react-router-dom';
+import MethodNote from '../components/common/MethodNote';
 
 /**
  * Investigation context lives in the URL:
@@ -308,7 +309,7 @@ export default function SignalsPage() {
 
       <div className="ls-card border-l-4 border-l-severity-critical p-5">
         <p className="text-sm font-semibold text-ink">{SIGNAL_DISCLAIMER}</p>
-        <p className="mt-2 text-xs leading-relaxed text-muted">{SCORE_DISCLAIMER_TEXT}</p>
+        <MethodNote className="mt-2">{SCORE_DISCLAIMER_TEXT}</MethodNote>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import type { FacilityFeedHealth, FeedStatus } from '../../types';
 import { formatSimulationDateTime } from '../../lib/format';
 import { formatMinutesAgo } from '../../lib/dataConfidence';
 import { FEED_HEALTH_DISCLAIMER } from '../../data/feedHealth';
+import MethodNote from './MethodNote';
 
 export const FEED_STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string }> = {
   HEALTHY: {
@@ -139,7 +140,7 @@ export default function FeedHealthCard({
                   ) : null}
 
                   <p className="mt-1.5 text-[11px] text-muted">
-                    Last event at {formatSimulationDateTime(feed.lastEventAt)} (simulation
+                    Last event at {formatSimulationDateTime(feed.lastEventAt)} (scenario
                     time)
                   </p>
                 </>
@@ -153,10 +154,12 @@ export default function FeedHealthCard({
         })}
       </ul>
 
-      <p className="border-t border-hairline px-5 py-3 text-[11px] leading-snug text-muted">
-        Simulated feed telemetry — no live interface is monitored.{' '}
-        {FEED_HEALTH_DISCLAIMER}
-      </p>
+      <div className="border-t border-hairline px-5 py-3">
+        <p className="text-[11px] leading-snug text-muted">
+          Simulated feed telemetry — no live interface is monitored.
+        </p>
+        <MethodNote label="About this telemetry" className="mt-1">{FEED_HEALTH_DISCLAIMER}</MethodNote>
+      </div>
     </section>
   );
 }

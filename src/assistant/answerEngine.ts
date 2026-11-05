@@ -417,7 +417,7 @@ const observations = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer
 const privacy = (ctx: AssistantContext): AssistantAnswer => {
   const f = factsFor(ctx.day, ctx);
   return answer('privacy', [
-    text(`To protect privacy, an area's count is shown only when it reaches ${MINIMUM_DISPLAY_COUNT}; smaller counts appear as "<${MINIMUM_DISPLAY_COUNT}" and are rolled up to county level. This is an illustrative prototype rule, not an official legal threshold.`),
+    text(`To protect privacy, an area's count is shown only when it reaches ${MINIMUM_DISPLAY_COUNT}; smaller counts appear as "<${MINIMUM_DISPLAY_COUNT}" and are rolled up to county level. This is an illustrative rule, not an official legal threshold.`),
     text(`Day ${f.day}: ${f.disclosure}`),
   ], ['Which ZIP codes are affected?']);
 };

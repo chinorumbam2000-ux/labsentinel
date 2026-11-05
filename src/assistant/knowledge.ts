@@ -15,7 +15,7 @@ import type { AssistantRoute, DataMode } from './types';
 export const PRODUCT = {
   name: 'ProbeSyQ Signal',
   what:
-    'ProbeSyQ Signal is a vendor-agnostic outbreak intelligence and laboratory surveillance prototype from ProbeSyQ (Healthcare Technology Systems). It turns routine laboratory results into early-warning public-health signals.',
+    'ProbeSyQ Signal is a vendor-agnostic outbreak intelligence and laboratory surveillance application from ProbeSyQ (Healthcare Technology Systems). It turns routine laboratory results into early-warning public-health signals.',
   who: 'It is built for public health analysts and related surveillance users.',
   workflow: [
     'Laboratory signals',

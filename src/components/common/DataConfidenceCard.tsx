@@ -1,5 +1,6 @@
 import type { ConfidenceLevel, DataConfidenceResult } from '../../types';
 import { CONFIDENCE_DISCLAIMER, formatMinutesAgo } from '../../lib/dataConfidence';
+import MethodNote from './MethodNote';
 
 /**
  * Data Confidence — how trustworthy the data is.
@@ -153,9 +154,10 @@ export default function DataConfidenceCard({
       ) : null}
 
       <p className="mt-3 text-[11px] leading-snug text-muted">
-        {CONFIDENCE_DISCLAIMER} It describes how far the data can be trusted — it never changes the
-        Composite Outbreak Signal Score.
+        It describes how far the data can be trusted — it never changes the Composite Outbreak Signal
+        Score.
       </p>
+      <MethodNote label="About this measure" className="mt-1.5">{CONFIDENCE_DISCLAIMER}</MethodNote>
     </section>
   );
 }

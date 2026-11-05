@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDemoSession } from '../../context/DemoSessionContext';
 import { DEMO_ROLE, FALLBACK_INITIALS, FALLBACK_NAME, initialsFor } from '../../lib/demoSession';
@@ -96,7 +96,14 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             </button>
           </div>
 
-          <ModeChip mode="classroom" withDescription />
+          {/* The one statement, on every analyst page, that the replay's data is simulated. */}
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <ModeChip mode="classroom" />
+            <span className="text-xs text-muted">Simulated surveillance data</span>
+            <Link to="/overview#about-the-data" className="text-xs font-medium text-brand hover:underline">
+              About replay data
+            </Link>
+          </div>
         </>
       ) : (
         <div className="flex min-w-0 items-center">

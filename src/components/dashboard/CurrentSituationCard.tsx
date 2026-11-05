@@ -2,6 +2,8 @@ import type { ConfidenceLevel, DataConfidenceResult, SignalScoreResult } from '.
 import { SEVERITY_STYLES, formatSimulationDate } from '../../lib/format';
 import { CONFIDENCE_DISCLAIMER } from '../../lib/dataConfidence';
 import SeverityBadge from '../signals/SeverityBadge';
+import MethodNote from '../common/MethodNote';
+import { SCORE_DISCLAIMER_TEXT } from '../../lib/brand';
 
 const CONFIDENCE_STYLES: Record<ConfidenceLevel, { badge: string; bar: string }> = {
   'Very High': {
@@ -71,9 +73,9 @@ export default function CurrentSituationCard({
             />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            How concerning the epidemiological signal is. Illustrative model — not validated
-            for clinical or public-health decisions.
+            How concerning the epidemiological signal is.
           </p>
+          <MethodNote className="mt-1.5">{SCORE_DISCLAIMER_TEXT}</MethodNote>
         </div>
 
         {/* Data confidence */}
@@ -97,9 +99,10 @@ export default function CurrentSituationCard({
             />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            How trustworthy the underlying data is. A separate reading —{' '}
-            {CONFIDENCE_DISCLAIMER.toLowerCase()}
+            How trustworthy the underlying data is. A separate reading that never changes the
+            outbreak score.
           </p>
+          <MethodNote label="About this measure" className="mt-1.5">{CONFIDENCE_DISCLAIMER}</MethodNote>
         </div>
       </div>
 
@@ -107,9 +110,6 @@ export default function CurrentSituationCard({
         <p className="text-xs text-muted">
           <span className="font-medium text-ink">Replay Day {day} of 5</span> · {stage} ·
           surveillance date {formatSimulationDate(simulationDate)}
-        </p>
-        <p className="text-xs text-muted">
-          <span className="font-medium text-ink">Scenario Replay</span> · simulated surveillance data
         </p>
       </div>
     </section>

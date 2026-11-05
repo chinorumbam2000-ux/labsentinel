@@ -6,6 +6,7 @@ import { ErrorState } from '../components/common/States';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { SEVERITY_STYLES } from '../lib/format';
 import { SCORE_DISCLAIMER_TEXT, withProductName } from '../lib/brand';
+import MethodNote from '../components/common/MethodNote';
 
 export default function SimulationPage() {
   const {
@@ -283,9 +284,9 @@ export default function SimulationPage() {
             </tbody>
           </table>
         </div>
-        <p className="border-t border-hairline px-4 py-3 text-[11px] leading-snug text-muted">
-          {SCORE_DISCLAIMER_TEXT}
-        </p>
+        <div className="border-t border-hairline px-4 py-3">
+          <MethodNote>{SCORE_DISCLAIMER_TEXT}</MethodNote>
+        </div>
       </Card>
     </div>
   );

@@ -8,9 +8,10 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
 /**
- * Persistent layout: demo banner, dark sidebar, top bar, scrolling workspace.
+ * Persistent layout: dark sidebar, top bar, scrolling workspace, and on System
+ * pages the simulated-data banner (analyst pages state it in the top bar).
  * Only the main region scrolls, so navigation and simulation controls stay put.
- * The top bar names the current mode (Classroom Demo, Dynamic Surveillance,
+ * The top bar names the current mode (Scenario Replay, Detection Methods,
  * ...); the optional presentation step bar sits at the bottom.
  */
 export default function AppShell() {
@@ -31,7 +32,8 @@ export default function AppShell() {
   return (
     <PresentationProvider>
       <div className="ls-shell flex flex-col overflow-hidden bg-canvas">
-        <DemoBanner />
+        {/* Analyst pages carry the Scenario Replay indicator in the top bar instead. */}
+        {mode === 'classroom' ? null : <DemoBanner />}
 
         <div className="flex min-h-0 flex-1">
           <div className="hidden lg:block">

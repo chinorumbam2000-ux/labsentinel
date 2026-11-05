@@ -5,7 +5,7 @@
  * presentation readiness checklist.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Card from '../components/common/Card';
 import StatusBadge from '../components/architecture/StatusBadge';
 import ModeChip from '../components/layout/ModeChip';
@@ -49,6 +49,16 @@ const DESTINATIONS: Destination[] = [
 export default function OverviewPage() {
   const { source } = useDataSourceContext();
   const apiMode = source.mode === 'api';
+  const { hash } = useLocation();
+
+  // "About this data" / "About replay data" links land on #about-the-data. The
+  // shell returns the workspace to the top on every navigation, so this runs
+  // just after it.
+  useEffect(() => {
+    if (!hash) return undefined;
+    const timer = window.setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView?.(), 50);
+    return () => window.clearTimeout(timer);
+  }, [hash]);
 
   const availability = (requires?: 'api' | 'smart'): string | null => {
     if (requires === 'api' && !apiMode) return 'Requires API Capstone Mode (this build shows a notice).';
@@ -121,7 +131,7 @@ export default function OverviewPage() {
       </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card title="Keep in mind">
+        <Card id="about-the-data" title="About this data">
           <ul className="list-disc space-y-1.5 pl-5 text-sm text-ink">
             {KEY_DISCLAIMERS.map((text) => (
               <li key={text}>{text}</li>
