@@ -4,7 +4,7 @@
  * bar with Previous / Next, slightly larger type, and developer details
  * hidden. Every page keeps its normal behaviour.
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 import {
@@ -125,6 +125,23 @@ const requirementNote = (requires: StepRequirement | undefined, apiMode: boolean
 export function PresentationBar() {
   const { active, step, goTo, exit } = usePresentation();
   const { source } = useDataSourceContext();
+  const barRef = useRef<HTMLElement>(null);
+
+  // Publish the bar's height, so Ask Roella (src/index.css) floats above it.
+  useEffect(() => {
+    const bar = barRef.current;
+    const root = document.documentElement;
+    if (!bar) return undefined;
+    const update = () => root.style.setProperty('--ls-presentation-bar', `${bar.offsetHeight}px`);
+    update();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+    observer?.observe(bar);
+    return () => {
+      observer?.disconnect();
+      root.style.removeProperty('--ls-presentation-bar');
+    };
+  }, [active]);
+
   if (!active) return null;
   const current = PRESENTATION_STEPS[step];
   const note = requirementNote(current.requires, source.mode === 'api');
@@ -132,6 +149,7 @@ export function PresentationBar() {
 
   return (
     <section
+      ref={barRef}
       aria-label="Presentation mode"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-white/95 px-4 py-3 shadow-panel backdrop-blur lg:left-64 lg:px-8"
     >

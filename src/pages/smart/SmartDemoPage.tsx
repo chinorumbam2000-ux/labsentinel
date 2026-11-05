@@ -28,7 +28,7 @@ export default function SmartDemoPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-ink">SMART on FHIR Sandbox</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">
-          This demonstration launches LabSentinel using the SMART App Launch standard against synthetic sandbox
+          This demonstration launches ProbeSyQ Signal using the SMART App Launch standard against synthetic sandbox
           FHIR data.
         </p>
       </header>
@@ -113,12 +113,12 @@ function EnabledDemo({ config }: { config: SmartEnabledConfig }) {
           </li>
           <li>Launch Type: Provider EHR Launch; FHIR Version: R4; Client Type: Public; PKCE: Auto.</li>
           <li>Select a synthetic patient (and optionally a provider).</li>
-          <li>Check the App Launch URL is LabSentinel&apos;s launch URL, then press Launch.</li>
-          <li>Sign in and approve on the sandbox screens; LabSentinel opens its SMART Sidecar.</li>
+          <li>Check the App Launch URL is ProbeSyQ Signal&apos;s launch URL, then press Launch.</li>
+          <li>Sign in and approve on the sandbox screens; ProbeSyQ Signal opens its SMART Sidecar.</li>
         </ol>
         <p className="mt-3 text-xs text-muted">
-          The launcher acts as the EHR: it opens LabSentinel with <span className="font-mono">iss</span> and{' '}
-          <span className="font-mono">launch</span>. LabSentinel does not start an EHR launch itself.
+          The launcher acts as the EHR: it opens ProbeSyQ Signal with <span className="font-mono">iss</span> and{' '}
+          <span className="font-mono">launch</span>. ProbeSyQ Signal does not start an EHR launch itself.
         </p>
       </Card>
     </div>
@@ -127,8 +127,8 @@ function EnabledDemo({ config }: { config: SmartEnabledConfig }) {
 
 function Comparison() {
   const rows: Array<[string, string, string, string]> = [
-    ['What it is', 'Product/architecture illustration inside LabSentinel', 'Real SMART App Launch against a public sandbox', 'Registered app in a vendor EHR'],
-    ['Data', 'LabSentinel synthetic dataset', 'Synthetic sandbox FHIR data', 'Real clinical data under agreements'],
+    ['What it is', 'Product/architecture illustration inside ProbeSyQ Signal', 'Real SMART App Launch against a public sandbox', 'Registered app in a vendor EHR'],
+    ['Data', 'ProbeSyQ Signal synthetic dataset', 'Synthetic sandbox FHIR data', 'Real clinical data under agreements'],
     ['Authorization', 'None (simulated)', 'OAuth 2.0 + PKCE, public client', 'Vendor-registered client, production security review'],
     ['Proves', 'The sidecar concept and workflow', 'Standards-based launch and FHIR access', 'Vendor-specific production compatibility'],
     ['Status', 'Implemented', 'Implemented (development)', 'Not started'],

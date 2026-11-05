@@ -95,7 +95,7 @@ def _validate(raw: Any, position: str | None, submission: Submission) -> ParsedR
         submission.issues.append(
             IngestionIssue(
                 IssueCode.UNSUPPORTED_RESOURCE,
-                f"{resource_type} is not ingested by LabSentinel; ignored.",
+                f"{resource_type} is not ingested by ProbeSyQ Signal; ignored.",
                 label,
                 "warning",
             )

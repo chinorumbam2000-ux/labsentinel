@@ -113,7 +113,7 @@ function ConfigurationError({ message }: { message: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas p-6">
       <div role="alert" className="ls-card max-w-lg p-8 text-center">
-        <p className="text-lg font-semibold text-ink">LabSentinel is not configured correctly</p>
+        <p className="text-lg font-semibold text-ink">ProbeSyQ Signal is not configured correctly</p>
         <p className="mt-3 text-sm text-muted">{message}</p>
         <p className="mt-3 text-sm text-muted">
           Build or start the app with <code className="font-mono">VITE_DATA_SOURCE=local</code>{' '}

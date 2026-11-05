@@ -50,7 +50,7 @@ export const fakeBackend = ({ down = false, disabled = false } = {}): FakeBacken
     const method = init?.method ?? 'GET';
     calls.push(`${method} ${path}`);
     if (isDown) throw new TypeError('Failed to fetch');
-    if (path === '/api/health') return json({ status: 'healthy', service: 'LabSentinel API', version: '0.1.0' });
+    if (path === '/api/health') return json({ status: 'healthy', service: 'ProbeSyQ Signal API', version: '0.1.0' });
     if (path === '/api/health/database') return json({ status: 'healthy', database: 'connected' });
     if (disabled && path.startsWith('/api/fhir/')) return json({ detail: 'Not Found' }, 404);
     const dynamic = dynamicReply(path, method, { production: disabled });

@@ -12,7 +12,7 @@ from app.schemas.health import DatabaseHealthResponse, HealthResponse
 
 logger = logging.getLogger(__name__)
 
-SERVICE_NAME = "LabSentinel API"
+SERVICE_NAME = "ProbeSyQ Signal API"
 
 router = APIRouter(prefix="/api/health", tags=["health"])
 

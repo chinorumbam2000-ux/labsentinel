@@ -28,7 +28,7 @@ import { simulationTimestamp } from '../data/simulation';
 import { ACTIVE_HIERARCHY } from '../data/geography';
 
 export const MULTI_SOURCE_NOTE =
-  'The current LabSentinel prototype is laboratory-first. The architecture is designed to support additional surveillance streams in future versions, including emergency-department activity, hospitalization, wastewater and pharmacy signals.';
+  'The current ProbeSyQ Signal prototype is laboratory-first. The architecture is designed to support additional surveillance streams in future versions, including emergency-department activity, hospitalization, wastewater and pharmacy signals.';
 
 /**
  * The stream types the architecture accepts. Only LABORATORY is ACTIVE; the

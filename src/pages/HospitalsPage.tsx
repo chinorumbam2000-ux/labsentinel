@@ -81,7 +81,7 @@ export default function HospitalsPage() {
             Hospitals &amp; Vendor Sidecar
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            The simulated EHR shell changes for every vendor. The LabSentinel sidecar
+            The simulated EHR shell changes for every vendor. The ProbeSyQ Signal sidecar
             inside it does not — it is the same component rendered in all three.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default function HospitalsPage() {
 
                 <div className="mt-5 rounded-lg border border-dashed border-hairline bg-canvas p-4">
                   <p className="text-xs leading-relaxed text-muted">
-                    This panel stands in for the host EHR workspace. LabSentinel is
+                    This panel stands in for the host EHR workspace. ProbeSyQ Signal is
                     embedded beside it as a SMART-on-FHIR style sidecar and receives only
                     normalized, de-identified synthetic Observation resources — never
                     chart content, never patient identifiers beyond the synthetic

@@ -77,7 +77,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex items-center gap-3 px-5 py-5">
         <BrandMark size={36} className="shrink-0" />
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-semibold leading-tight">LabSentinel</p>
+          <p className="truncate text-[15px] font-semibold leading-tight">ProbeSyQ Signal</p>
           <p className="truncate text-[11px] leading-tight text-white/50">
             Outbreak Intelligence
           </p>
@@ -131,24 +131,6 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             </ul>
           </div>
         ))}
-
-        <div className="my-4 border-t border-white/10" />
-
-        <ul className="space-y-0.5">
-          <li>
-            <NavLink to="/" className={linkClasses} onClick={onNavigate} end>
-              {({ isActive }) => (
-                <>
-                  <ActiveMarker isActive={isActive} />
-                  <span aria-hidden="true" className="w-4 text-center text-xs opacity-80">
-                    ⌾
-                  </span>
-                  <span className="flex-1 truncate">About this demo</span>
-                </>
-              )}
-            </NavLink>
-          </li>
-        </ul>
       </div>
 
       <div className="border-t border-white/10 px-5 py-4">

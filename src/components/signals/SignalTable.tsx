@@ -25,7 +25,7 @@ export default function SignalTable({
       <EmptyState
         icon="✓"
         title="No alerts on this simulation day"
-        message="Regional respiratory activity is at the expected baseline, so no LabSentinel alert has been raised. Advance the simulation day to watch alerts appear as the signal develops."
+        message="Regional respiratory activity is at the expected baseline, so no ProbeSyQ Signal alert has been raised. Advance the simulation day to watch alerts appear as the signal develops."
       />
     );
   }

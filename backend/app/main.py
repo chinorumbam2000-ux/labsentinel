@@ -32,13 +32,12 @@ def create_app() -> FastAPI:
     configure_logging()
 
     app = FastAPI(
-        title="LabSentinel API",
+        title="ProbeSyQ Signal API",
         version=__version__,
         description=(
-            "Development backend foundation for the LabSentinel capstone. "
-            "Synthetic data only. FHIR ingestion, SMART on FHIR authentication, "
-            "production security and live healthcare-system connectivity are "
-            "not implemented in this phase."
+            "Development backend for ProbeSyQ Signal (internal name: LabSentinel). "
+            "Synthetic data only. Production security and live healthcare-system "
+            "connectivity are not implemented."
         ),
     )
 

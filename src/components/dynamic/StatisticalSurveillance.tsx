@@ -98,7 +98,7 @@ function DetectionComparison({ day, signal }: { day: EwmaDay; signal: DynamicSig
     <Card title="Detection Comparison" subtitle="Two independent methods, shown side by side. They are never combined into one number." bodyClassName="p-0">
       <div className="grid gap-px bg-hairline sm:grid-cols-2">
         <div className="bg-white px-5 py-4">
-          <p className="ls-label">LabSentinel Composite Signal</p>
+          <p className="ls-label">ProbeSyQ Signal Composite</p>
           {signal.composite_score === null || !signal.severity ? (
             <p className="mt-2 text-sm text-muted">Not calculated for this date.</p>
           ) : (

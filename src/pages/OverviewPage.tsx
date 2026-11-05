@@ -59,12 +59,12 @@ export default function OverviewPage() {
   return (
     <div className="space-y-5">
       <header>
-        <p className="ls-label">LabSentinel</p>
+        <p className="ls-label">ProbeSyQ Signal</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
           Laboratory-First Public Health Early Warning
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
-          Laboratory results often arrive before case reports. LabSentinel turns routine, standards-based
+          Laboratory results often arrive before case reports. ProbeSyQ Signal turns routine, standards-based
           laboratory data into early, explainable and privacy-aware outbreak signals for public-health teams, and
           sends context back to clinicians through SMART on FHIR. A capstone prototype on synthetic data.
         </p>

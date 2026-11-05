@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BrandMark from '../common/BrandMark';
 import type {
   DataConfidenceResult,
   FacilityFeedHealth,
@@ -88,19 +89,14 @@ export default function VendorSidecar({
 
   return (
     <aside
-      aria-label="LabSentinel regional respiratory activity"
+      aria-label="ProbeSyQ Signal regional respiratory activity"
       className="overflow-hidden rounded-xl border border-hairline bg-white shadow-card"
     >
       <div className="flex items-center gap-2 bg-sidebar px-4 py-3">
-        <span
-          aria-hidden="true"
-          className="flex h-6 w-6 items-center justify-center rounded bg-brand text-[10px] font-bold text-white"
-        >
-          LS
-        </span>
+        <BrandMark size={24} className="shrink-0" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-tight text-white">
-            LabSentinel
+            ProbeSyQ Signal
           </p>
           <p className="truncate text-[11px] leading-tight text-white/55">
             Regional Respiratory Activity

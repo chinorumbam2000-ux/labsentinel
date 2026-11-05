@@ -6,27 +6,26 @@ interface BrandMarkProps {
   reduced?: boolean;
   /**
    * Accessible name. Omit wherever the brand name already appears as text
-   * beside the mark — which is both current usages — so screen readers do
-   * not announce "LabSentinel" twice.
+   * beside the mark — which is every current usage — so screen readers do
+   * not announce "ProbeSyQ Signal" twice.
    */
   label?: string;
 }
 
 /**
- * The LabSentinel monogram.
+ * The ProbeSyQ mark.
  *
- * An "LS" built from two strokes of equal weight, a detection arc rising to a
- * signal node, and a short chain of connected nodes along the base. Read
- * together: individual laboratories, connected into a network, watched for an
- * early warning.
+ * A "PSQ" monogram in strokes of equal weight. The Q is drawn as a detection
+ * ring: its tail runs out to a teal signal node, under a faint detection arc.
+ * Read together: the company's initials, watching for an early signal.
  *
  * Deliberately geometric rather than pictorial — no cross, no helix, no
- * instrument. The public-health reading comes from the surveillance motifs,
- * not from medical clip-art.
+ * instrument — and in the same navy, blue and teal as the rest of the
+ * interface, so the rebrand reads as an evolution of the product.
  *
- * The mark has two forms. Below roughly 28px the chain and the outer arc
- * collapse into noise, so the reduced form keeps only the monogram, one arc
- * and the signal node. That is also what the favicon uses.
+ * The mark has two forms. Below roughly 28px three letters collapse into
+ * noise, so the reduced form keeps only the Q's detection ring, its tail and
+ * the signal node. That is also what the favicon uses.
  */
 export default function BrandMark({
   size = 36,
@@ -52,64 +51,43 @@ export default function BrandMark({
       {small ? (
         <>
           <path
-            d="M29.6 12.6 A 8.4 8.4 0 0 1 34.6 7.6"
+            d="M13.6 13.2 A 14 14 0 0 1 32.4 13.2"
             fill="none"
             stroke="#8FB6D9"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
             opacity="0.6"
           />
-          <circle cx="36.8" cy="7.4" r="3" fill="#4DB6A5" />
-          <g
-            fill="none"
-            stroke="#FFFFFF"
-            strokeWidth="3.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M14.5 15 V 31.5 H 22.5" />
-            <path d="M34 19.4 A 5 5 0 1 0 29 24.4 A 5 5 0 1 1 24 29.4" />
+          <g fill="none" stroke="#FFFFFF" strokeWidth="4.2" strokeLinecap="round">
+            <circle cx="23" cy="25" r="8.6" />
+            <path d="M26.6 28.6 L 33.4 35.4" />
           </g>
+          <circle cx="36" cy="38" r="3.4" fill="#4DB6A5" />
         </>
       ) : (
         <>
-          {/* Detection arcs, rising toward the signal node. */}
+          {/* Detection arcs over the Q. */}
           <g fill="none" stroke="#8FB6D9" strokeLinecap="round">
-            <path
-              d="M30.6 13.2 A 7.2 7.2 0 0 1 34.8 9"
-              strokeWidth="1.7"
-              opacity="0.55"
-            />
-            <path
-              d="M28.6 17.8 A 12 12 0 0 1 39.4 7.2"
-              strokeWidth="1.5"
-              opacity="0.28"
-            />
+            <path d="M29 16.4 A 8.8 8.8 0 0 1 37.8 16.4" strokeWidth="1.6" opacity="0.6" />
+            <path d="M26.4 14.6 A 12 12 0 0 1 40.4 14.6" strokeWidth="1.4" opacity="0.3" />
           </g>
-          <circle cx="36.4" cy="7.6" r="2.4" fill="#4DB6A5" />
 
-          {/* Contributing sites, connected along the base. */}
-          <path
-            d="M14.5 37 H 31"
-            stroke="#8FB6D9"
-            strokeWidth="1.35"
-            strokeLinecap="round"
-            opacity="0.5"
-          />
-          <circle cx="14.5" cy="37" r="1.9" fill="#8FB6D9" />
-          <circle cx="33.4" cy="37" r="2.2" fill="#4DB6A5" />
-
-          {/* The monogram itself. */}
+          {/* P, S and the Q's detection ring and tail. */}
           <g
             fill="none"
             stroke="#FFFFFF"
-            strokeWidth="3.3"
+            strokeWidth="2.4"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M14 14 V 29.5 H 21.5" />
-            <path d="M34 17.6 A 4.7 4.7 0 1 0 29.3 22.3 A 4.7 4.7 0 1 1 24.6 27" />
+            <path d="M6.7 30 V 18 H 9.2 A 3 3 0 0 1 9.2 24 H 6.7" />
+            <path d="M23 21 A 3 3 0 1 0 20 24 A 3 3 0 1 1 17 27" />
+            <circle cx="33.4" cy="24" r="5.6" />
+            <path d="M35.2 26.2 L 39.6 30.8" />
           </g>
+
+          {/* The signal the ring has caught. */}
+          <circle cx="40.9" cy="32.1" r="2.1" fill="#4DB6A5" />
         </>
       )}
     </svg>

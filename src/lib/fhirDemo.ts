@@ -26,7 +26,7 @@ export const STAGES: Array<{ key: StageKey; label: string }> = [
   { key: 'facility', label: 'Facility resolution' },
   { key: 'normalization', label: 'LOINC / result normalization' },
   { key: 'persistence', label: 'PostgreSQL' },
-  { key: 'record', label: 'LabSentinel observation' },
+  { key: 'record', label: 'ProbeSyQ Signal observation' },
 ];
 
 /** The stage each rejecting issue code belongs to. */
@@ -47,12 +47,12 @@ export const ISSUE_STAGE: Record<string, StageKey> = {
 /** Plain-language explanations for the backend's issue codes. */
 export const ISSUE_EXPLANATIONS: Record<string, string> = {
   INVALID_FHIR: 'The content is not valid FHIR R4 JSON.',
-  UNSUPPORTED_RESOURCE: 'LabSentinel does not ingest this resource type.',
+  UNSUPPORTED_RESOURCE: 'ProbeSyQ Signal does not ingest this resource type.',
   NON_FINAL_STATUS: 'Only final, amended or corrected results are ingested.',
-  NON_LAB_OBSERVATION: 'This Observation does not meet LabSentinel laboratory-surveillance criteria.',
+  NON_LAB_OBSERVATION: 'This Observation does not meet ProbeSyQ Signal laboratory-surveillance criteria.',
   INVALID_LOINC: 'The LOINC coding is missing, conflicting or malformed.',
-  UNMAPPED_LOINC: 'A valid LOINC code with no LabSentinel mapping: stored, but no syndrome is assigned.',
-  UNRESOLVED_FACILITY: 'The performing organization does not map to a LabSentinel facility.',
+  UNMAPPED_LOINC: 'A valid LOINC code with no ProbeSyQ Signal mapping: stored, but no syndrome is assigned.',
+  UNRESOLVED_FACILITY: 'The performing organization does not map to a ProbeSyQ Signal facility.',
   INVALID_RESULT: 'The result value is missing or cannot be interpreted for this test.',
   MISSING_EFFECTIVE_TIME: 'The Observation has no effective time.',
   INVALID_EFFECTIVE_TIME: 'A full date-time with a timezone offset is required.',

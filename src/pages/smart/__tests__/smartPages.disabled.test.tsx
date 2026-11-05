@@ -15,6 +15,7 @@ vi.mock('fhirclient/browser', () => {
 });
 
 import App from '../../../App';
+import { signInForTest } from '../../__tests__/signedIn';
 import { SMART_BUILD_CONFIG } from '../../../smart/config';
 
 const calls: string[] = [];
@@ -25,6 +26,7 @@ beforeEach(() => {
     throw new Error('no requests expected');
   });
   Element.prototype.scrollTo = () => {};
+  signInForTest();
 });
 afterEach(() => {
   cleanup();

@@ -109,7 +109,7 @@ const CURRENT_FLOW: FlowStep[] = [
   {
     nodes: [
       {
-        label: 'LabSentinel Signal Engine',
+        label: 'ProbeSyQ Signal Engine',
         detail: 'Volume, positivity, multi-site correlation, geographic clustering and persistence.',
         status: 'IMPLEMENTED',
       },
@@ -206,7 +206,7 @@ export default function ArchitecturePage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            LabSentinel Architecture
+            ProbeSyQ Signal Architecture
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
             What is implemented, what is a prototype, and what is planned or a longer-term
@@ -220,7 +220,7 @@ export default function ArchitecturePage() {
         <StatusLegend />
         <p className="mt-4 text-xs leading-relaxed text-muted">
           Solid cards are built. Dashed, muted cards are not — they describe intent, not
-          capability. Nothing marked PLANNED or FUTURE exists in LabSentinel in any form.
+          capability. Nothing marked PLANNED or FUTURE exists in ProbeSyQ Signal in any form.
           IMPLEMENTED means built and tested; the data are still synthetic and the
           surveillance methods are prototypes, not validated.
         </p>
@@ -382,7 +382,7 @@ export default function ArchitecturePage() {
       {/* ============ PLANNED / FUTURE ============ */}
       <Card
         title="Planned and future"
-        subtitle="Scoped or envisioned, not built. None of the following exists in LabSentinel."
+        subtitle="Scoped or envisioned, not built. None of the following exists in ProbeSyQ Signal."
         action={<StatusBadge status="PLANNED" />}
       >
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -447,7 +447,7 @@ export default function ArchitecturePage() {
           Nothing on this page marked PLANNED or FUTURE is implemented.
         </p>
         <p className="mt-2 text-xs leading-relaxed text-muted">
-          LabSentinel is a capstone prototype using synthetic data. It is not connected to any real
+          ProbeSyQ Signal is a capstone prototype using synthetic data. It is not connected to any real
           hospital, patient record, laboratory, EHR vendor or public-health authority; the SMART
           connection uses a public sandbox. The Composite Outbreak Signal Score, EWMA and CUSUM are
           prototype surveillance methods, and the Phase 10 evaluation demonstrates technical

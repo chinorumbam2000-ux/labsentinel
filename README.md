@@ -1,6 +1,10 @@
-# LabSentinel
+# ProbeSyQ Signal
 
-**Laboratory-First Public Health Early Warning**
+**Outbreak Intelligence** · by **ProbeSyQ** (Healthcare Technology Systems)
+
+*Formerly LabSentinel.* "LabSentinel" remains the internal name (repository,
+storage keys, FHIR identifier system, database and deployment names); see
+[docs/branding.md](docs/branding.md).
 
 A laboratory-first, vendor-agnostic public-health early-warning capstone
 prototype: React + FastAPI + PostgreSQL, FHIR R4 ingestion, SMART on FHIR,
@@ -397,7 +401,7 @@ banner.
 
 | Route | Screen | What it contains |
 |-------|--------|------------------|
-| `/` | Landing page | Entry point, disclaimer and the way into the prototype |
+| `/` | Sign in | Presentation sign-in (name, the fixed Public Health Analyst role, password; not authentication). Every other screen requires it and returns to the page originally requested; Sign Out in the top bar. `/smart/launch`, `/smart/callback` and `/smart/sidecar` are never behind it |
 | `/dashboard` | Public Health Dashboard | Six numbered sections: current situation (both scores), epidemiological indicators, geographic intelligence, data quality, current alert, day-to-day change |
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
@@ -418,6 +422,30 @@ with a link back to the dashboard.
 
 Routes are served from the GitHub Pages sub-path `/labsentinel/`, so the live
 URLs are `https://chinorumbam2000-ux.github.io/labsentinel/dashboard` and so on.
+
+### Ask Roella
+
+After sign-in, an **Ask Roella** button in the lower-right corner opens Roella,
+the ProbeSyQ intelligence assistant. It answers questions about the current
+signal, day-to-day changes, facilities, surveillance areas, trends, Data
+Confidence, navigation and how ProbeSyQ Signal works (including FHIR, SMART on
+FHIR and LOINC).
+
+- It runs entirely in the browser. There is no AI service, no API key and no
+  network request; questions are never stored or sent anywhere.
+- Answers come from the same data the screens render, for the day and page
+  being viewed: the active data source's surveillance days (the browser's own
+  in Local Demo Mode, the API's in API Capstone Mode) through the same
+  derivations as `SimulationContext`, plus the facility, area, alert and
+  privacy modules. If the Dashboard shows 87, Roella says 87.
+- What it says about the build depends on the mode: in Local Demo Mode, no
+  backend and no FHIR server; in API Capstone Mode, the FastAPI + PostgreSQL
+  backend and its development FHIR ingestion. Never a live hospital connection.
+- Area counts the Map suppresses (fewer than 5) stay suppressed.
+- It declines medical diagnosis or treatment questions and unrelated topics, and
+  says so when the data cannot answer a question.
+- Code: `src/assistant/` (knowledge, intent matching, answer engine, day facts)
+  and `src/components/assistant/` (launcher, panel, messages, Roella's mark).
 
 ### Accessibility and resilience notes
 

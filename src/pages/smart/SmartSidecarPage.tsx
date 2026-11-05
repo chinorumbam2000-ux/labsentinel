@@ -35,7 +35,7 @@ import {
 } from '../../smart/context';
 import { LAUNCH_TYPE_LABEL } from '../../smart/launch';
 
-export const SANDBOX_DATA_NOTE = 'Sandbox FHIR data — not LabSentinel surveillance data.';
+export const SANDBOX_DATA_NOTE = 'Sandbox FHIR data — not ProbeSyQ Signal surveillance data.';
 
 type SessionState =
   | { status: 'loading' }
@@ -268,7 +268,7 @@ function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: ()
     } catch (error) {
       setOutcomes((current) => ({
         ...current,
-        [row.id]: { tone: 'error', title: 'LabSentinel API unavailable', message: describeDataError(error) },
+        [row.id]: { tone: 'error', title: 'ProbeSyQ Signal API unavailable', message: describeDataError(error) },
       }));
     }
   };
@@ -282,7 +282,7 @@ function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: ()
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand">
             Live SMART sandbox session
           </p>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">LabSentinel SMART Sidecar</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-ink">ProbeSyQ Signal SMART Sidecar</h1>
           <p className="mt-1 text-xs text-muted">
             Standards-based SMART App Launch against synthetic sandbox data. Not a simulated vendor sidecar,
             and not a live Epic, Oracle Health or MEDITECH production connection.
@@ -339,7 +339,7 @@ function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: ()
           ) : (
             <>
               <p className="mt-1 text-xs text-muted">
-                <strong className="font-semibold text-ink">Demo Surveillance</strong> · LabSentinel regional intelligence
+                <strong className="font-semibold text-ink">Demo Surveillance</strong> · ProbeSyQ Signal regional intelligence
                 ({dataSourceMode === 'api' ? 'FastAPI + PostgreSQL' : 'local demo data'}), simulation Day {currentDay} — synthetic.
               </p>
               <dl className="mt-1 divide-y divide-hairline">
@@ -435,7 +435,7 @@ function SandboxLabs({
     <>
       {onSend ? null : (
         <p className="px-5 pt-3 text-xs text-muted">
-          Sending an Observation to LabSentinel requires API Capstone Mode (VITE_DATA_SOURCE=api).
+          Sending an Observation to ProbeSyQ Signal requires API Capstone Mode (VITE_DATA_SOURCE=api).
         </p>
       )}
       <ul className="divide-y divide-hairline" aria-label="Sandbox laboratory Observations">
@@ -458,7 +458,7 @@ function SandboxLabs({
                   disabled={outcome === 'sending'}
                   onClick={() => onSend(row)}
                 >
-                  {outcome === 'sending' ? 'Sending…' : 'Send Eligible Lab Observation to LabSentinel'}
+                  {outcome === 'sending' ? 'Sending…' : 'Send Eligible Lab Observation to ProbeSyQ Signal'}
                 </button>
               ) : null}
               {outcome && outcome !== 'sending' ? (

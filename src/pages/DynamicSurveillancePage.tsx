@@ -47,6 +47,7 @@ import {
   signed,
   statusMessage,
 } from '../lib/dynamicSurveillance';
+import { withProductName } from '../lib/brand';
 import { CONFIDENCE_DISCLAIMER } from '../lib/dataConfidence';
 
 export default function DynamicSurveillancePage() {
@@ -76,7 +77,7 @@ function LocalModeNotice() {
   return (
     <Card title="Not available in Local Demo Mode" bodyClassName="p-0">
       <div className="space-y-2 p-5 text-sm text-muted">
-        <p className="font-medium text-ink">Dynamic Surveillance requires LabSentinel API Capstone Mode.</p>
+        <p className="font-medium text-ink">Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.</p>
         <p>
           This build runs the frozen classroom demonstration in the browser, with no backend. Dynamic signals are
           calculated by the FastAPI backend from observations in PostgreSQL; start the app with{' '}
@@ -546,7 +547,8 @@ function SignalView({ signal }: { signal: DynamicSignal }) {
                   <li key={item.key} className="flex items-start justify-between gap-3 py-2">
                     <span>
                       <span className="block font-medium text-ink">{item.label}</span>
-                      <span className="block text-[11px] text-muted">{item.evidence}</span>
+                      {/* Stored with the signal; may carry the product's former name. */}
+                      <span className="block text-[11px] text-muted">{withProductName(item.evidence)}</span>
                     </span>
                     <span className="shrink-0 tabular-nums text-ink">
                       {item.points} / {item.max_points}
@@ -638,7 +640,7 @@ function MethodCard({ summary }: { summary: DynamicSummary }) {
     ['Eligible observations', description.eligibility],
     [
       'Weights',
-      'Volume 25% · Positivity 30% · Affected facilities 20% · Geographic spread 15% · Persistence 10% — the existing LabSentinel weights. Severity: 0-19 Low, 20-39 Watch, 40-64 Moderate, 65-84 High, 85-100 Critical.',
+      'Volume 25% · Positivity 30% · Affected facilities 20% · Geographic spread 15% · Persistence 10% — the existing ProbeSyQ Signal weights. Severity: 0-19 Low, 20-39 Watch, 40-64 Moderate, 65-84 High, 85-100 Critical.',
     ],
   ];
   return (

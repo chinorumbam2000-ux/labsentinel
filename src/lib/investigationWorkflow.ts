@@ -27,7 +27,7 @@ import { simulationTimestamp } from '../data/simulation';
 export const DEFAULT_INVESTIGATOR = 'Public Health Analyst';
 
 export const REVIEW_DISCLAIMER =
-  'LabSentinel supports epidemiological review but does not replace public-health investigation or clinical judgment.';
+  'ProbeSyQ Signal supports epidemiological review but does not replace public-health investigation or clinical judgment.';
 
 export const CONFIRMED_CONCERN_NOTE =
   '"Confirmed Concern" records an analyst judgement that the signal warrants follow-up. It is not a laboratory-confirmed outbreak.';
@@ -182,7 +182,7 @@ export const createInvestigation = (
       at: new Date().toISOString(),
       simulationAt: detectedAt,
       day: detectedDay,
-      investigator: 'LabSentinel signal engine',
+      investigator: 'ProbeSyQ Signal engine',
       note: null,
     },
   ],

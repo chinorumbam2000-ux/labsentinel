@@ -121,7 +121,7 @@ const send = async (
     if (timedOut) throw new ApiError('timeout', `Request timed out: ${path}`);
     // The caller cancelled; let that surface as an ordinary AbortError.
     if (signal?.aborted || isAbort(error)) throw error;
-    throw new ApiError('network', `Could not reach the LabSentinel API at ${baseUrl}.`);
+    throw new ApiError('network', `Could not reach the ProbeSyQ Signal API at ${baseUrl}.`);
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener('abort', onCallerAbort);

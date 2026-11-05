@@ -69,7 +69,7 @@ export default function FederatedConcept() {
 
         <div className="rounded-xl border border-dashed border-muted/40 bg-canvas px-4 py-3 text-center">
           <p className="text-sm font-semibold text-ink">
-            Regional LabSentinel Surveillance Layer
+            Regional ProbeSyQ Signal Surveillance Layer
           </p>
           <p className="mt-1 text-xs text-muted">
             Correlates aggregates across facilities. Never receives record-level data

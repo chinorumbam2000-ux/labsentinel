@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../../App';
+import { signInForTest } from './signedIn';
 
 const calls: string[] = [];
 
@@ -17,6 +18,7 @@ beforeEach(() => {
     throw new Error('Local mode must not make requests');
   });
   Element.prototype.scrollTo = () => {};
+  signInForTest();
 });
 afterEach(() => {
   cleanup();
@@ -31,7 +33,7 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('FHIR ingestion requires LabSentinel API Capstone Mode.')).toBeTruthy();
+    expect(await screen.findByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).toContain('Laboratory Data');
@@ -47,7 +49,7 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('Dynamic Surveillance requires LabSentinel API Capstone Mode.')).toBeTruthy();
+    expect(await screen.findByText('Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Recalculate Dynamic Surveillance' })).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).not.toContain('Dynamic Surveillance');
@@ -62,7 +64,7 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('The Capstone Evaluation requires LabSentinel API Capstone Mode.')).toBeTruthy();
+    expect(await screen.findByText('The Capstone Evaluation requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
     expect(screen.queryByLabelText('Scenario')).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).not.toContain('Capstone Evaluation');

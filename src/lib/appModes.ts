@@ -18,7 +18,7 @@ export interface ModeDefinition {
 export const MODES: Record<AppMode, ModeDefinition> = {
   overview: {
     label: 'Capstone Overview',
-    description: 'How LabSentinel fits together: workflow, architecture and status',
+    description: 'How ProbeSyQ Signal fits together: workflow, architecture and status',
     chip: 'border-hairline bg-canvas text-ink',
   },
   classroom: {

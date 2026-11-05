@@ -6099,7 +6099,7 @@
    "composite_signals": true,
    "ewma_signals": true,
    "agreement": "BOTH_METHODS_SIGNAL",
-   "agreement_text": "LabSentinel's rule-based signal and EWMA independently indicate abnormal activity."
+   "agreement_text": "ProbeSyQ Signal's rule-based signal and EWMA independently indicate abnormal activity."
   },
   "/api/statistics/ewma/current?date=2026-01-03": {
    "syndrome": "Respiratory Viral Syndrome",
@@ -6599,7 +6599,7 @@
    "composite_signals": true,
    "ewma_signals": true,
    "agreement": "BOTH_METHODS_SIGNAL",
-   "agreement_text": "LabSentinel's rule-based signal and EWMA independently indicate abnormal activity."
+   "agreement_text": "ProbeSyQ Signal's rule-based signal and EWMA independently indicate abnormal activity."
   },
   "/api/statistics/ewma/current?date=2026-01-20": {
    "syndrome": "Respiratory Viral Syndrome",
@@ -6724,7 +6724,7 @@
    "composite_signals": true,
    "ewma_signals": true,
    "agreement": "BOTH_METHODS_SIGNAL",
-   "agreement_text": "LabSentinel's rule-based signal and EWMA independently indicate abnormal activity."
+   "agreement_text": "ProbeSyQ Signal's rule-based signal and EWMA independently indicate abnormal activity."
   }
  },
  "post": {

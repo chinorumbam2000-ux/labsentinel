@@ -5,7 +5,7 @@ import DayOverDayChange from '../components/common/DayOverDayChange';
 import { ErrorState } from '../components/common/States';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { SEVERITY_STYLES } from '../lib/format';
-import { SCORE_DISCLAIMER } from '../lib/signalScore';
+import { SCORE_DISCLAIMER_TEXT, withProductName } from '../lib/brand';
 
 export default function SimulationPage() {
   const {
@@ -96,7 +96,7 @@ export default function SimulationPage() {
           </div>
 
           <p className="mt-5 max-w-4xl text-sm leading-relaxed text-ink">
-            {currentScenario.description}
+            {withProductName(currentScenario.description)}
           </p>
 
           {/* Day-by-day progress rail: the isolated signal becoming regional. */}
@@ -284,7 +284,7 @@ export default function SimulationPage() {
           </table>
         </div>
         <p className="border-t border-hairline px-4 py-3 text-[11px] leading-snug text-muted">
-          {SCORE_DISCLAIMER}
+          {SCORE_DISCLAIMER_TEXT}
         </p>
       </Card>
     </div>

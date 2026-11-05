@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../../App';
+import { signInForTest } from './signedIn';
 
 const calls: string[] = [];
 
@@ -26,6 +27,7 @@ beforeEach(() => {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
   window.sessionStorage.clear();
+  signInForTest();
   document.documentElement.classList.remove('ls-presentation');
 });
 afterEach(() => {
@@ -117,7 +119,7 @@ describe('Presentation Mode', () => {
     await screen.findByRole('button', { name: 'Next simulation day' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Next ›' }));
-    await screen.findByText('FHIR ingestion requires LabSentinel API Capstone Mode.');
+    await screen.findByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.');
     expect(bar.textContent).toContain('Step 4 of 10');
     expect(bar.textContent).toContain('Needs API Capstone Mode');
 
@@ -151,7 +153,7 @@ describe('Presentation Mode', () => {
 describe('Architecture page', () => {
   it('separates implemented, prototype and planned work, with future work', async () => {
     renderAt('/architecture');
-    await screen.findByRole('heading', { name: 'LabSentinel Architecture' });
+    await screen.findByRole('heading', { name: 'ProbeSyQ Signal Architecture' });
     for (const title of ['Implemented', 'Prototype', 'Planned and future', 'Future work']) {
       expect(screen.getByRole('heading', { name: title })).toBeTruthy();
     }

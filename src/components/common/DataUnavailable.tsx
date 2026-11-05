@@ -26,18 +26,18 @@ export default function DataUnavailable({
         <div className="flex items-center gap-3 border-b border-hairline px-5 py-4">
           <BrandMark size={28} />
           <div>
-            <p className="text-sm font-semibold text-ink">LabSentinel</p>
+            <p className="text-sm font-semibold text-ink">ProbeSyQ Signal</p>
             <p className="text-xs text-muted">
               {mode === 'api' ? `API capstone mode · ${label}` : label}
             </p>
           </div>
         </div>
         {message === null ? (
-          <LoadingState label="Connecting to the LabSentinel API…" />
+          <LoadingState label="Connecting to the ProbeSyQ Signal API…" />
         ) : (
           <>
             <ErrorState
-              title="LabSentinel API is currently unavailable."
+              title="ProbeSyQ Signal API is currently unavailable."
               message={message}
               onRetry={onRetry}
             />

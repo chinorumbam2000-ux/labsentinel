@@ -8,7 +8,8 @@ import SignalInvestigation, {
 } from '../components/signals/SignalInvestigation';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
-import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../lib/signalScore';
+import { SIGNAL_DISCLAIMER } from '../lib/signalScore';
+import { SCORE_DISCLAIMER_TEXT } from '../lib/brand';
 import { formatPercent, formatSimulationDateTime } from '../lib/format';
 import { findDetection } from '../lib/alerts';
 import { useNavigate } from 'react-router-dom';
@@ -129,7 +130,7 @@ export default function SignalsPage() {
               Signal Investigation
             </h1>
             <p className="mt-1 max-w-3xl text-sm text-muted">
-              How the LabSentinel composite outbreak signal score was calculated.
+              How the ProbeSyQ Signal composite outbreak signal score was calculated.
             </p>
           </div>
           <PageMeta />
@@ -309,7 +310,7 @@ export default function SignalsPage() {
 
       <div className="ls-card border-l-4 border-l-severity-critical p-5">
         <p className="text-sm font-semibold text-ink">{SIGNAL_DISCLAIMER}</p>
-        <p className="mt-2 text-xs leading-relaxed text-muted">{SCORE_DISCLAIMER}</p>
+        <p className="mt-2 text-xs leading-relaxed text-muted">{SCORE_DISCLAIMER_TEXT}</p>
       </div>
     </div>
   );

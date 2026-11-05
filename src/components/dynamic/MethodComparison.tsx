@@ -55,7 +55,7 @@ export default function MethodComparison({
     >
       <div className="grid gap-px bg-hairline md:grid-cols-3">
         <section aria-label="Composite method" className="bg-white px-5 py-4">
-          <p className="ls-label">LabSentinel Composite</p>
+          <p className="ls-label">ProbeSyQ Signal Composite</p>
           {composite && composite.severity && composite.composite_score !== null ? (
             <dl className="mt-1">
               <Fact label="Score">{composite.composite_score} / 100</Fact>

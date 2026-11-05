@@ -125,7 +125,7 @@ export const AVAILABLE_HIERARCHIES: GeographicHierarchy[] = [
 export const ACTIVE_HIERARCHY: GeographicHierarchy = US_HIERARCHY;
 
 export const GEOGRAPHY_CONFIGURABILITY_NOTE =
-  'LabSentinel is geographically configurable. ZIP codes are used in the U.S. prototype, but deployments may use districts, municipalities, provinces, regions or other jurisdictional units.';
+  'ProbeSyQ Signal is geographically configurable. ZIP codes are used in the U.S. prototype, but deployments may use districts, municipalities, provinces, regions or other jurisdictional units.';
 
 /* ---------------------------------------------------------------- *
  * Helpers

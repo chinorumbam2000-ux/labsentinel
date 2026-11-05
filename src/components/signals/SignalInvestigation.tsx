@@ -7,7 +7,8 @@ import type {
   OutbreakAlert,
   SimulationDay,
 } from '../../types';
-import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../../lib/signalScore';
+import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
+import { SCORE_DISCLAIMER_TEXT } from '../../lib/brand';
 import { SEVERITY_STYLES, formatSimulationDate, formatSimulationDateTime } from '../../lib/format';
 import { useSimulation } from '../../context/SimulationContext';
 import { findDay } from '../../lib/surveillanceDays';
@@ -218,7 +219,7 @@ export default function SignalInvestigation({
           <header className="ls-card-header">
             <h2 className="ls-card-title">
               {isDetection
-                ? `Why did LabSentinel trigger this on Day ${day}?`
+                ? `Why did ProbeSyQ Signal trigger this on Day ${day}?`
                 : `What is driving the signal on Day ${day}?`}
             </h2>
           </header>
@@ -355,7 +356,7 @@ export default function SignalInvestigation({
 
       <div className="ls-card border-l-4 border-l-severity-critical p-5">
         <p className="text-sm font-semibold text-ink">{SIGNAL_DISCLAIMER}</p>
-        <p className="mt-2 text-xs leading-relaxed text-muted">{SCORE_DISCLAIMER}</p>
+        <p className="mt-2 text-xs leading-relaxed text-muted">{SCORE_DISCLAIMER_TEXT}</p>
       </div>
     </div>
   );

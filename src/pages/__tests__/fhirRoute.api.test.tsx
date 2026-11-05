@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../../App';
+import { signInForTest } from './signedIn';
 import phase3Recording from '../../data-access/__tests__/fixtures/api-recording.json';
 import { BASE, fakeBackend } from './fakeFhirBackend';
 
@@ -27,6 +28,7 @@ beforeEach(() => {
     return fhir.fetch(input, init);
   });
   Element.prototype.scrollTo = () => {};
+  signInForTest();
   // jsdom has no ResizeObserver; Recharts' ResponsiveContainer needs one.
   globalThis.ResizeObserver ??= class {
     observe() {}
@@ -47,12 +49,13 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
       </MemoryRouter>,
     );
 
-    const heading = await screen.findByRole('heading', { name: 'FHIR Laboratory Ingestion' });
+    // The first render in a file is cold (lazy route plus chart modules); allow it more than the default 1 s.
+    const heading = await screen.findByRole('heading', { name: 'FHIR Laboratory Ingestion' }, { timeout: 5000 });
     expect(heading).toBeTruthy();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(within(nav).getByRole('link', { name: /FHIR Ingestion/ })).toBeTruthy();
     expect(await screen.findByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeTruthy();
-    expect(screen.queryByText('FHIR ingestion requires LabSentinel API Capstone Mode.')).toBeNull();
+    expect(screen.queryByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.')).toBeNull();
   });
 
   it('lists Dynamic Surveillance and serves it from the dynamic endpoints', async () => {
@@ -62,10 +65,10 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Why this dynamic signal?' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Why this dynamic signal?' }, { timeout: 5000 })).toBeTruthy();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(within(nav).getByRole('link', { name: /Dynamic Surveillance/ })).toBeTruthy();
     expect(within(nav).getByRole('link', { name: /Capstone Evaluation/ }).getAttribute('href')).toBe('/evaluation');
-    expect(screen.queryByText('Dynamic Surveillance requires LabSentinel API Capstone Mode.')).toBeNull();
+    expect(screen.queryByText('Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.')).toBeNull();
   });
 });

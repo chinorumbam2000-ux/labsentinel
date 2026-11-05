@@ -61,7 +61,7 @@ afterEach(() => {
 describe('Dynamic Surveillance — Local Demo Mode', () => {
   it('explains that API mode is required and sends no request', async () => {
     renderPage('local');
-    expect(screen.getByText('Dynamic Surveillance requires LabSentinel API Capstone Mode.')).toBeTruthy();
+    expect(screen.getByText('Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
     expect(screen.getByText('DYNAMIC SURVEILLANCE MODE')).toBeTruthy();
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(calls.filter((call) => call.includes('/surveillance/'))).toEqual([]);
@@ -71,7 +71,8 @@ describe('Dynamic Surveillance — Local Demo Mode', () => {
 describe('Dynamic Surveillance — API Capstone Mode', () => {
   it('labels the mode and shows the latest dynamic signal', async () => {
     renderPage();
-    await screen.findByRole('heading', { name: 'Why this dynamic signal?' });
+    // The first render in a file is cold (lazy route plus chart modules); allow it more than the default 1 s.
+    await screen.findByRole('heading', { name: 'Why this dynamic signal?' }, { timeout: 5000 });
 
     expect(screen.getByText('DYNAMIC SURVEILLANCE MODE')).toBeTruthy();
     expect(screen.getAllByText(new RegExp(DYNAMIC_LABEL.replace('.', '\\.'))).length).toBeGreaterThan(0);

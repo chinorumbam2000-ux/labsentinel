@@ -9,7 +9,8 @@ import {
   formatClockTime,
   formatSimulationDate,
 } from '../../lib/format';
-import { SCORE_DISCLAIMER, SIGNAL_DISCLAIMER } from '../../lib/signalScore';
+import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
+import { SCORE_DISCLAIMER_TEXT } from '../../lib/brand';
 import { CONFIDENCE_DISCLAIMER, formatMinutesAgo } from '../../lib/dataConfidence';
 import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../../data/simulation';
 import SeverityBadge from './SeverityBadge';
@@ -243,7 +244,7 @@ export default function WhyThisSignalPanel({
         <div className="border-t border-hairline px-5 py-3">
           <p className="text-xs font-semibold text-ink">{SIGNAL_DISCLAIMER}</p>
           <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
-            {SCORE_DISCLAIMER}
+            {SCORE_DISCLAIMER_TEXT}
           </p>
           <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
             {CONFIDENCE_DISCLAIMER}

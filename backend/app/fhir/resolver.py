@@ -163,7 +163,7 @@ def resolve_facility(
     if not codes:
         raise IngestionError(
             IssueCode.UNRESOLVED_FACILITY,
-            "No performer Organization could be resolved to a LabSentinel facility.",
+            "No performer Organization could be resolved to a ProbeSyQ Signal facility.",
             label,
         )
     if len(codes) > 1:
@@ -177,14 +177,14 @@ def resolve_facility(
     if facility is None and method == BY_DEVELOPMENT_SOURCE:
         raise IngestionError(
             IssueCode.UNRESOLVED_FACILITY,
-            "The source is a known development source, but no LabSentinel facility mapping is "
+            "The source is a known development source, but no ProbeSyQ Signal facility mapping is "
             f"configured for it (development facility {code} does not exist).",
             label,
         )
     if facility is None:
         raise IngestionError(
             IssueCode.UNRESOLVED_FACILITY,
-            f"'{code}' is not an active LabSentinel facility.",
+            f"'{code}' is not an active ProbeSyQ Signal facility.",
             label,
         )
     # A development facility is reachable only through its configured source
