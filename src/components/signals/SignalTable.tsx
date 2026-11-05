@@ -24,8 +24,8 @@ export default function SignalTable({
     return (
       <EmptyState
         icon="✓"
-        title="No alerts on this simulation day"
-        message="Regional respiratory activity is at the expected baseline, so no ProbeSyQ Signal alert has been raised. Advance the simulation day to watch alerts appear as the signal develops."
+        title="No alerts on this replay day"
+        message="Regional respiratory activity is at the expected baseline, so no ProbeSyQ Signal alert has been raised. Advance the replay day to watch alerts appear as the signal develops."
       />
     );
   }
@@ -38,7 +38,7 @@ export default function SignalTable({
         </caption>
         <thead className="border-b border-hairline bg-canvas">
           <tr>
-            <th scope="col" className="ls-th">Detected (simulation)</th>
+            <th scope="col" className="ls-th">Detected</th>
             <th scope="col" className="ls-th">Alert</th>
             <th scope="col" className="ls-th">Severity</th>
             <th scope="col" className="ls-th">Geography</th>
@@ -95,7 +95,7 @@ export default function SignalTable({
                       type="button"
                       onClick={() => onAcknowledge(alert.id)}
                       className="ls-btn px-3 py-1.5 text-xs"
-                      aria-label={`Acknowledge alert: ${alert.title}, detected on simulation day ${alert.detectedDay}`}
+                      aria-label={`Acknowledge alert: ${alert.title}, detected on replay day ${alert.detectedDay}`}
                     >
                       Acknowledge
                     </button>

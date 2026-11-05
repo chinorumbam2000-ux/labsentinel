@@ -10,10 +10,10 @@ import DataSourceIndicator from './DataSourceIndicator';
 import ModeChip from './ModeChip';
 
 /**
- * The top bar. On Classroom Demo screens it carries the frozen Day 1-5
- * controls and the demonstration's Composite score. Everywhere else it names
- * the mode instead, so the classroom score is never read as, say, a dynamic
- * signal.
+ * The top bar. On Scenario Replay screens (every analyst page) it carries the
+ * replay day controls, the scenario's Composite score and the "Simulated
+ * surveillance data" indicator. On System pages it names the page's mode
+ * instead, so the replay score is never read as, say, a dynamic signal.
  */
 export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMode; onOpenNav: () => void }) {
   const classroom = mode === 'classroom';
@@ -41,7 +41,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   const displayName = session?.name ?? FALLBACK_NAME;
   const initials = session ? initialsFor(session.name) : FALLBACK_INITIALS;
 
-  // Ends the sign-in session only: the Day 1-5 simulation state is left as it is.
+  // Ends the sign-in session only: the replay day and its review state are left as they are.
   const handleSignOut = () => {
     signOut();
     navigate('/', { replace: true });
@@ -62,7 +62,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         <>
           <div className="flex min-w-0 items-center gap-3">
             <div className="min-w-0">
-              <p className="ls-label">Simulation Day</p>
+              <p className="ls-label">Replay Day</p>
               <p className="truncate text-sm font-semibold text-ink">
                 Day {currentDay} of 5
                 <span className="ml-2 font-normal text-muted">{currentScenario.stage}</span>
@@ -76,7 +76,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               onClick={previousDay}
               disabled={isFirstDay}
               className="ls-btn min-w-[34px] px-2.5 py-1.5"
-              aria-label="Previous simulation day"
+              aria-label="Previous replay day"
               title={isFirstDay ? 'Already at Day 1' : 'Previous day'}
             >
               ‹
@@ -86,7 +86,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               onClick={nextDay}
               disabled={isLastDay}
               className="ls-btn min-w-[34px] px-2.5 py-1.5"
-              aria-label="Next simulation day"
+              aria-label="Next replay day"
               title={isLastDay ? 'Already at Day 5' : 'Next day'}
             >
               ›
@@ -96,7 +96,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             </button>
           </div>
 
-          <ModeChip mode="classroom" />
+          <ModeChip mode="classroom" withDescription />
         </>
       ) : (
         <div className="flex min-w-0 items-center">
@@ -110,22 +110,25 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
 
         {classroom ? (
           <div className="hidden text-right lg:block">
-            <p className="ls-label">Simulation date</p>
+            <p className="ls-label">Surveillance date</p>
             <p className="text-sm font-medium text-ink">{formatSimulationDate(simulationDate)}</p>
           </div>
         ) : null}
 
-        <div className="hidden text-right md:block">
-          <p className="ls-label">Session updated</p>
-          <button
-            type="button"
-            onClick={refresh}
-            className="-my-1.5 inline-flex items-center py-1.5 text-sm font-medium text-brand hover:underline"
-            title="Refresh the session timestamp (real time, not simulation time)"
-          >
-            {formatClockTime(lastUpdated)}
-          </button>
-        </div>
+        {/* The browser session clock is not a data timestamp: shown on System pages only. */}
+        {classroom ? null : (
+          <div className="hidden text-right md:block">
+            <p className="ls-label">Session updated</p>
+            <button
+              type="button"
+              onClick={refresh}
+              className="-my-1.5 inline-flex items-center py-1.5 text-sm font-medium text-brand hover:underline"
+              title="Refresh the session timestamp (real time, not scenario time)"
+            >
+              {formatClockTime(lastUpdated)}
+            </button>
+          </div>
+        )}
 
         {classroom ? (
           <div className="hidden items-center gap-2 sm:flex">

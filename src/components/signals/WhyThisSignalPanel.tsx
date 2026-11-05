@@ -6,7 +6,6 @@ import type {
 } from '../../types';
 import {
   SEVERITY_STYLES,
-  formatClockTime,
   formatSimulationDate,
 } from '../../lib/format';
 import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
@@ -20,8 +19,6 @@ interface WhyThisSignalPanelProps {
   score: SignalScoreResult;
   confidence: DataConfidenceResult;
   feeds: FacilityFeedHealth[];
-  /** Real session clock, shown separately from the simulation calendar. */
-  lastUpdated: Date;
   /** Compact suits the narrow vendor sidecar column. */
   compact?: boolean;
   className?: string;
@@ -40,7 +37,6 @@ export default function WhyThisSignalPanel({
   score,
   confidence,
   feeds,
-  lastUpdated,
   compact = false,
   className = '',
 }: WhyThisSignalPanelProps) {
@@ -221,13 +217,12 @@ export default function WhyThisSignalPanel({
           </p>
         </div>
         <div className="bg-white px-5 py-3">
-          <p className="ls-label">Last Updated</p>
+          <p className="ls-label">Surveillance date</p>
           <p className="mt-1 text-sm font-semibold text-ink">
-            {formatClockTime(lastUpdated)}
+            {formatSimulationDate(scenario.simulationDate)}
           </p>
           <p className="mt-0.5 text-[11px] text-muted">
-            Session clock · simulation date{' '}
-            {formatSimulationDate(scenario.simulationDate)}
+            Replay Day {scenario.day} · simulated data
           </p>
         </div>
       </div>

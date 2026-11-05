@@ -44,9 +44,9 @@ const joinAnd = (items: string[]) => (items.length <= 1 ? items.join('') : `${it
 const dayName = (f: DayFacts) => `Day ${f.day} (${f.scenario.stage}, ${formatSimulationDate(f.scenario.simulationDate)})`;
 const facilityPositivity = (rate: number) => `${rate.toFixed(1)}%`; // as the Hospitals page formats it
 
-/** A note when the question is about a day the simulation has not reached yet. */
+/** A note when the question is about a day the replay has not reached yet. */
 const aheadNote = (day: SimulationDay, ctx: AssistantContext): AnswerBlock[] =>
-  day > ctx.day ? [text(`Note: Day ${day} is ahead of the current simulation day (Day ${ctx.day}).`)] : [];
+  day > ctx.day ? [text(`Note: Day ${day} is ahead of the current replay day (Day ${ctx.day}).`)] : [];
 
 const modeOf = (ctx: AssistantContext) => ctx.dataMode ?? 'local';
 
@@ -327,7 +327,7 @@ const trend = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
   const show = (v: number) => (kind === 'positivity' ? formatPercent(v) : String(v));
   const label = { positivity: 'Positivity', volume: 'Test volume', areas: 'Affected areas', score: 'Composite score' }[kind];
   if (series.length < 2) {
-    return answer('trend', [text(`Only Day 1 has been reached so far, so there is no trend yet: ${label.toLowerCase()} is ${show(values[0])}. Advance the simulation to build the trend.`)], ['What happens on Day 1?']);
+    return answer('trend', [text(`Only Day 1 has been reached so far, so there is no trend yet: ${label.toLowerCase()} is ${show(values[0])}. Advance the replay to build the trend.`)], ['What happens on Day 1?']);
   }
   const rising = values.every((v, i) => i === 0 || v >= values[i - 1]);
   const strictly = values.every((v, i) => i === 0 || v > values[i - 1]);
@@ -346,7 +346,7 @@ const milestone = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =>
   const reached = now.trend.find((pt) => SEVERITY_ORDER.indexOf(factsFor(pt.day as SimulationDay, ctx).score.severity) >= rank);
   if (!reached) {
     return answer('milestone', [
-      text(`Not yet. By the current simulation day (Day ${ctx.day}) the signal is ${now.score.severity} with a score of ${now.score.composite}; it has not reached ${target}. Advance the simulation to see how it develops.`),
+      text(`Not yet. By the current replay day (Day ${ctx.day}) the signal is ${now.score.severity} with a score of ${now.score.composite}; it has not reached ${target}. Advance the replay to see how it develops.`),
     ], ['What changed since the previous day?', 'What trend do you see?']);
   }
   const f = factsFor(reached.day as SimulationDay, ctx);
@@ -464,7 +464,9 @@ const navigation = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
   const page = PAGES[target.route];
   const unavailable = pageUnavailable(page, modeOf(ctx), smart);
   const where = page.section ? `${page.section} → ${page.nav}` : page.nav;
+  const renamed = target.route === 'simulation' && /simulation/.test(p.normalized);
   return answer('navigation', [
+    ...(renamed ? [text(RENAMED)] : []),
     text(`Open ${where} in the sidebar for ${target.what}. ${page.use}`),
     ...(unavailable ? [text(unavailable)] : []),
   ], [`What does the ${page.nav} page show?`]);
@@ -482,9 +484,13 @@ const pageHelp = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => 
   ], PAGE_QUESTIONS[route]);
 };
 
-const simulationHelp = (ctx: AssistantContext): AssistantAnswer =>
+/** Said whenever someone uses the experience's former name. */
+const RENAMED = 'Simulation is now called Scenario Replay; the old /simulation address still opens it.';
+
+const simulationHelp = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =>
   answer('simulation_help', [
-    text(`The demo follows a five-day outbreak story and is currently on Day ${ctx.day} of 5. Use ‹ and › in the top bar to move between days, or Reset to return to Day 1; the Simulation page can also play the days in sequence. Every page follows the same day.`),
+    ...(/simulation/.test(p.normalized) ? [text(RENAMED)] : []),
+    text(`Scenario Replay plays a five-day simulated respiratory outbreak and is currently on Replay Day ${ctx.day} of 5. Use ‹ and › in the top bar to move between replay days, or Reset to return to Day 1; the Scenario Replay page can also play the days in sequence. Every analyst page follows the same replay day.`),
   ], ['What happens on Day 1?', 'What changed since the previous day?']);
 
 const reportsHelp = (): AssistantAnswer =>
@@ -502,7 +508,7 @@ const concept = (intent: 'fhir' | 'smart' | 'loinc' | 'interoperability', ctx: A
   if (intent === 'fhir') return answer('fhir', [text(CONCEPTS.fhir), text(fhirInThisBuild(modeOf(ctx)))], ['What is SMART on FHIR?', 'What is LOINC?']);
   if (intent === 'smart') return answer('smart', [text(CONCEPTS.smart), text(smartInThisBuild(Boolean(ctx.smartEnabled)))], ['What is FHIR?', 'What vendor environment does each facility represent?']);
   if (intent === 'loinc') {
-    return answer('loinc', [text(CONCEPTS.loinc), list(LAB_TESTS.map((t) => `${t.name} — LOINC ${t.loincCode}`), `Tests in this demo (${SYNDROME})`)], ['What is FHIR?']);
+    return answer('loinc', [text(CONCEPTS.loinc), list(LAB_TESTS.map((t) => `${t.name} — LOINC ${t.loincCode}`), `Tests in this scenario (${SYNDROME})`)], ['What is FHIR?']);
   }
   return answer('interoperability', [text(CONCEPTS.vendorAgnostic), list([CONCEPTS.fhir, CONCEPTS.smart, CONCEPTS.loinc])], ['What is SMART on FHIR?', 'What vendor environment does each facility represent?']);
 };
@@ -510,7 +516,7 @@ const concept = (intent: 'fhir' | 'smart' | 'loinc' | 'interoperability', ctx: A
 const unsupported = (ctx: AssistantContext): AssistantAnswer =>
   answer('unsupported', [
     text(NOT_ENOUGH),
-    text('The demo covers test volume, positivity, facilities, surveillance areas, persistence, Data Confidence, alerts and trends for the five simulated days. It has no patient demographics, outcomes, hospital capacity or forecasts.'),
+    text('The scenario covers test volume, positivity, facilities, surveillance areas, persistence, Data Confidence, alerts and trends for the five simulated days. It has no patient demographics, outcomes, hospital capacity or forecasts.'),
   ], PAGE_QUESTIONS[ctx.route]);
 
 /* ----------------------------------------------------------------------- */
@@ -550,7 +556,7 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
       case 'investigate': return investigate(ctx);
       case 'navigation': return navigation(p, ctx);
       case 'page_help': return pageHelp(p, ctx);
-      case 'simulation_help': return simulationHelp(ctx);
+      case 'simulation_help': return simulationHelp(p, ctx);
       case 'reports': return reportsHelp();
       case 'architecture': return architecture(ctx);
       case 'fhir':

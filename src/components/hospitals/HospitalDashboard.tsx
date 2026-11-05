@@ -10,7 +10,8 @@ import {
   YAxis,
 } from 'recharts';
 import type { HospitalMetrics } from '../../types';
-import { formatClockTime, formatDateTime } from '../../lib/format';
+import { formatDateTime, formatSimulationDate } from '../../lib/format';
+import { getScenario } from '../../data/simulation';
 import SeverityBadge from '../signals/SeverityBadge';
 import { EmptyState } from '../common/States';
 
@@ -21,7 +22,6 @@ const GRID_COLOR = '#DCE6F1';
 
 interface HospitalDashboardProps {
   metrics: HospitalMetrics;
-  lastUpdated: Date;
   currentDay: number;
 }
 
@@ -43,7 +43,6 @@ const tooltipStyles = {
 
 export default function HospitalDashboard({
   metrics,
-  lastUpdated,
   currentDay,
 }: HospitalDashboardProps) {
   const stats = [
@@ -68,9 +67,9 @@ export default function HospitalDashboard({
         : 'No signal through the current day',
     },
     {
-      label: 'Last updated',
-      value: formatClockTime(lastUpdated),
-      note: 'Session clock (real time)',
+      label: 'Surveillance date',
+      value: formatSimulationDate(getScenario(currentDay).simulationDate),
+      note: `Replay Day ${currentDay} · simulated data`,
     },
   ];
 
@@ -173,7 +172,7 @@ export default function HospitalDashboard({
           <EmptyState
             icon="≡"
             title="No observations received yet"
-            message="This facility has not delivered any synthetic laboratory observations for the current simulation day."
+            message="This facility has not delivered any simulated laboratory observations for the current replay day."
           />
         ) : (
           <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Recent observations table">

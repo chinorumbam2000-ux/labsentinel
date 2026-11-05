@@ -18,40 +18,41 @@ export interface ModeDefinition {
 
 export const MODES: Record<AppMode, ModeDefinition> = {
   overview: {
-    label: 'Capstone Overview',
+    label: 'Project Overview',
     description: 'How ProbeSyQ Signal fits together: workflow, architecture and status',
     chip: 'border-hairline bg-canvas text-ink',
   },
+  // The five-day Scenario Replay (internal key kept from the first release).
   classroom: {
-    label: 'Classroom Demo',
-    description: 'Frozen Day 1–Day 5 demonstration',
+    label: 'Scenario Replay',
+    description: 'Simulated surveillance data',
     chip: 'border-brand/30 bg-brand-light text-brand',
   },
   api: {
-    label: 'API Capstone',
+    label: 'Data Ingestion',
     description: 'React + FastAPI + PostgreSQL',
     chip: 'border-[#0F766E]/30 bg-[#F0FDFA] text-[#115E59]',
   },
   dynamic: {
-    label: 'Dynamic Surveillance',
+    label: 'Detection Methods',
     description: 'Signals calculated from stored laboratory observations',
     chip: 'border-[#1D4ED8]/30 bg-[#EFF6FF] text-[#1E40AF]',
   },
   smart: {
-    label: 'SMART Sandbox',
+    label: 'Integration Testing',
     description: 'SMART on FHIR synthetic sandbox context',
     chip: 'border-[#7C3AED]/30 bg-[#F5F3FF] text-[#5B21B6]',
   },
   evaluation: {
-    label: 'Capstone Evaluation',
+    label: 'Validation',
     description: 'Synthetic evaluation scenarios',
     chip: 'border-[#B45309]/30 bg-[#FFFBEB] text-[#92400E]',
   },
 };
 
-// 'hospitals' is the Facilities page's former address (it redirects).
+// 'hospitals' and 'simulation' are former addresses of Facilities and Scenario Replay (they redirect).
 const CLASSROOM_ROUTES = [
-  'dashboard', 'map', 'laboratory-data', 'signals', 'facilities', 'hospitals', 'investigations', 'analytics', 'simulation', 'reports',
+  'dashboard', 'map', 'laboratory-data', 'signals', 'facilities', 'hospitals', 'investigations', 'analytics', 'replay', 'simulation', 'reports',
 ];
 
 /** The mode a path (relative to the router basename) belongs to. */

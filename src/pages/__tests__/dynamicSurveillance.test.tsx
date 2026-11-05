@@ -387,6 +387,9 @@ describe('Detection Methods — the analyst presentation', () => {
     renderPage();
     const heading = await screen.findByRole('heading', { name: 'Statistical confirmation' }, { timeout: 5000 });
     const card = heading.closest('section')!;
+    // The page carries its navigation name, and says the replay is out of the methods' scope.
+    expect(screen.getByRole('heading', { level: 1, name: 'Detection Methods' })).toBeTruthy();
+    expect(screen.getByText(/EWMA and CUSUM need a 28-day reference period, so they apply to this dynamic history, not to the five-day replay\./)).toBeTruthy();
     // Recorded comparison for the selected date: EWMA and CUSUM both at Statistical Alert.
     expect(within(card).getByText('2 of 2 statistical methods indicate elevated activity.')).toBeTruthy();
     expect(within(card).getByText('EWMA')).toBeTruthy();

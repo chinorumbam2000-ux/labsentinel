@@ -28,7 +28,7 @@ export const ANALYST_SECTIONS: NavSection[] = [
     heading: 'Overview',
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: '▦' },
-      { to: '/simulation', label: 'Simulation', icon: '▶' },
+      { to: '/replay', label: 'Scenario Replay', icon: '▶', hint: 'The five-day simulated outbreak scenario' },
     ],
   },
   {

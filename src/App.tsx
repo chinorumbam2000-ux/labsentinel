@@ -43,7 +43,7 @@ function NotFoundPage() {
     <div className="ls-card p-10 text-center">
       <p className="text-3xl font-semibold text-ink">404</p>
       <p className="mt-2 text-sm text-muted">
-        That screen does not exist in this prototype.
+        That page does not exist.
       </p>
       <Link to="/dashboard" className="ls-btn-primary mt-5 inline-flex">
         Return to dashboard
@@ -121,7 +121,9 @@ export default function App() {
               <Route path="/hospitals" element={<RenamedRoute to="/facilities" />} />
               <Route path="/investigations" element={<InvestigationsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/simulation" element={<SimulationPage />} />
+              <Route path="/replay" element={<SimulationPage />} />
+              {/* Scenario Replay's former address; old links and bookmarks keep working. */}
+              <Route path="/simulation" element={<RenamedRoute to="/replay" />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/architecture" element={<ArchitecturePage />} />
               {/* Development FHIR ingestion demo. Local mode shows a notice only. */}

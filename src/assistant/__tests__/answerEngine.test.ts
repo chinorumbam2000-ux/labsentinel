@@ -50,7 +50,7 @@ describe('Roella — spec questions (Day 5)', () => {
     const { intent, text } = ask('Why is the score 87 on Day 5?', ctx(2));
     expect(intent).toBe('score_explanation');
     expect(text).toContain('the score is 87 (Critical');
-    expect(text).toContain('ahead of the current simulation day (Day 2)');
+    expect(text).toContain('ahead of the current replay day (Day 2)');
   });
 
   it('compares Day 4 to Day 5', () => {
@@ -218,8 +218,8 @@ describe('Roella — scope and safety', () => {
   });
 
   it('marks answers about later days as ahead of the simulation', () => {
-    expect(ask('What happens on Day 4?', ctx(2)).text).toContain('ahead of the current simulation day (Day 2)');
-    expect(ask('What happens on Day 2?', ctx(4)).text).not.toContain('ahead of the current simulation day');
+    expect(ask('What happens on Day 4?', ctx(2)).text).toContain('ahead of the current replay day (Day 2)');
+    expect(ask('What happens on Day 2?', ctx(4)).text).not.toContain('ahead of the current replay day');
   });
 });
 

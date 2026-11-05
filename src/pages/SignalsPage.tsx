@@ -36,7 +36,6 @@ export default function SignalsPage() {
     dataConfidence,
     feedHealth,
     dayOverDay,
-    lastUpdated,
     getInvestigation,
     runInvestigationAction,
     prepareReport,
@@ -106,7 +105,7 @@ export default function SignalsPage() {
               }
               message={
                 detection
-                  ? `"${detection.title}" is first detected on simulation Day ${detection.detectedDay}. The simulation is currently on Day ${currentDay}, so there is no detection-time breakdown to show. Advance to Day ${detection.detectedDay} or later, then investigate it from the alert list.`
+                  ? `"${detection.title}" is first detected on replay Day ${detection.detectedDay}. The replay is currently on Day ${currentDay}, so there is no detection-time breakdown to show. Advance to Day ${detection.detectedDay} or later, then investigate it from the alert list.`
                   : `No alert matches the reference "${alertParam}". It may be from an older session, or the link may be incomplete.`
               }
               action={
@@ -144,7 +143,6 @@ export default function SignalsPage() {
           confidence={dataConfidence}
           feeds={feedHealth}
           dayOverDay={dayOverDay}
-          lastUpdated={lastUpdated}
           investigation={selectedAlert ? getInvestigation(selectedAlert.id) : undefined}
           onInvestigationAction={(action, note) =>
             selectedAlert
@@ -177,7 +175,7 @@ export default function SignalsPage() {
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
             Each alert reports the values recorded when it was detected. Those values do
-            not change as the simulation advances — current regional figures are shown
+            not change as the replay advances — current regional figures are shown
             separately below.
           </p>
         </div>
@@ -241,7 +239,7 @@ export default function SignalsPage() {
       {/* Current values kept explicitly separate from the frozen detection values. */}
       <Card
         title={`Current regional figures — Day ${currentDay}`}
-        subtitle="Live values for the selected simulation day, shown separately from the detection-time values above"
+        subtitle="Values for the selected replay day, shown separately from the detection-time values above"
         action={
           <button
             type="button"
@@ -300,7 +298,7 @@ export default function SignalsPage() {
                   {alert.acknowledgement
                     ? formatSimulationDateTime(alert.acknowledgement.simulationTime)
                     : ''}{' '}
-                  (simulation time)
+                  (scenario time)
                 </span>
               </li>
             ))}

@@ -4,7 +4,7 @@
  */
 import type { ReactNode } from 'react';
 
-export function LoadingState({ label = 'Recalculating simulation state…' }: { label?: string }) {
+export function LoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
     <div
       role="status"

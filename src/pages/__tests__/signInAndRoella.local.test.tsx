@@ -117,8 +117,8 @@ describe('presentation sign-in', () => {
     renderAt('/reports');
     await signIn();
     await screen.findByRole('heading', { name: 'Public Health Reports' });
-    fireEvent.click(screen.getByRole('button', { name: 'Next simulation day' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Next simulation day' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
     const header = () => screen.getAllByRole('banner').find((el) => el.tagName === 'HEADER') as HTMLElement;
     await within(header()).findByText(/Day 3 of 5/);
 

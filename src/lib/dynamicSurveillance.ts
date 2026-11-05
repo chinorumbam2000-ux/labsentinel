@@ -16,13 +16,13 @@ import { SUPPRESSED_VALUE, applyGeographicPrivacy } from './geographicPrivacy';
 
 export const DYNAMIC_LABEL = 'Dynamic calculation from persisted laboratory observations.';
 export const DYNAMIC_DISCLAIMER =
-  'The Dynamic Surveillance Engine is a capstone prototype model and is not epidemiologically validated for production public-health decision-making.';
+  'The dynamic surveillance engine is a prototype model and is not epidemiologically validated for public-health decision-making.';
 export const INSUFFICIENT_BASELINE_TEXT =
   'Insufficient historical data to calculate a dynamic surveillance baseline.';
 export const NO_DATA_TEXT =
   'No eligible laboratory observations were received for this date. Absence of data is not evidence of normal activity.';
 export const MODE_SEPARATION_TEXT =
-  'Separate from Classroom Demo Mode: the Dashboard, Outbreak Map, Signals and Simulation pages, and the simulation day and score in the header, continue to show the frozen five-day classroom simulation.';
+  'Separate from Scenario Replay: the analyst pages, and the replay day and score in their header, continue to show the five-day simulated scenario. EWMA and CUSUM need a 28-day reference period, so they apply to this dynamic history, not to the five-day replay.';
 
 export const STATUS_LABEL: Record<CalculationStatus, string> = {
   CALCULATED: 'Calculated',

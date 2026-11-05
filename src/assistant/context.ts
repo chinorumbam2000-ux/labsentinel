@@ -127,7 +127,7 @@ const ROUTES: AssistantRoute[] = [
 ];
 
 /** Addresses that are another name for a known page. */
-const ALIASES: Record<string, AssistantRoute> = { facilities: 'hospitals' };
+const ALIASES: Record<string, AssistantRoute> = { facilities: 'hospitals', replay: 'simulation' };
 
 /** The assistant's route from a router pathname (relative to the app base). */
 export const routeFromPath = (pathname: string): AssistantRoute => {

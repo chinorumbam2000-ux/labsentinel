@@ -7,7 +7,7 @@ import type {
   SignalScoreResult,
   SimulationScenario,
 } from '../../types';
-import { SEVERITY_STYLES, formatClockTime } from '../../lib/format';
+import { SEVERITY_STYLES, formatSimulationDate } from '../../lib/format';
 import { CONFIDENCE_DISCLAIMER } from '../../lib/dataConfidence';
 import { getDisclosureSummary } from '../../lib/geographicPrivacy';
 import { BASELINE_POSITIVITY_RATE } from '../../data/simulation';
@@ -15,7 +15,6 @@ import { BASELINE_POSITIVITY_RATE } from '../../data/simulation';
 interface VendorSidecarProps {
   scenario: SimulationScenario;
   score: SignalScoreResult;
-  lastUpdated: Date;
   confidence: DataConfidenceResult;
   /** This facility's own feed, used for the offline disclosure. */
   feed: FacilityFeedHealth;
@@ -32,7 +31,6 @@ interface VendorSidecarProps {
 export default function VendorSidecar({
   scenario,
   score,
-  lastUpdated,
   confidence,
   feed,
 }: VendorSidecarProps) {
@@ -84,7 +82,7 @@ export default function VendorSidecar({
       hint: `(${confidence.level})`,
     },
     { label: 'This feed', value: feed.status, hint: undefined },
-    { label: 'Last updated', value: formatClockTime(lastUpdated), hint: undefined },
+    { label: 'Surveillance date', value: formatSimulationDate(scenario.simulationDate), hint: undefined },
   ];
 
   return (

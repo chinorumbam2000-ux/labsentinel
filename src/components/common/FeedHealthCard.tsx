@@ -154,7 +154,7 @@ export default function FeedHealthCard({
       </ul>
 
       <p className="border-t border-hairline px-5 py-3 text-[11px] leading-snug text-muted">
-        Simulated feed telemetry — no live interface is monitored by this prototype.{' '}
+        Simulated feed telemetry — no live interface is monitored.{' '}
         {FEED_HEALTH_DISCLAIMER}
       </p>
     </section>

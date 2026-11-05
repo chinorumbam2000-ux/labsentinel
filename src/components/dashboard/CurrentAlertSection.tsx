@@ -21,7 +21,6 @@ interface CurrentAlertSectionProps {
   score: SignalScoreResult;
   confidence: DataConfidenceResult;
   feeds: FacilityFeedHealth[];
-  lastUpdated: Date;
   alert: OutbreakAlert | undefined;
   investigation: InvestigationRecord | undefined;
 }
@@ -38,7 +37,6 @@ export default function CurrentAlertSection({
   score,
   confidence,
   feeds,
-  lastUpdated,
   alert,
   investigation,
 }: CurrentAlertSectionProps) {
@@ -170,7 +168,6 @@ export default function CurrentAlertSection({
           score={score}
           confidence={confidence}
           feeds={feeds}
-          lastUpdated={lastUpdated}
         />
       ) : null}
     </div>

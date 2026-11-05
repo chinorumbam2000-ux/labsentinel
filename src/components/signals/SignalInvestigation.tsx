@@ -32,7 +32,6 @@ interface SignalInvestigationProps {
   confidence: DataConfidenceResult;
   feeds: FacilityFeedHealth[];
   dayOverDay: DayOverDayComparison;
-  lastUpdated: Date;
   /** Human review state; absent when investigating current conditions only. */
   investigation?: InvestigationRecord;
   onInvestigationAction?: (action: InvestigationAction, note?: string) => string | null;
@@ -61,7 +60,6 @@ export default function SignalInvestigation({
   confidence,
   feeds,
   dayOverDay,
-  lastUpdated,
   investigation,
   onInvestigationAction,
   onPrepareReport,
@@ -155,11 +153,11 @@ export default function SignalInvestigation({
             <>
               These are the values recorded when &ldquo;{alert.title}&rdquo; triggered on{' '}
               {formatSimulationDateTime(alert.detectedAt)}. They are a frozen snapshot of
-              that moment and do not change as the simulation advances.
+              that moment and do not change as the replay advances.
               {!sameDay ? (
                 <>
                   {' '}
-                  The simulation is currently on Day {currentDay}; switch to{' '}
+                  The replay is currently on Day {currentDay}; switch to{' '}
                   <span className="font-medium text-ink">Current conditions</span> to see
                   where the signal stands now.
                 </>
@@ -167,7 +165,7 @@ export default function SignalInvestigation({
             </>
           ) : (
             <>
-              These are live values for the globally selected simulation day
+              These are the values for the selected replay day
               {alert ? (
                 <>
                   {' '}
@@ -175,7 +173,7 @@ export default function SignalInvestigation({
                   Day {alert.detectedDay}
                 </>
               ) : null}
-              . Changing the simulation day changes this view.
+              . Changing the replay day changes this view.
             </>
           )}
         </p>
@@ -196,7 +194,7 @@ export default function SignalInvestigation({
               {alert ? alert.title : 'Respiratory Viral Syndrome'}
             </h2>
             <p className="mt-1 text-sm text-muted">
-              Worcester County, MA · Simulation Day {scenario.day} · {scenario.stage}
+              Worcester County, MA · Replay Day {scenario.day} · {scenario.stage}
             </p>
           </div>
           <div className="text-right">
@@ -261,7 +259,7 @@ export default function SignalInvestigation({
             <table className="w-full border-collapse font-mono text-sm">
               <caption className="sr-only">
                 Weighted contribution of each component to the composite outbreak signal
-                score on simulation day {day}
+                score on replay day {day}
               </caption>
               <thead>
                 <tr className="border-b border-hairline">
@@ -339,7 +337,6 @@ export default function SignalInvestigation({
         score={score}
         confidence={confidence}
         feeds={feeds}
-        lastUpdated={lastUpdated}
       />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">

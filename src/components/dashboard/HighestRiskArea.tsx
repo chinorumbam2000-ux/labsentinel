@@ -92,7 +92,7 @@ export default function HighestRiskArea({
           <div className="flex h-full flex-col justify-center text-center">
             <p className="text-sm font-medium text-ink">No area is currently affected</p>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">
-              No surveillance area is above the detection margin on this simulation day.
+              No surveillance area is above the detection margin on this replay day.
               That is an absence of signal, not an absence of testing — all three
               facilities are still reporting.
             </p>

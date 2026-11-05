@@ -137,7 +137,7 @@ export default function ZipDetailPanel({
         {!metrics.isAffected ? (
           <p className="mt-4 rounded-lg bg-canvas px-3 py-2 text-xs text-muted">
             This area is not currently contributing to the regional signal on this
-            simulation day.
+            replay day.
           </p>
         ) : null}
 

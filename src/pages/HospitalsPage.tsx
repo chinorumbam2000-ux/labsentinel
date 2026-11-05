@@ -54,7 +54,6 @@ export default function HospitalsPage() {
     facilities,
     dataConfidence,
     feedHealth,
-    lastUpdated,
     isLoading,
     error,
     clearError,
@@ -111,7 +110,6 @@ export default function HospitalsPage() {
 
           <HospitalDashboard
             metrics={metrics}
-            lastUpdated={lastUpdated}
             currentDay={currentDay}
           />
 
@@ -129,7 +127,6 @@ export default function HospitalsPage() {
             score={signalScore}
             confidence={dataConfidence}
             feeds={feedHealth}
-            lastUpdated={lastUpdated}
           />
 
           <PrivacyDisclosure summary={getDisclosureSummary(currentDay)} />
@@ -245,7 +242,7 @@ export default function HospitalsPage() {
                       embedded beside it as a SMART-on-FHIR style sidecar and receives only
                       normalized, de-identified synthetic Observation resources — never
                       chart content, never patient identifiers beyond the synthetic
-                      placeholders shown in this prototype.
+                      placeholders shown in this scenario.
                     </p>
                   </div>
                 </div>
@@ -256,7 +253,6 @@ export default function HospitalsPage() {
                 <VendorSidecar
                   scenario={currentScenario}
                   score={signalScore}
-                  lastUpdated={lastUpdated}
                   confidence={dataConfidence}
                   feed={activeFeed}
                 />

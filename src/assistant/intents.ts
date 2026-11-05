@@ -44,7 +44,8 @@ const PAGE_NAMES: Array<[RegExp, Exclude<AssistantRoute, 'other'>]> = [
   [/\b(hospitals?|facilit(y|ies)) page\b/, 'hospitals'],
   [/\binvestigations? page\b/, 'investigations'],
   [/\banalytics\b/, 'analytics'],
-  [/\bsimulation page\b/, 'simulation'],
+  [/\b(simulation|(scenario )?replay) page\b/, 'simulation'],
+  [/\bscenario replay\b/, 'simulation'],
   [/\breports? page\b/, 'reports'],
   [/\barchitecture\b/, 'architecture'],
   [/\b(capstone )?overview page\b/, 'overview'],
@@ -90,7 +91,7 @@ const parseSeverity = (text: string): ParsedQuestion['severity'] => {
 const DOMAIN = [
   'probesyq', 'roella', 'labsentinel', 'score', 'signal', 'outbreak', 'hospital', 'facility', 'facilities', 'zip', 'area', 'positiv', 'test',
   'volume', 'severity', 'critical', 'confidence', 'alert', 'day', 'trend', 'analytic', 'map', 'lab', 'observation',
-  'fhir', 'smart', 'loinc', 'vendor', 'epic', 'oracle', 'meditech', 'sidecar', 'report', 'architecture', 'simulation',
+  'fhir', 'smart', 'loinc', 'vendor', 'epic', 'oracle', 'meditech', 'sidecar', 'report', 'architecture', 'simulation', 'replay', 'scenario',
   'surveillance', 'persist', 'geograph', 'page', 'dashboard', 'investigat', 'baseline', 'syndrome', 'respiratory',
   'influenza', 'flu', 'rsv', 'covid', 'sars', 'data', 'privacy', 'suppress', 'interoperab', 'ehr', 'patient', 'spread',
 ];
@@ -192,7 +193,7 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   if (has(t, 'observation', 'lab data', 'laboratory data', 'records', 'lab results', 'laboratory results', 'which tests', 'what tests', 'test types')) return result('observations');
   if (has(t, 'report')) return result('reports');
   if (has(t, 'architecture', 'backend', 'database', 'real data', 'real hospital', 'live data', 'connected to', 'is this real', 'tech stack', 'built with')) return result('architecture');
-  if (has(t, 'simulation', 'next day', 'previous day', 'change the day', 'change day', 'autoplay', 'play the')) return result('simulation_help');
+  if (has(t, 'simulation', 'replay', 'next day', 'previous day', 'change the day', 'change day', 'autoplay', 'play the')) return result('simulation_help');
   if (has(t, 'severity', 'how severe')) return result('current_score');
   if (has(t, 'score', 'composite', 'signal level', 'how high')) return result('current_score');
   if (PRODUCT_NAMES.some((name) => t.includes(name)) || has(t, 'who is it for', 'what is this app', 'what is this')) return result('about');

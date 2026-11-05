@@ -4,7 +4,7 @@ import { PRESENTATION_STEPS, clampStep, presentationFromQuery, stepForPath } fro
 
 describe('mode labelling', () => {
   it('puts every route in exactly one mode', () => {
-    for (const route of ['/dashboard', '/map', '/laboratory-data', '/signals', '/hospitals', '/analytics', '/simulation', '/reports']) {
+    for (const route of ['/dashboard', '/map', '/laboratory-data', '/signals', '/facilities', '/hospitals', '/investigations', '/analytics', '/replay', '/simulation', '/reports']) {
       expect(modeForPath(route)).toBe('classroom');
     }
     expect(modeForPath('/fhir-ingestion')).toBe('api');
@@ -18,9 +18,10 @@ describe('mode labelling', () => {
 
   it('names the five concepts without overlapping terms', () => {
     const labels = Object.values(MODES).map((m) => m.label);
-    expect(labels).toEqual(expect.arrayContaining(['Classroom Demo', 'API Capstone', 'Dynamic Surveillance', 'SMART Sandbox', 'Capstone Evaluation']));
+    // The same names as the navigation.
+    expect(labels).toEqual(expect.arrayContaining(['Scenario Replay', 'Data Ingestion', 'Detection Methods', 'Integration Testing', 'Validation', 'Project Overview']));
     expect(new Set(labels).size).toBe(labels.length);
-    expect(MODES.classroom.description).toBe('Frozen Day 1–Day 5 demonstration');
+    expect(MODES.classroom.description).toBe('Simulated surveillance data');
     expect(MODES.api.description).toBe('React + FastAPI + PostgreSQL');
   });
 

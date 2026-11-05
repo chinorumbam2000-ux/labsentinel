@@ -65,7 +65,7 @@ export default function DayOverDayChange({
       <div className="w-full overflow-x-auto">
         <table className="w-full min-w-[520px] border-collapse">
           <caption className="sr-only">
-            Comparison of simulation day {comparison.previousDay} with day{' '}
+            Comparison of replay day {comparison.previousDay} with day{' '}
             {comparison.currentDay}
           </caption>
           <thead className="border-b border-hairline bg-canvas">

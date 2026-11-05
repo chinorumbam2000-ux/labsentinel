@@ -95,10 +95,10 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     use: 'Use it to see how the signal developed day by day.',
   },
   simulation: {
-    nav: 'Simulation',
-    title: 'Respiratory Outbreak Simulation',
-    shows: 'the five-day simulation controls and the day-by-day progression of the outbreak story.',
-    use: 'Step, play or reset the days here or with the controls in the top bar; every page follows the same day.',
+    nav: 'Scenario Replay',
+    title: 'Scenario Replay',
+    shows: 'the five-day simulated respiratory outbreak scenario, its day-by-day progression and the replay controls.',
+    use: 'Step, play or reset the replay days here or with the controls in the top bar; every analyst page follows the same replay day.',
   },
   reports: {
     nav: 'Reports',
@@ -182,7 +182,7 @@ export const NAVIGATION: Array<{ words: string[]; route: Exclude<AssistantRoute,
   { words: ['evaluation'], route: 'evaluation', what: 'how the surveillance methods performed on synthetic scenarios' },
   { words: ['smart sandbox', 'smart launch', 'launch smart'], route: 'smart-demo', what: 'the SMART on FHIR sandbox launch' },
   { words: ['architecture', 'design', 'roadmap', 'planned'], route: 'architecture', what: 'the architecture and status of each component' },
-  { words: ['simulation', 'change the day', 'next day', 'previous day', 'play', 'reset'], route: 'simulation', what: 'the day-by-day simulation controls' },
+  { words: ['scenario replay', 'replay', 'simulation', 'change the day', 'next day', 'previous day', 'play', 'reset'], route: 'simulation', what: 'the five-day scenario and its replay controls' },
   { words: ['dashboard', 'overview', 'home'], route: 'dashboard', what: 'the regional status overview' },
 ];
 
@@ -194,7 +194,7 @@ export const CONCEPTS = {
   loinc:
     'LOINC is the standard code system for laboratory tests. ProbeSyQ Signal groups results by LOINC code into a surveillance syndrome, so the same test counts the same way whichever system sent it.',
   vendorAgnostic:
-    'Vendor-agnostic means one ProbeSyQ Signal view works across EHR vendors. The demo shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
+    'Vendor-agnostic means one ProbeSyQ Signal view works across EHR vendors. The Facilities page shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
 };
 
 /** The score's components and weights, from the scorer. */

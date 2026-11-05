@@ -61,7 +61,7 @@ describe('navigation model', () => {
     }
     expect(ANALYST_SECTIONS.map((section) => section.heading)).toEqual(['Overview', 'Surveillance', 'Action']);
     expect(analystRoutes).toEqual([
-      '/dashboard', '/simulation', '/map', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports',
+      '/dashboard', '/replay', '/map', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports',
     ]);
   });
 
@@ -138,7 +138,7 @@ describe('Facilities', () => {
 });
 
 describe('analyst screens carry no implementation labels', () => {
-  it.each(['/simulation', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports'])('%s', async (path) => {
+  it.each(['/replay', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports'])('%s', async (path) => {
     renderAt(path);
     await screen.findByRole('heading', { level: 1 });
     const text = document.body.textContent ?? '';
@@ -151,9 +151,9 @@ describe('analyst screens carry no implementation labels', () => {
 
 describe('Investigations', () => {
   it('lists each detected signal with its review and report status, linking to its investigation', async () => {
-    renderAt('/simulation');
+    renderAt('/replay');
     await screen.findByRole('heading', { level: 1 });
-    for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next simulation day' }));
+    for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
     cleanup();
     renderAt('/investigations');
     const table = (await screen.findByRole('table', { name: /investigation and report status/ })) as HTMLElement;

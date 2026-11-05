@@ -45,13 +45,15 @@ const renderAt = (path: string) =>
 const topBar = () => screen.getAllByRole('banner').find((el) => el.tagName === 'HEADER' && el.querySelector('[data-mode]')) as HTMLElement;
 
 describe('mode labelling', () => {
-  it('names the Classroom Demo on frozen demonstration screens, with the Day 1-5 controls and no implementation label', async () => {
+  it('names Scenario Replay and its simulated data on analyst screens, with the Day 1-5 controls and no implementation label', async () => {
     // (The dashboard's Leaflet map cannot render in jsdom; any classroom route shows the same top bar.)
     renderAt('/reports');
-    await screen.findByRole('button', { name: 'Next simulation day' });
+    await screen.findByRole('button', { name: 'Next replay day' });
     const bar = topBar();
     expect(bar.querySelector('[data-mode]')?.getAttribute('data-mode')).toBe('classroom');
-    expect(within(bar).getByText('Classroom Demo')).toBeTruthy();
+    expect(within(bar).getByText('Scenario Replay')).toBeTruthy();
+    expect(within(bar).getByText('Simulated surveillance data')).toBeTruthy();
+    expect(within(bar).queryByText('Classroom Demo')).toBeNull();
     // Local vs API is an implementation detail: not on analyst screens.
     expect(within(bar).queryByText('Local Demo Mode')).toBeNull();
   });
@@ -67,13 +69,13 @@ describe('mode labelling', () => {
     await screen.findByRole('heading', { name: 'Laboratory-First Public Health Early Warning' });
     const bar = topBar();
     expect(bar.querySelector('[data-mode]')?.getAttribute('data-mode')).toBe('overview');
-    expect(within(bar).queryByRole('button', { name: 'Next simulation day' })).toBeNull();
+    expect(within(bar).queryByRole('button', { name: 'Next replay day' })).toBeNull();
     expect(within(bar).queryByText('/100')).toBeNull();
   });
 
   it('groups the navigation by the analyst workflow, with technical pages under System and no API or SMART entries in local mode', async () => {
     renderAt('/reports');
-    await screen.findByRole('button', { name: 'Next simulation day' });
+    await screen.findByRole('button', { name: 'Next replay day' });
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     for (const group of ['Overview', 'Surveillance', 'Action', 'System']) {
       expect(within(nav).getByRole('group', { name: group })).toBeTruthy();
@@ -126,7 +128,7 @@ describe('Presentation Mode', () => {
     const bar = await screen.findByRole('region', { name: 'Presentation mode' });
     expect(bar.textContent).toContain('Step 3 of 10');
     expect(bar.textContent).toContain('Vendor-agnostic sidecar');
-    await screen.findByRole('button', { name: 'Next simulation day' });
+    await screen.findByRole('button', { name: 'Next replay day' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Next ›' }));
     await screen.findByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.');
@@ -140,7 +142,7 @@ describe('Presentation Mode', () => {
     fireEvent.click(within(bar).getByRole('button', { name: '‹ Previous' }));
     fireEvent.click(within(bar).getByRole('button', { name: '‹ Previous' }));
     expect(bar.textContent).toContain('Step 3 of 10');
-    await screen.findByRole('button', { name: 'Next simulation day' });
+    await screen.findByRole('button', { name: 'Next replay day' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Exit presentation' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Presentation mode' })).toBeNull());

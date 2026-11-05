@@ -409,7 +409,7 @@ banner.
 | `/facilities` | Facilities | Facility status (reporting, freshness, completeness, LOINC mapping, signal contribution), the selected facility's dashboard, data confidence and feed health, the clinician sidecar demonstration, and collapsed integration details. `/hospitals` (its former address) redirects here |
 | `/investigations` | Investigations | Every detected signal with its review and report status; each opens its investigation on Signals |
 | `/analytics` | Analytics | Trends — test volume, positivity, signal score, geographic spread, each on its own scale |
-| `/simulation` | Simulation | Full five-day simulation controls and the day-by-day progression |
+| `/replay` | Scenario Replay | The five-day simulated respiratory outbreak: replay controls and the day-by-day progression. `/simulation` (its former address) redirects here |
 | `/reports` | Reports | Simulated public-health reporting workflow and its audit timeline |
 | `/architecture` | System → Architecture | Current and future architecture, multi-source hooks, federated concept, status legend |
 | `/overview` | System → Project Overview | Workflow, links to every mode, key disclaimers, Presentation Mode, and (API mode, development) the readiness checklist |
@@ -427,7 +427,7 @@ URLs are `https://chinorumbam2000-ux.github.io/labsentinel/dashboard` and so on.
 ### Navigation
 
 The sidebar follows the Public Health Analyst's workflow: **Overview**
-(Dashboard, Simulation), **Surveillance** (Outbreak Map, Signals, Facilities,
+(Dashboard, Scenario Replay), **Surveillance** (Outbreak Map, Signals, Facilities,
 Laboratory Data, Analytics) and **Action** (Investigations, Reports). Technical
 pages sit under **System**, a collapsed group at the bottom: Data Ingestion
 (FHIR), Detection Methods (dynamic surveillance, EWMA, CUSUM), Integration
@@ -435,6 +435,12 @@ Testing (SMART sandbox), Validation, Architecture and Project Overview. The
 grouping is organisational only; there is no role-based access control. Pages
 that need the API or the SMART build flag are listed only in builds that have
 them, and the Local/API data-source indicator appears only on System pages.
+
+Analyst pages state where the data is read that it is simulated: a
+persistent "Simulated surveillance data" banner, a "Scenario Replay ·
+Simulated surveillance data" indicator beside the replay day controls, and a
+sidebar note linking to the full limitations on Project Overview. Replay pages
+show the scenario's surveillance date, not a browser session clock.
 
 On Detection Methods, a **Statistical confirmation** summary shows whether EWMA
 and CUSUM indicate elevated activity for the selected date, beside (never

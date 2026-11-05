@@ -59,12 +59,12 @@ export default function SimulationPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            Respiratory Outbreak Simulation
+            Scenario Replay
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            This page drives the entire prototype. Changing the day here updates the
-            dashboard, map, laboratory table, alerts, hospital views and all three vendor
-            sidecars.
+            A five-day simulated respiratory outbreak across three fictional facilities. Changing
+            the replay day here updates every analyst page: the dashboard, map, laboratory data,
+            signals, facilities and the clinician sidecar.
           </p>
         </div>
         <PageMeta />
@@ -75,7 +75,7 @@ export default function SimulationPage() {
         <div className="p-6">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
-              <p className="ls-label">Current Simulation Day</p>
+              <p className="ls-label">Current Replay Day</p>
               <p className="mt-1 text-4xl font-semibold tracking-tight text-ink">
                 Day {currentDay} <span className="text-muted">of 5</span>
               </p>
@@ -179,7 +179,7 @@ export default function SimulationPage() {
               ❚❚ Pause
             </button>
             <button type="button" onClick={resetSimulation} className="ls-btn">
-              ↺ Reset Simulation
+              ↺ Reset Replay
             </button>
 
             {isPlaying ? (
@@ -199,7 +199,7 @@ export default function SimulationPage() {
 
       <DayOverDayChange comparison={dayOverDay} />
 
-      <Card title="Current State" subtitle={`Derived from Simulation Day ${currentDay}`}>
+      <Card title="Current State" subtitle={`Derived from Replay Day ${currentDay}`}>
         <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-8">
           {state.map((item) => (
             <div key={item.label} className="rounded-lg bg-canvas p-3">
@@ -231,7 +231,7 @@ export default function SimulationPage() {
                 <th scope="col" className="ls-th">Stage</th>
                 <th scope="col" className="ls-th text-right">Tests</th>
                 <th scope="col" className="ls-th text-right">Positivity</th>
-                <th scope="col" className="ls-th text-right">Hospitals</th>
+                <th scope="col" className="ls-th text-right">Facilities</th>
                 <th scope="col" className="ls-th text-right">ZIPs</th>
                 <th scope="col" className="ls-th text-right">Persistence</th>
                 <th scope="col" className="ls-th text-right">Score</th>

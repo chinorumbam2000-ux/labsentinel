@@ -44,7 +44,6 @@ export default function DashboardPage() {
     dayOverDay,
     regionalAlert,
     investigations,
-    lastUpdated,
     isLoading,
     error,
     clearError,
@@ -97,7 +96,6 @@ export default function DashboardPage() {
               score={signalScore}
               confidence={dataConfidence}
               simulationDate={simulationDate}
-              lastUpdated={lastUpdated}
               stage={currentScenario.stage}
               day={currentDay}
             />
@@ -268,7 +266,6 @@ export default function DashboardPage() {
               score={signalScore}
               confidence={dataConfidence}
               feeds={feedHealth}
-              lastUpdated={lastUpdated}
               alert={regionalAlert}
               investigation={investigation}
             />

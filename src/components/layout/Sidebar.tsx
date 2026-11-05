@@ -104,7 +104,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="mx-5 mb-2 rounded-lg bg-white/5 px-3 py-2.5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">
-          Simulation Day
+          Replay Day
         </p>
         <div className="mt-1 flex items-baseline justify-between gap-2">
           <span className="text-lg font-semibold leading-none">{currentDay} of 5</span>
@@ -148,11 +148,14 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t border-white/10 px-5 py-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-severity-watch">
-          Demo Environment
+          Simulated data
         </p>
         <p className="mt-1 text-[11px] leading-snug text-white/60">
-          Synthetic data only. Prototype — not a clinical or public-health
-          system.
+          Fictional facilities, patients and observations. Not validated for clinical or public-health
+          decisions.{' '}
+          <NavLink to="/overview" onClick={onNavigate} className="font-medium text-white/80 underline underline-offset-2 hover:text-white">
+            About this data
+          </NavLink>
         </p>
       </div>
     </nav>

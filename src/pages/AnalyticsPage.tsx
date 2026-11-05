@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
         <EmptyState
           icon="◫"
           title="No data to chart yet"
-          message="Advance the simulation to build a trend series."
+          message="Advance the replay to build a trend series."
         />
       );
     }
@@ -285,7 +285,7 @@ export default function AnalyticsPage() {
               </table>
             </div>
             <p className="border-t border-hairline px-4 py-3 text-[11px] leading-snug text-muted">
-              Values beyond the current simulation day are withheld until the day is
+              Values beyond the current replay day are withheld until the day is
               reached.
             </p>
           </Card>

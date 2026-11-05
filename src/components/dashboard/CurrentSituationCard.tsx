@@ -1,5 +1,5 @@
 import type { ConfidenceLevel, DataConfidenceResult, SignalScoreResult } from '../../types';
-import { SEVERITY_STYLES, formatClockTime, formatSimulationDate } from '../../lib/format';
+import { SEVERITY_STYLES, formatSimulationDate } from '../../lib/format';
 import { CONFIDENCE_DISCLAIMER } from '../../lib/dataConfidence';
 import SeverityBadge from '../signals/SeverityBadge';
 
@@ -26,7 +26,6 @@ interface CurrentSituationCardProps {
   score: SignalScoreResult;
   confidence: DataConfidenceResult;
   simulationDate: string;
-  lastUpdated: Date;
   stage: string;
   day: number;
 }
@@ -44,7 +43,6 @@ export default function CurrentSituationCard({
   score,
   confidence,
   simulationDate,
-  lastUpdated,
   stage,
   day,
 }: CurrentSituationCardProps) {
@@ -73,8 +71,8 @@ export default function CurrentSituationCard({
             />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            How concerning the epidemiological signal is. Illustrative, non-validated
-            prototype model.
+            How concerning the epidemiological signal is. Illustrative model — not validated
+            for clinical or public-health decisions.
           </p>
         </div>
 
@@ -107,12 +105,11 @@ export default function CurrentSituationCard({
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hairline bg-canvas px-6 py-3">
         <p className="text-xs text-muted">
-          <span className="font-medium text-ink">Day {day} of 5</span> · {stage} ·
-          simulation date {formatSimulationDate(simulationDate)}
+          <span className="font-medium text-ink">Replay Day {day} of 5</span> · {stage} ·
+          surveillance date {formatSimulationDate(simulationDate)}
         </p>
         <p className="text-xs text-muted">
-          <span className="font-medium text-ink">Last updated</span>{' '}
-          {formatClockTime(lastUpdated)} (session clock)
+          <span className="font-medium text-ink">Scenario Replay</span> · simulated surveillance data
         </p>
       </div>
     </section>

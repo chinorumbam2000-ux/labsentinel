@@ -180,7 +180,7 @@ export default function InvestigationWorkflowPanel({
             {hasReport ? (
               <p className="mt-1.5 text-[11px] text-muted">
                 A report already exists for this signal. Preparing another creates a new
-                draft from the current simulation day.
+                draft from the current replay day.
               </p>
             ) : null}
           </div>

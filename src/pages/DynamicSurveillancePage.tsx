@@ -56,10 +56,11 @@ export default function DynamicSurveillancePage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">Dynamic Surveillance</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Detection Methods</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">
-          Surveillance signals calculated from the laboratory observations stored in PostgreSQL, against a
-          dynamic baseline of prior days.
+          How ProbeSyQ Signal detects and confirms unusual activity: the Composite Outbreak Signal Score
+          (the operational signal, against a rolling baseline of prior days) and two statistical
+          confirmation methods, EWMA and CUSUM, calculated from the stored laboratory observations.
         </p>
       </header>
 

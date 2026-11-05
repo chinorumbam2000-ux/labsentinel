@@ -342,7 +342,7 @@ export default function LaboratoryDataPage() {
             message={
               hasActiveFilters
                 ? 'Try widening your search or clearing one of the active filters.'
-                : 'No synthetic observations are available for this simulation day.'
+                : 'No simulated observations are available for this replay day.'
             }
             action={
               hasActiveFilters ? (
