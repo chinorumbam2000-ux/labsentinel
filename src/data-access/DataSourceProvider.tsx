@@ -118,7 +118,7 @@ function ConfigurationError({ message }: { message: string }) {
         <p className="mt-3 text-sm text-muted">
           Build or start the app with <code className="font-mono">VITE_DATA_SOURCE=local</code>{' '}
           (the standalone synthetic demo) or <code className="font-mono">VITE_DATA_SOURCE=api</code>{' '}
-          (the FastAPI capstone backend).
+          (the FastAPI backend).
         </p>
       </div>
     </div>

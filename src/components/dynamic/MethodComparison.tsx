@@ -133,8 +133,8 @@ export default function MethodComparison({
         </table>
       </div>
       <p className="border-t border-hairline px-5 py-3 text-[11px] text-muted">
-        First alert: Composite High or Critical; EWMA above a control limit; CUSUM at the decision limit. The capstone's
-        detector set is complete with these three methods.
+        First alert: Composite High or Critical; EWMA above a control limit; CUSUM at the decision limit. The detector set
+        is complete with these three methods.
       </p>
     </Card>
   );

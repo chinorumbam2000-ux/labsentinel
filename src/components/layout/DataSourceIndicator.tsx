@@ -15,9 +15,9 @@ export default function DataSourceIndicator() {
     return (
       <span
         className="hidden items-center rounded-full border border-hairline px-2.5 py-1 text-[11px] font-medium text-muted xl:inline-flex"
-        title="Local Demo Mode: the prototype's synthetic data, computed in the browser. No backend is used."
+        title="Static portfolio build: synthetic data, computed in the browser. No backend is used."
       >
-        Local Demo Mode
+        Static portfolio build
       </span>
     );
   }
@@ -42,10 +42,10 @@ export default function DataSourceIndicator() {
       onClick={recheckHealth}
       disabled={checkingHealth}
       className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-2.5 py-1 text-[11px] font-medium text-ink hover:bg-canvas disabled:cursor-progress"
-      title={`API capstone mode · ${source.label} · ${detail}${checked}. Click to re-check.`}
+      title={`Full-stack mode · ${source.label} · ${detail}${checked}. Click to re-check.`}
     >
       {/* The accessible name is this content: the visible words, then the detail for screen readers. */}
-      <span className="text-muted">API Capstone</span>{' '}
+      <span className="text-muted">Full-stack</span>{' '}
       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       <span>{state}</span>
       <span className="sr-only">: {detail}. Re-check connection.</span>

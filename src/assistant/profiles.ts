@@ -103,6 +103,11 @@ export const parseProfileIntent = (t: string): { intent: IntentId; profiles: Pro
   if (named.length === 1 && has('facilit', 'hospital', 'site', 'contribut', 'where')) {
     return { intent: 'profile_facilities', profiles: named };
   }
+  // "Which facility contributed?" is about the profile on screen.
+  if (!named.length && has('which facilit', 'what facilit', 'which hospital', 'which site') &&
+      has('contribut', 'driving', 'behind')) {
+    return { intent: 'profile_facilities', profiles: [] };
+  }
   if (named.length === 1 && has('why did', 'why has', 'why is it', 'jump', 'drop', 'fall', 'fell', 'rise', 'rose', 'swing', 'move', 'moved', 'change', 'sharp')) {
     return { intent: 'profile_change', profiles: named };
   }
@@ -232,9 +237,11 @@ let live: AssistantContext['live'];
 const useContext = (ctx: AssistantContext) => {
   live = ctx.live;
 };
-const onDay = (day: number) => (live ? `${live.dayLabel(day)} (latest closed day)` : `Replay Day ${day}`);
+// In Live Surveillance every profile answer describes the latest closed day,
+// whatever the replay day is.
+const onDay = (day: number) => (live ? `${live.closedDayLabel} (latest closed day)` : `Replay Day ${day}`);
 const betweenDays = (day: number) =>
-  live ? `${live.dayLabel(day - 1)} and ${live.dayLabel(day)}` : `Replay Day ${day - 1} and Day ${day}`;
+  live ? `${live.dayLabel(live.closedDay - 1)} and ${live.closedDayLabel}` : `Replay Day ${day - 1} and Day ${day}`;
 const baselineWord = () => (live ? 'rolling 7-day baseline' : 'Day 1 baseline');
 
 const shownRate = (id: ProfileId, day: number, rate: number) =>
@@ -476,7 +483,7 @@ export const answerProfileIntent = (
     case 'profile_current': return profileCurrent(ctx);
     case 'profile_status': return profileStatus(parsed.profiles[0], ctx, parsed.day);
     case 'profile_compare': return profileCompare(parsed.profiles, ctx);
-    case 'profile_facilities': return profileFacilities(parsed.profiles[0], ctx);
+    case 'profile_facilities': return profileFacilities(parsed.profiles[0] ?? ctx.profileId ?? RVS_PROFILE_ID, ctx);
     case 'profile_unknown': return profileUnknown(parsed.unknown ?? 'That');
     case 'profile_change': return profileChange(parsed.profiles[0], ctx, parsed.day);
     default: return null;

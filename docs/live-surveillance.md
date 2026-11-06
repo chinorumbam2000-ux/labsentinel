@@ -52,6 +52,11 @@ poll is a contact even when it delivers nothing; the FHIR source makes
 contact only by delivering. Only Shrewsbury Community's outage produces a
 DELAYED state.
 
+The panel (and Roella) also say whether the simulation is running: "not
+started" before Start, "paused" with each source's status when paused, and
+"live period complete" at the end. A source is never shown as active while
+nothing is being sent.
+
 ## The dataset
 
 `src/lib/live/dataset.ts`: integer tests and positives per facility, test and
@@ -77,7 +82,8 @@ of Active Surveillance; the rolling baseline then absorbs the higher volume.
 
 Each observation recalculates the open day ("today so far", provisional) and
 writes an audit entry when a score moves. Volume is compared with a full-day
-baseline, so a day's score builds up as its results arrive. At 19:30 the day
+baseline, so a day's score builds up as its results arrive: a provisional
+score is not comparable with a closed day's. At 19:30 the day
 closes: its final calculation becomes the profile's current signal on every
 page (Dashboard, Map, Facilities, Analytics, Signals, Roella). Laboratory Data
 and the source panel update with every observation.

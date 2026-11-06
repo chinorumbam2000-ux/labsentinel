@@ -215,6 +215,9 @@ export class LiveSimulator {
       const dayEnd = (this.openDay - FIRST_LIVE_INDEX + 1) * OPERATING_MINUTES;
       const step = Math.min(target, dayEnd);
       while (this.cursor < PLANNED.length && PLANNED[this.cursor].op <= step && PLANNED[this.cursor].dayIndex <= this.openDay) {
+        // The clock reads the message's own delivery minute while it is processed,
+        // so its audit entries carry that time rather than the tick's start.
+        this.op = Math.max(this.op, PLANNED[this.cursor].op);
         this.receive(PLANNED[this.cursor]);
         this.cursor += 1;
       }

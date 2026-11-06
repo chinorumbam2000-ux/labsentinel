@@ -25,6 +25,7 @@ import ProfileHeading from '../components/profiles/ProfileHeading';
 import ProfileAlertList from '../components/profiles/ProfileAlertList';
 import { Link, useLocation } from 'react-router-dom';
 import { LiveControls, SourceStatusPanel } from '../components/live/LiveParts';
+import StartHere from '../components/dashboard/StartHere';
 
 /**
  * The Public Health Dashboard, organised as six numbered sections that read in
@@ -95,6 +96,8 @@ export default function DashboardPage() {
         </div>
         <PageMeta />
       </header>
+
+      <StartHere />
 
       <ProfileSelector portfolio={portfolio} />
 

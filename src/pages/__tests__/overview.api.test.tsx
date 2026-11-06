@@ -54,11 +54,11 @@ describe('Capstone Overview — API Capstone Mode', () => {
     expect(panel.closest('[data-dev-detail]')).toBeTruthy();
     await within(panel).findByText('Database health:');
     expect(panel.textContent).toContain('READY (APP_ENV=development)');
-    expect(panel.textContent).toContain('API Capstone Mode → http://api.test');
+    expect(panel.textContent).toContain('Full-stack mode → http://api.test');
     expect(within(panel).getAllByText('WARN').length).toBeGreaterThan(0);
     expect(panel.textContent).not.toMatch(/password|secret=|salt/i);
     // API-mode features are available: no "requires API mode" notes on the cards.
-    expect(screen.queryByText('Requires API Capstone Mode (this build shows a notice).')).toBeNull();
+    expect(screen.queryByText('Requires the full-stack build (this build shows a notice).')).toBeNull();
   });
 
   it('says so when the readiness endpoint is disabled in this environment', async () => {

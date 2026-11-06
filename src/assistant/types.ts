@@ -6,7 +6,7 @@
  * confidence, facility and area selectors, alerts, privacy rules) plus a small
  * curated knowledge base. No question is ever sent anywhere.
  */
-import type { OutbreakAlert, SimulationDay, SurveillanceDay } from '../types';
+import type { DataConfidenceResult, OutbreakAlert, SimulationDay, SurveillanceDay } from '../types';
 import type { ProfileId } from '../lib/profiles/registry';
 import type { ProfileSummary } from '../lib/profiles/portfolio';
 import type { ProfileSelection } from '../lib/profiles/selection';
@@ -70,7 +70,11 @@ export interface LiveAssistantContext {
   playing: boolean;
   finished: boolean;
   closedDayLabel: string;
+  /** The latest closed day's index (what every analyst page shows). */
+  closedDay: number;
   dayLabel: (day: number) => string;
+  /** Data Confidence from the live source telemetry, as the Dashboard shows it. */
+  dataConfidence: DataConfidenceResult;
   sources: Array<{
     hospitalId: string;
     name: string;
@@ -156,6 +160,8 @@ export type IntentId =
   | 'live_driver'
   | 'live_facility'
   | 'realtime'
+  | 'real_data'
+  | 'source_status'
   | 'unsupported'
   | 'medical_advice'
   | 'out_of_scope';

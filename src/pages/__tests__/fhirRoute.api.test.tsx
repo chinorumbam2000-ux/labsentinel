@@ -56,7 +56,7 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
     // Under System, which opens by itself on a System page.
     expect(within(within(nav).getByRole('group', { name: 'System' })).getByRole('link', { name: /Data Ingestion/ })).toBeTruthy();
     expect(await screen.findByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeTruthy();
-    expect(screen.queryByText('FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.')).toBeNull();
+    expect(screen.queryByText('Data Ingestion needs the full-stack build (FastAPI and PostgreSQL).')).toBeNull();
   });
 
   it('lists Dynamic Surveillance and serves it from the dynamic endpoints', async () => {
@@ -71,6 +71,6 @@ describe('FHIR ingestion route in API Capstone Mode', () => {
     const system = within(nav).getByRole('group', { name: 'System' });
     expect(within(system).getByRole('link', { name: /Detection Methods/ }).getAttribute('href')).toBe('/dynamic-surveillance');
     expect(within(system).getByRole('link', { name: /Validation/ }).getAttribute('href')).toBe('/evaluation');
-    expect(screen.queryByText('Dynamic Surveillance requires Signal by ProbeSyQ API Capstone Mode.')).toBeNull();
+    expect(screen.queryByText('Detection Methods needs the full-stack build (FastAPI and PostgreSQL).')).toBeNull();
   });
 });

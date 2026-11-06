@@ -69,7 +69,7 @@ export const modeForPath = (pathname: string): AppMode => {
 /** The key messages every presentation must leave the audience with. */
 export const KEY_DISCLAIMERS = [
   'Synthetic data only. No real patient data.',
-  'No production Epic, Oracle Health or MEDITECH connection: the vendor environments are simulated.',
+  'No production Epic, Oracle Health or MEDITECH connection: the vendor environments and source feeds are simulated.',
   'The SMART on FHIR connection uses a public sandbox with synthetic patients.',
   'Composite, EWMA and CUSUM are prototype surveillance methods, not validated for public-health decisions.',
   'The Phase 10 evaluation demonstrates technical behavior on synthetic scenarios, not clinical or epidemiological validation.',

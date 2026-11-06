@@ -28,7 +28,7 @@ export default function DataUnavailable({
           <div>
             <p className="text-sm font-semibold text-ink">Signal by ProbeSyQ</p>
             <p className="text-xs text-muted">
-              {mode === 'api' ? `API capstone mode · ${label}` : label}
+              {mode === 'api' ? `Full-stack mode · ${label}` : label}
             </p>
           </div>
         </div>

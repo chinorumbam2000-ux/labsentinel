@@ -10,6 +10,7 @@ import { LiveSimulator, operatingMinute } from '../../lib/live/simulator';
 import { liveSummaries } from '../../lib/live/view';
 import { ALL_DATES, OPERATING_MINUTES } from '../../lib/live/dataset';
 import type { ProfileId } from '../../lib/profiles/registry';
+import { summarizeProfiles } from '../../lib/profiles/portfolio';
 
 const at = (date: string, hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
@@ -67,6 +68,18 @@ describe('Roella — Live Surveillance', () => {
     expect(a.text).toContain('Shrewsbury Community Medical Center — simulated LIS/API: delayed');
   });
 
+  it('never calls the sources active before Start, while paused or after the live period', () => {
+    const idle = new LiveSimulator();
+    const notStarted = { ...liveCtx(idle), live: buildLiveAssistantContext(idle, { started: false, playing: false }) };
+    expect(ask('Are all sources active?', notStarted).text).toContain('has not started, so none of the three simulated sources is sending yet');
+    const paused = { ...liveCtx(sim), live: buildLiveAssistantContext(sim, { started: true, playing: false }) };
+    expect(ask('Are all sources active?', paused).text).toContain('The simulation is paused');
+    const done = new LiveSimulator();
+    done.advance(Number.MAX_SAFE_INTEGER);
+    const finished = { ...liveCtx(done), live: buildLiveAssistantContext(done, { started: true, playing: false }) };
+    expect(ask('Are all sources active?', finished).text).toContain('The live period is complete');
+  });
+
   it('names what is driving a profile right now', () => {
     const a = ask('What is driving COVID-19 right now?', liveCtx(sim));
     expect(a.intent).toBe('live_driver');
@@ -110,5 +123,48 @@ describe('Roella — Live Surveillance', () => {
     early.advance(OPERATING_MINUTES * 2);
     const a = ask('What is happening with RSV?', liveCtx(early));
     expect(a.text).toContain('Positivity: <5');
+  });
+});
+
+describe('Roella — release questions, in both modes', () => {
+  const sim = new LiveSimulator();
+  sim.advance(at('2026-02-16', '12:00'));
+  // The replay day stays at 1 while Live Surveillance is on screen: answers must not borrow it.
+  const live: AssistantContext = { ...liveCtx(sim, 'covid-19'), day: 1 };
+  const replay: AssistantContext = { day: 5, route: 'dashboard', profiles: summarizeProfiles(5), profileId: 'respiratory-viral-syndrome' };
+
+  it('labels live answers with the latest closed day, never the replay day', () => {
+    expect(ask('Which profiles need attention?', live).text).toContain('On Feb 15 (latest closed day)');
+    expect(ask('What is the highest signal?', live).text).toContain('on Feb 15 (latest closed day)');
+    expect(ask('Which profile am I viewing?', live).text).toContain('You are viewing COVID-19: 87 (Critical) on Feb 15 (latest closed day).');
+  });
+
+  it('says plainly that no data is real', () => {
+    for (const ctx of [live, replay]) {
+      const a = ask('Is this real patient data?', ctx);
+      expect(a.intent).toBe('real_data');
+      expect(a.text.startsWith('No. Everything in Signal by ProbeSyQ is synthetic')).toBe(true);
+    }
+    expect(ask('Is this real-time?', live).intent).toBe('realtime');
+  });
+
+  it('answers "Are all sources active?" in Scenario Replay from the recorded feed health', () => {
+    const a = ask('Are all sources active?', replay);
+    expect(a.intent).toBe('source_status');
+    expect(a.text).toContain('On Replay Day 5, all 3 facility feeds are healthy.');
+    expect(a.text).toContain('nothing is streaming');
+  });
+
+  it('reads Data Confidence from the live feeds in Live Surveillance', () => {
+    const a = ask('What does Data Confidence mean?', live);
+    expect(a.text).toContain('Now (Feb 16 · 12:00, simulated time) it is');
+    expect(a.text).not.toContain('On Day 1');
+  });
+
+  it('names the contributing facilities for the profile on screen', () => {
+    expect(ask('Which facility contributed?', live).intent).toBe('live_facility');
+    const r = ask('Which facility contributed?', replay);
+    expect(r.intent).toBe('profile_facilities');
+    expect(r.text).toContain('above Respiratory Viral Syndrome');
   });
 });

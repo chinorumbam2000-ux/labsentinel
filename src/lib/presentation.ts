@@ -26,7 +26,7 @@ export const PRESENTATION_STEPS: PresentationStep[] = [
     cue: 'Laboratory results arrive before case reports. Signal by ProbeSyQ turns them into early, explainable, privacy-aware signals.',
   },
   {
-    title: 'Frozen classroom demo',
+    title: 'Scenario Replay',
     route: '/dashboard',
     cue: 'Step Day 1 → Day 5 with ›: the Composite Outbreak Signal Score rises 0 / 24 / 50 / 74 / 87.',
   },

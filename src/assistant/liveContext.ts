@@ -4,6 +4,7 @@
  * or result value is ever included.
  */
 import { HOSPITAL_BY_ID } from '../data/hospitals';
+import { calculateDataConfidence } from '../lib/dataConfidence';
 import { PROFILES } from '../lib/profiles/registry';
 import { dayAndMinuteOf, isLiveProfile, LIVE_PROFILES, type LiveSimulator } from '../lib/live/simulator';
 import { clock } from '../lib/live/sources';
@@ -29,6 +30,8 @@ export const buildLiveAssistantContext = (
     playing: state.playing,
     finished: sim.finished,
     closedDayLabel: liveDayLabel(day),
+    closedDay: day,
+    dataConfidence: calculateDataConfidence(sim.feedHealth()),
     dayLabel: liveDayLabel,
     now: sim.op,
     sources: sim.feedHealth().map((f) => ({

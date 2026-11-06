@@ -62,6 +62,12 @@ export default function DynamicSurveillancePage() {
           (the operational signal, against a rolling baseline of prior days) and two statistical
           confirmation methods, EWMA and CUSUM, calculated from the stored laboratory observations.
         </p>
+        <p className="mt-1 max-w-3xl text-xs text-muted" data-testid="detection-scope">
+          This page shows Respiratory Viral Syndrome. The Composite Outbreak Signal Score is available for every
+          surveillance profile on the analyst pages; the backend calculates the composite, EWMA and CUSUM per profile
+          (<code className="font-mono">?profile=</code>), and EWMA and CUSUM need a 28-day reference period before
+          they produce a result.
+        </p>
       </header>
 
       <div role="note" className="rounded-lg border border-brand/30 bg-brand-light px-4 py-2.5 text-sm text-ink">
@@ -77,11 +83,11 @@ export default function DynamicSurveillancePage() {
 
 function LocalModeNotice() {
   return (
-    <Card title="Not available in Local Demo Mode" bodyClassName="p-0">
+    <Card title="Not available in the static portfolio build" bodyClassName="p-0">
       <div className="space-y-2 p-5 text-sm text-muted">
-        <p className="font-medium text-ink">Dynamic Surveillance requires Signal by ProbeSyQ API Capstone Mode.</p>
+        <p className="font-medium text-ink">Detection Methods needs the full-stack build (FastAPI and PostgreSQL).</p>
         <p>
-          This build runs the frozen classroom demonstration in the browser, with no backend. Dynamic signals are
+          This build runs Scenario Replay and Live Surveillance in the browser, with no backend. Dynamic signals are
           calculated by the FastAPI backend from observations in PostgreSQL; start the app with{' '}
           <code className="font-mono">VITE_DATA_SOURCE=api</code> (see backend/README.md).
         </p>

@@ -117,7 +117,7 @@ export function PresentationProvider({ children }: { children: ReactNode }) {
 const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled;
 
 const requirementNote = (requires: StepRequirement | undefined, apiMode: boolean): string | null => {
-  if (requires === 'api' && !apiMode) return 'Needs API Capstone Mode: this build shows the page’s notice instead.';
+  if (requires === 'api' && !apiMode) return 'Needs the full-stack build: this build shows the page’s notice instead.';
   if (requires === 'smart' && !SMART_ENABLED) return 'Needs a build with VITE_SMART_ENABLED=true: this build shows a notice instead.';
   return null;
 };

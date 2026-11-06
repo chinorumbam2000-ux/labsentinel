@@ -149,7 +149,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
   evaluation: {
     nav: 'Validation',
     section: 'System',
-    title: 'Capstone Evaluation',
+    title: 'Validation',
     shows: 'how the surveillance methods performed on synthetic scenarios with known ground truth: sensitivity, timeliness and false alerts.',
     use: 'Compare the methods scenario by scenario; the results describe synthetic data only.',
     requires: 'api',

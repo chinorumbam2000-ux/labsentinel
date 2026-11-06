@@ -27,6 +27,56 @@ const WORKFLOW: { title: string; detail: string; status: ArchitectureStatus }[] 
   { title: 'SMART on FHIR Clinical Feedback', detail: 'Sidecar launched from a public synthetic sandbox.', status: 'IMPLEMENTED' },
 ];
 
+/**
+ * About this data: the limitations, once, for the whole application. Analyst
+ * pages carry only the short "Simulated surveillance data" / "Simulated
+ * source feeds" link to here.
+ */
+const ABOUT_SECTIONS: { heading: string; testId: string; items: string[] }[] = [
+  {
+    heading: 'Two ways to watch',
+    testId: 'about-modes',
+    items: [
+      'Scenario Replay is a controlled, frozen five-day Respiratory Viral Syndrome scenario, stepped one day at a time.',
+      'Live Surveillance runs entirely in your browser: three simulated source feeds — a FHIR R4 source, an HL7 v2 source and a LIS/API-style source — deliver deterministic synthetic results for the three fictional facilities, and every score is recalculated as they arrive. Seven days of synthetic history establish the baseline; ten live days then stream, one day in about 12 seconds at 1×. A refresh starts it again; nothing is stored.',
+      'The simulated feeds demonstrate the intended integration architecture. No real hospital, laboratory, EHR vendor or patient is connected, and no partnership with any vendor is implied.',
+    ],
+  },
+  {
+    heading: 'The methods',
+    testId: 'about-methods',
+    items: [
+      'Every threshold and setting is an illustrative default, not epidemiologically validated.',
+      'The Composite Outbreak Signal Score is an early-warning signal for epidemiological review, not confirmation of an outbreak.',
+      'Data Confidence describes the participating sources’ data quality, the same for every profile. It is never part of a score.',
+      'EWMA and CUSUM need a 28-day reference period. They run in the full-stack build; Live Surveillance shows "Insufficient reference history" rather than a result, and no statistical confirmation is ever invented.',
+      'Live Surveillance scores follow the backend engine’s rules exactly; a test runs the backend on the same observations and checks it gets the same results.',
+    ],
+  },
+  {
+    heading: 'Privacy',
+    testId: 'about-privacy',
+    items: [
+      'Positive counts below 5 — and the rates that would reveal them — are withheld at facility, area and county level, on every aggregate screen, in reports and in Roella’s answers.',
+      'Laboratory Data is a record-level view of synthetic observations, so its exact records are not subject to the aggregate rule. No real patient data exists anywhere in the application; patient identifiers are synthetic placeholders.',
+    ],
+  },
+  {
+    heading: 'Surveillance profiles',
+    testId: 'profile-data-sources',
+    items: [
+      'Respiratory Viral Syndrome is the narrated replay; Influenza A, COVID-19 and RSV are the same results filtered by test. Cholera and Gastrointestinal Syndrome use synthetic portfolio data with demonstration test codes (not LOINC), held in the browser only, and are not part of Live Surveillance.',
+    ],
+  },
+  {
+    heading: 'Before any production use',
+    testId: 'about-production',
+    items: [
+      'A real deployment would still need real authentication and role-based access, credentials for each source, security and privacy governance (including HIPAA review), independent security testing, and epidemiological validation of every method and threshold. The sign-in here is presentation only.',
+    ],
+  },
+];
+
 const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled;
 
 interface Destination {
@@ -38,11 +88,11 @@ interface Destination {
 }
 
 const DESTINATIONS: Destination[] = [
-  { to: '/dashboard', title: 'Classroom Demo', mode: 'classroom', detail: 'The frozen five-day outbreak story: Composite score 0 / 24 / 50 / 74 / 87, map, signals, vendor sidecar and reporting.' },
+  { to: '/dashboard', title: 'Scenario Replay', mode: 'classroom', detail: 'The frozen five-day outbreak story: Composite score 0 / 24 / 50 / 74 / 87, map, signals, vendor sidecar and reporting.' },
   { to: '/fhir-ingestion', title: 'FHIR Ingestion', mode: 'api', detail: 'Send a synthetic FHIR Observation through validation and normalization into PostgreSQL.', requires: 'api' },
   { to: '/dynamic-surveillance', title: 'Dynamic Surveillance', mode: 'dynamic', detail: 'Signals recalculated from stored observations, with EWMA and CUSUM beside the composite.', requires: 'api' },
   { to: '/smart-demo', title: 'SMART Sandbox', mode: 'smart', detail: 'SMART App Launch against the public SMART Health IT sandbox; read-only, PKCE, synthetic patients.', requires: 'smart' },
-  { to: '/evaluation', title: 'Capstone Evaluation', mode: 'evaluation', detail: '15 synthetic scenarios × 100 runs: sensitivity, timeliness and false alerts, with tradeoffs.', requires: 'api' },
+  { to: '/evaluation', title: 'Validation', mode: 'evaluation', detail: '15 synthetic scenarios × 100 runs: sensitivity, timeliness and false alerts, with tradeoffs.', requires: 'api' },
   { to: '/architecture', title: 'Architecture', mode: 'overview', detail: 'What is implemented, what is a prototype and what is planned, plus future work.' },
 ];
 
@@ -61,7 +111,7 @@ export default function OverviewPage() {
   }, [hash]);
 
   const availability = (requires?: 'api' | 'smart'): string | null => {
-    if (requires === 'api' && !apiMode) return 'Requires API Capstone Mode (this build shows a notice).';
+    if (requires === 'api' && !apiMode) return 'Requires the full-stack build (this build shows a notice).';
     if (requires === 'smart' && !SMART_ENABLED) return 'Not enabled in this build (VITE_SMART_ENABLED).';
     return null;
   };
@@ -76,7 +126,7 @@ export default function OverviewPage() {
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
           Laboratory results often arrive before case reports. Signal by ProbeSyQ turns routine, standards-based
           laboratory data into early, explainable and privacy-aware outbreak signals for public-health teams, and
-          sends context back to clinicians through SMART on FHIR. A capstone prototype on synthetic data.
+          sends context back to clinicians through SMART on FHIR. A portfolio prototype on synthetic data.
         </p>
       </header>
 
@@ -132,57 +182,22 @@ export default function OverviewPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card id="about-the-data" title="About this data">
+          {/* The one authoritative statement of what this application is and is not. */}
           <ul className="list-disc space-y-1.5 pl-5 text-sm text-ink">
             {KEY_DISCLAIMERS.map((text) => (
               <li key={text}>{text}</li>
             ))}
           </ul>
-          <h3 className="mt-4 text-sm font-semibold text-ink">Live Surveillance</h3>
-          <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm text-ink" data-testid="live-data-sources">
-            <li>
-              Live Surveillance runs entirely in your browser on synthetic data: three simulated source feeds (a
-              FHIR R4 source, an HL7 v2 source and a LIS/API-style source) stand in for the three fictional
-              facilities. No real hospital, EHR vendor or patient is connected, and no backend is needed.
-            </li>
-            <li>
-              The feeds are deterministic: the same results arrive in the same order every time. Seven days of
-              synthetic history are loaded at the start to establish the 7-day rolling baseline; ten live days then
-              stream in, one day in about 12 seconds at 1×, overnight hours skipped.
-            </li>
-            <li>
-              Scores are calculated from the observations by the same rules as the backend engine; a test runs the
-              backend on the same observations and checks it gets the same results. EWMA and CUSUM are not shown in
-              Live Surveillance: they need a 28-day reference period.
-            </li>
-            <li>
-              Live Surveillance covers Respiratory Viral Syndrome, Influenza A, COVID-19 and RSV. A refresh starts the
-              simulation again from the beginning; nothing from it is stored.
-            </li>
-          </ul>
-          <h3 className="mt-4 text-sm font-semibold text-ink">Surveillance profiles</h3>
-          <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm text-ink" data-testid="profile-data-sources">
-            <li>
-              Respiratory Viral Syndrome is the narrated five-day replay. In API mode its figures come from the
-              API; in local mode from the browser.
-            </li>
-            <li>
-              Influenza A, COVID-19 and RSV are the same replay results filtered by test. Their laboratory records
-              come from the active data source (the API in API mode); their scores are worked out in the browser.
-            </li>
-            <li>
-              Cholera and Gastrointestinal Syndrome are synthetic portfolio data with demonstration test codes
-              (not LOINC). Their results exist only in the browser, in every mode: the API database does not
-              contain them, and FHIR ingestion does not accept their codes.
-            </li>
-            <li>
-              Data Confidence is overall participating-source quality: the same for every profile, and never part
-              of a score.
-            </li>
-            <li>
-              Positive counts below 5, and the rates that would reveal them, are withheld at facility, area and
-              county level for every profile. Laboratory Data lists individual synthetic records.
-            </li>
-          </ul>
+          {ABOUT_SECTIONS.map((section) => (
+            <div key={section.heading} data-testid={section.testId}>
+              <h3 className="mt-4 text-sm font-semibold text-ink">{section.heading}</h3>
+              <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm text-ink">
+                {section.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </Card>
         <Card title="Presentation mode" subtitle="The ten-step final demonstration, through the real application">
           <p className="text-sm text-ink">
@@ -236,7 +251,7 @@ function ReadinessPanel() {
   }, [client, attempt]);
 
   const frontend: { label: string; status: CheckStatus; detail: string }[] = [
-    { label: 'Data source', status: 'PASS', detail: `API Capstone Mode → ${config.apiBaseUrl}` },
+    { label: 'Data source', status: 'PASS', detail: `Full-stack mode → ${config.apiBaseUrl}` },
     {
       label: 'Backend connection',
       status: health === null ? 'WARN' : health.api === 'connected' && health.database === 'connected' ? 'PASS' : 'FAIL',

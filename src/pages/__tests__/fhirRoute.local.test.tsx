@@ -33,7 +33,7 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.', {}, { timeout: 5000 })).toBeTruthy(); // lazy route, cold
+    expect(await screen.findByText('Data Ingestion needs the full-stack build (FastAPI and PostgreSQL).', {}, { timeout: 5000 })).toBeTruthy(); // lazy route, cold
     expect(screen.queryByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).toContain('Laboratory Data');
@@ -49,7 +49,7 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('Dynamic Surveillance requires Signal by ProbeSyQ API Capstone Mode.', {}, { timeout: 5000 })).toBeTruthy(); // lazy route, cold
+    expect(await screen.findByText('Detection Methods needs the full-stack build (FastAPI and PostgreSQL).', {}, { timeout: 5000 })).toBeTruthy(); // lazy route, cold
     expect(screen.queryByRole('button', { name: 'Recalculate Dynamic Surveillance' })).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).not.toContain('Dynamic Surveillance');
@@ -64,7 +64,7 @@ describe('FHIR ingestion route in Local Demo Mode', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('The Capstone Evaluation requires Signal by ProbeSyQ API Capstone Mode.', {}, { timeout: 5000 })).toBeTruthy(); // lazy route, cold
+    expect(await screen.findByText('Validation needs the full-stack build (FastAPI and PostgreSQL).', {}, { timeout: 5000 })).toBeTruthy(); // lazy route, cold
     expect(screen.queryByLabelText('Scenario')).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).not.toContain('Capstone Evaluation');

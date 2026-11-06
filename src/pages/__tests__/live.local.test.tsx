@@ -66,18 +66,49 @@ describe('Live Surveillance', () => {
     expect(document.body.textContent).not.toMatch(/Demo Environment|Classroom Demo/);
   });
 
+  it('offers a first-time visitor the two experiences, and can be dismissed', async () => {
+    const view = renderAt('/dashboard');
+    const strip = await screen.findByTestId('start-here', undefined, WAIT);
+    expect(within(strip).getByRole('link', { name: 'Step through Scenario Replay' }).getAttribute('href')).toBe('/replay');
+    fireEvent.click(within(strip).getByRole('button', { name: '▶ Watch Live Surveillance' }));
+    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    // Started: the simulation is playing, and the strip has gone.
+    expect(screen.getAllByRole('button', { name: '❚❚ Pause' }).length).toBeGreaterThan(0);
+    expect(screen.queryByTestId('start-here')).toBeNull();
+    view.unmount();
+    window.sessionStorage.removeItem('labsentinel.surveillanceMode.v1');
+    renderAt('/dashboard');
+    fireEvent.click(await screen.findByRole('button', { name: 'Dismiss the introduction' }, WAIT));
+    expect(screen.queryByTestId('start-here')).toBeNull();
+    expect(window.sessionStorage.getItem('labsentinel.startHere.dismissed.v1')).toBe('1');
+  });
+
+  it('never shows the replay-narrated EHR sidecar beside live figures', async () => {
+    window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
+    renderAt('/hospitals');
+    expect(await screen.findByTestId('sidecar-live-note', undefined, WAIT)).toBeTruthy();
+    expect(document.body.textContent).not.toContain('Respiratory Viral Syndrome · regional activity');
+  });
+
   it('starts, pauses, resumes and resets — with exactly one timer', async () => {
     renderAt('/live');
     await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     expect(screen.getByText(/No activity yet/)).toBeTruthy();
+    const sources = () => screen.getByTestId('source-status');
+    expect(sources().getAttribute('data-run-state')).toBe('idle');
+    expect(sources().textContent).toContain('Simulated sources · not started');
+    expect(sources().textContent).not.toContain('Active');
     fireEvent.click(button('▶ Start'));
     expect(vi.getTimerCount()).toBe(1);
     play(120);
+    expect(sources().textContent).toContain('3 / 3 simulated sources active');
     const stream = screen.getByTestId('activity-stream');
     expect(within(stream).getAllByText(/Observation received/).length).toBeGreaterThan(0);
     fireEvent.click(button('❚❚ Pause'));
     expect(vi.getTimerCount()).toBe(0);
+    expect(sources().textContent).toContain('paused (3 / 3 active when paused)');
+    expect(sources().textContent).toContain('Active · paused');
     const frozen = stream.textContent;
     play(600);
     expect(screen.getByTestId('activity-stream').textContent).toBe(frozen);

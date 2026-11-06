@@ -53,13 +53,13 @@ const FULL_STACK_FLOW: FlowStep[] = [
   {
     nodes: [
       { label: 'React: three-method comparison', detail: 'Side by side with an agreement count; never combined into one score.', status: 'IMPLEMENTED' },
-      { label: 'Capstone Evaluation framework', detail: '15 synthetic scenarios × 100 seeded runs, known ground truth, Wilson intervals.', status: 'IMPLEMENTED' },
+      { label: 'Evaluation framework', detail: '15 synthetic scenarios × 100 seeded runs, known ground truth, Wilson intervals.', status: 'IMPLEMENTED' },
     ],
   },
 ];
 
 const IMPLEMENTED = [
-  ['React frontend', 'TypeScript, Vite, Recharts, Leaflet; Local Demo and API Capstone modes.'],
+  ['React frontend', 'TypeScript, Vite, Recharts, Leaflet; a static portfolio build and a full-stack build.'],
   ['FastAPI backend', 'Typed read API, development-only write paths, environment gating.'],
   ['PostgreSQL', 'Alembic-migrated schema; seeded frozen demonstration and dynamic dataset.'],
   ['FHIR ingestion', 'FHIR R4 Observations and Bundles, normalized and pseudonymised.'],
@@ -75,7 +75,7 @@ const IMPLEMENTED = [
 const PROTOTYPE = [
   ['Vendor sidecars', 'One sidecar inside simulated Epic, Oracle Health and MEDITECH environments. No live vendor connection.'],
   ['Simulated reporting', 'A public-health reporting workflow with an audit timeline; nothing is sent anywhere.'],
-  ['Classroom demo', 'The frozen Day 1–5 outbreak story (0 / 24 / 50 / 74 / 87), identical in both modes.'],
+  ['Scenario Replay', 'The frozen Day 1–5 outbreak story (0 / 24 / 50 / 74 / 87), identical in both builds.'],
   ['Data Confidence model', 'Freshness, completeness, terminology, participation and integrity, kept separate from severity.'],
 ] as const;
 
@@ -229,17 +229,17 @@ export default function ArchitecturePage() {
       {/* ============ IMPLEMENTED ============ */}
       <Card
         title="Implemented"
-        subtitle="The full-stack capstone: React + FastAPI + PostgreSQL"
+        subtitle="The full-stack build: React + FastAPI + PostgreSQL"
         action={<StatusBadge status="IMPLEMENTED" />}
       >
         <ItemGrid items={IMPLEMENTED} status="IMPLEMENTED" />
-        <h3 className="mt-5 text-sm font-semibold text-ink">The API capstone pipeline</h3>
+        <h3 className="mt-5 text-sm font-semibold text-ink">The full-stack pipeline</h3>
         <FlowDiagram steps={FULL_STACK_FLOW} tone="current" className="mt-3" />
         {source.mode === 'local' ? (
           <p className="mt-4 rounded-lg bg-canvas p-3 text-xs leading-relaxed text-muted">
-            This build runs in Local Demo Mode: only the classroom demonstration below runs, in your
+            This build is the static portfolio build: only the browser demonstrations run, in your
             browser. The backend, FHIR ingestion, dynamic surveillance, EWMA, CUSUM, SMART and the
-            evaluation run in API Capstone Mode (see the repository README).
+            evaluation run in the full-stack build (see the repository README).
           </p>
         ) : null}
       </Card>
@@ -251,11 +251,11 @@ export default function ArchitecturePage() {
         action={<StatusBadge status="PROTOTYPE" />}
       >
         <ItemGrid items={PROTOTYPE} status="PROTOTYPE" />
-        <h3 className="mt-5 text-sm font-semibold text-ink">The classroom demonstration pipeline</h3>
+        <h3 className="mt-5 text-sm font-semibold text-ink">The Scenario Replay pipeline</h3>
         <FlowDiagram steps={CURRENT_FLOW} tone="current" className="mt-3" />
         <p className="mt-4 rounded-lg bg-canvas p-3 text-xs leading-relaxed text-muted">
-          The classroom demonstration runs on a frozen, deterministic synthetic dataset — in the
-          browser in Local Demo Mode, or read from PostgreSQL in API Capstone Mode, with identical
+          Scenario Replay runs on a frozen, deterministic synthetic dataset — in the
+          browser in the static portfolio build, or read from PostgreSQL in the full-stack build, with identical
           values. It has no live connection to any hospital, laboratory, EHR vendor or
           public-health authority.
         </p>
@@ -426,14 +426,14 @@ export default function ArchitecturePage() {
             </ul>
             <p className="mt-4 text-xs leading-relaxed text-muted">
               The Composite, EWMA and CUSUM formulas and parameters, and the Phase 10 evaluation,
-              are frozen for the capstone: weaknesses are recorded here rather than tuned away.
+              are frozen for this release: weaknesses are recorded here rather than tuned away.
             </p>
             <p className="mt-3 flex flex-wrap gap-2">
               <Link to="/evaluation" className="ls-btn">
                 See the evaluation
               </Link>
               <Link to="/overview" className="ls-btn">
-                Capstone overview
+                Project overview
               </Link>
             </p>
           </div>
@@ -447,7 +447,7 @@ export default function ArchitecturePage() {
           Nothing on this page marked PLANNED or FUTURE is implemented.
         </p>
         <p className="mt-2 text-xs leading-relaxed text-muted">
-          Signal by ProbeSyQ is a capstone prototype using synthetic data. It is not connected to any real
+          Signal by ProbeSyQ is a portfolio prototype using synthetic data. It is not connected to any real
           hospital, patient record, laboratory, EHR vendor or public-health authority; the SMART
           connection uses a public sandbox. The Composite Outbreak Signal Score, EWMA and CUSUM are
           prototype surveillance methods, and the Phase 10 evaluation demonstrates technical

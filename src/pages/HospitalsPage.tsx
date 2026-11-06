@@ -268,16 +268,26 @@ export default function HospitalsPage() {
 
               {/* The SAME reusable sidecar renders in every environment. */}
               <div className="xl:col-span-1">
-                <VendorSidecar
-                  scenario={currentScenario}
-                  score={signalScore}
-                  confidence={dataConfidence}
-                  feed={activeFeed}
-                />
-                <p className="mt-2 px-1 text-[11px] leading-snug text-muted">
-                  Rendered from a single shared <code className="font-mono">VendorSidecar</code>{' '}
-                  component — identical in all three simulated environments.
-                </p>
+                {period.mode === 'live' ? (
+                  // The sidecar narrates Scenario Replay's figures: never shown beside live ones.
+                  <p role="note" className="ls-card border-l-4 border-l-brand px-4 py-3 text-sm text-ink" data-testid="sidecar-live-note">
+                    The EHR sidecar demonstration follows Scenario Replay in this release. Switch to Scenario Replay to
+                    see it beside the simulated EHR.
+                  </p>
+                ) : (
+                  <>
+                    <VendorSidecar
+                      scenario={currentScenario}
+                      score={signalScore}
+                      confidence={dataConfidence}
+                      feed={activeFeed}
+                    />
+                    <p className="mt-2 px-1 text-[11px] leading-snug text-muted">
+                      Rendered from a single shared <code className="font-mono">VendorSidecar</code>{' '}
+                      component — identical in all three simulated environments.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </section>

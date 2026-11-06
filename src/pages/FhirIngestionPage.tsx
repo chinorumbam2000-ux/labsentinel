@@ -43,7 +43,7 @@ import {
 
 export const SYNTHETIC_NOTICE = 'Synthetic FHIR development demonstration — no real patient data.';
 export const DEMO_WINDOW_NOTE =
-  'Development FHIR ingestions are stored outside the frozen five-day demonstration window and do not alter the classroom simulation.';
+  'Development FHIR ingestions are stored outside the frozen five-day demonstration window and do not alter Scenario Replay.';
 
 export default function FhirIngestionPage() {
   const { source } = useDataSourceContext();
@@ -73,9 +73,9 @@ export default function FhirIngestionPage() {
 
 function LocalModeNotice() {
   return (
-    <Card title="Not available in Local Demo Mode" bodyClassName="p-0">
+    <Card title="Not available in the static portfolio build" bodyClassName="p-0">
       <div className="space-y-2 p-5 text-sm text-muted">
-        <p className="font-medium text-ink">FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.</p>
+        <p className="font-medium text-ink">Data Ingestion needs the full-stack build (FastAPI and PostgreSQL).</p>
         <p>
           This build runs the standalone synthetic demonstration in the browser, with no backend. To use the
           ingestion demonstration, run the FastAPI backend in development and start the app with{' '}
@@ -654,7 +654,7 @@ function DynamicRecalculatePrompt({ baseUrl }: { baseUrl: string }) {
             ? 'Recalculation is available only when the backend runs in development.'
             : state.status === 'error'
               ? state.message
-              : 'The classroom demonstration is not affected: dynamic signals are calculated separately.'}
+              : 'Scenario Replay is not affected: dynamic signals are calculated separately.'}
       </p>
     </div>
   );

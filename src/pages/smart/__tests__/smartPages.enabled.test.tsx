@@ -180,7 +180,7 @@ describe('SMART sidecar', () => {
 
     expect(await screen.findByText('Hemoglobin')).toBeTruthy();
     expect(screen.getByText(SANDBOX_DATA_NOTE)).toBeTruthy();
-    expect(screen.getByText(/requires API Capstone Mode/)).toBeTruthy();
+    expect(screen.getByText(/requires the full-stack build/)).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'View SMART Technical Details' }));
     expect(screen.getByText('launch openid fhirUser patient/Observation.rs')).toBeTruthy();

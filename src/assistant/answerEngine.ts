@@ -392,7 +392,8 @@ const persistence = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer 
 
 const confidence = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
   const f = factsFor(p.day ?? ctx.day, ctx);
-  const c = f.confidence;
+  // Live Surveillance: the live source telemetry, exactly as the Dashboard shows it.
+  const c = ctx.live ? ctx.live.dataConfidence : f.confidence;
   const t = p.normalized;
   const blocks: AnswerBlock[] = [];
   if (/affect|part of|change|influence|combined|included|count toward/.test(t)) {
@@ -402,7 +403,7 @@ const confidence = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
     blocks.push(list(CONFIDENCE_COMPONENTS.map((x) => `${x.label} — up to ${Math.round(x.weight * 100)} points`)));
   }
   const reporting = /reporting/i.test(c.explanation) ? '' : ` ${c.facilitiesReporting} of ${c.facilitiesTotal} facilities are reporting.`;
-  blocks.push(text(`On Day ${f.day} it is ${c.score} (${c.level}): ${c.explanation}${reporting}`));
+  blocks.push(text(`${ctx.live ? `Now (${ctx.live.clock}, simulated time)` : `On Day ${f.day}`} it is ${c.score} (${c.level}): ${c.explanation}${reporting}`));
   if (/why|low|high|weak/.test(t)) {
     blocks.push(list(c.components.map((x) => `${x.label}: ${x.points} of ${x.maxPoints} — ${x.evidence}`), 'Components today'));
     const lost = (x: (typeof c.components)[number]) => x.maxPoints - x.points;
@@ -414,7 +415,7 @@ const confidence = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
         : `${joinAnd(weakest)} each fall ${plural(most, 'point')} short of full marks; the rest are full.`));
     }
   }
-  return answer('confidence', [...blocks, ...aheadNote(f.day, ctx)], ['Does Data Confidence affect the score?', 'Why is the score this high?']);
+  return answer('confidence', [...blocks, ...(ctx.live ? [] : aheadNote(f.day, ctx))], ['Does Data Confidence affect the score?', 'Why is the score this high?']);
 };
 
 const alerts = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {

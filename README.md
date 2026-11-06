@@ -2,213 +2,98 @@
 
 **Outbreak Intelligence** · by **ProbeSyQ** (Healthcare Technology Systems)
 
-*Formerly LabSentinel.* "LabSentinel" remains the internal name (repository,
-storage keys, FHIR identifier system, database and deployment names); see
-[docs/branding.md](docs/branding.md).
+Signal turns laboratory results from several hospitals into an explainable,
+privacy-protected early-warning signal for each surveillance profile — and
+shows the analyst why the signal moved, how far the data behind it can be
+trusted, and what to do next. Roella, the ProbeSyQ AI Assistant, answers
+questions about what is on screen.
 
-A laboratory-first, vendor-agnostic public-health early-warning capstone
-prototype: React + FastAPI + PostgreSQL, FHIR R4 ingestion, SMART on FHIR,
-dynamic surveillance with three compared detection methods, and a
-reproducible synthetic evaluation.
-
-> **Synthetic data only. No real patient data.** No production Epic, Oracle
-> Health or MEDITECH connection: the vendor environments are simulated. The
-> SMART on FHIR connection uses a public sandbox. The Composite Outbreak Signal
-> Score, EWMA and CUSUM are prototype surveillance methods, and the capstone
-> evaluation demonstrates technical behavior on synthetic scenarios — not
-> clinical or epidemiological validation.
-
-🔗 **Public classroom demo (Local Demo Mode):** https://chinorumbam2000-ux.github.io/labsentinel/
+🔗 **Live portfolio:** https://chinorumbam2000-ux.github.io/labsentinel/
 📦 **Repository:** https://github.com/chinorumbam2000-ux/labsentinel
-🌿 **Branches:** `main` and the `submission-v1.4` tag are the frozen browser
-prototype (the GitHub Pages site). `capstone-development` is the full-stack
-capstone described here.
 
-## Capstone at a glance
+> **Synthetic data only. No real patient data.** No real hospital, laboratory
+> or EHR vendor is connected: the source feeds and vendor environments are
+> simulated. Thresholds are illustrative and not epidemiologically validated;
+> the Composite Outbreak Signal Score is an early-warning signal, not
+> confirmation of an outbreak. The sign-in screen is presentation only, not
+> authentication.
 
-| | |
-|---|---|
-| [Problem](#problem) | [Workflow](#workflow) · [Modes](#modes) · [Architecture](#architecture) |
-| [Technology](#technology) | [FHIR ingestion](#fhir-ingestion) · [SMART on FHIR](#smart-on-fhir) · [Dynamic surveillance](#dynamic-surveillance-and-three-methods) |
-| [Evaluation and key results](#evaluation-and-key-results) | [Limitations](#limitations) · [Privacy](#privacy-and-synthetic-data) |
-| [Run it](#run-it) | [Presentation](#presentation) · [Deployment](#deployment) · [Future work](#future-work) · [Technical debt](#known-technical-debt) |
+*Internal name: LabSentinel.* It remains in the repository name, the
+`/labsentinel/` base path, storage keys, the FHIR identifier system and the
+database — see [docs/branding.md](docs/branding.md).
 
-Detailed documentation: [backend/README.md](backend/README.md) (API, FHIR,
-SMART, dynamic surveillance, EWMA, CUSUM, evaluation),
-[docs/presentation-guide.md](docs/presentation-guide.md),
-[docs/deployment.md](docs/deployment.md),
-[docs/evaluation-summary.md](docs/evaluation-summary.md),
-[docs/technical-debt.md](docs/technical-debt.md), and the prototype reference
-(sections 1–22) further down this page.
+## Two ways to run it
 
-### Problem
-
-Laboratory results are among the earliest structured, codable signals of an
-outbreak, often days ahead of case reports. But each hospital sees only its own
-slice, in its own EHR vendor's format. Public-health teams need those slices
-normalized to common terminology, combined into one regional signal, explained
-rather than asserted, scored for how trustworthy the data are, and protected for
-privacy — and clinicians benefit from seeing that context back in their own
-workflow. LabSentinel is a working prototype of that loop, on synthetic data.
-
-### Workflow
-
-```
-Laboratory Data
-  ↓  FHIR Interoperability      FHIR R4 Observations and Bundles
-  ↓  Normalization              LOINC → syndrome, SNOMED CT → result, facility, pseudonym
-  ↓  Dynamic Surveillance       daily aggregation vs a rolling baseline, in PostgreSQL
-  ↓  Composite + EWMA + CUSUM   three methods, compared, never combined
-  ↓  Public Health Intelligence dashboard, map, alerts, Data Confidence, explainability
-  ↓  SMART on FHIR Clinical Feedback   sidecar launched from a public sandbox
-```
-
-### Modes
-
-Five concepts that are never mixed on one screen. The top bar always names the
-current one; the sidebar groups the routes by them.
-
-| Mode | What it is | Where |
+| | **Public portfolio** | **Full-stack engineering** |
 |---|---|---|
-| **Classroom Demo** | The frozen Day 1–Day 5 demonstration: Composite score 0 / 24 / 50 / 74 / 87 | `/dashboard`, `/map`, `/laboratory-data`, `/signals`, `/hospitals`, `/analytics`, `/simulation`, `/reports` |
-| **API Capstone** | React + FastAPI + PostgreSQL, including FHIR ingestion | `/fhir-ingestion` (plus every classroom screen, read from the API) |
-| **Dynamic Surveillance** | Signals calculated from stored laboratory observations, with EWMA and CUSUM | `/dynamic-surveillance` |
-| **SMART Sandbox** | SMART on FHIR launch and sidecar in the public synthetic sandbox | `/smart-demo`, `/smart/sidecar` |
-| **Capstone Evaluation** | Synthetic evaluation scenarios with known ground truth | `/evaluation` |
+| What | The complete analyst experience in the browser | The same frontend on FastAPI and PostgreSQL |
+| Hosting | GitHub Pages (static files, free, permanent) | Your machine (Docker for PostgreSQL) |
+| Backend, database, keys | None — zero network calls for data | FastAPI, PostgreSQL 16, Alembic |
+| Data | Scenario Replay + in-browser Live Surveillance | The same, plus FHIR R4 ingestion into PostgreSQL |
+| Extras | — | Detection Methods (backend composite, EWMA, CUSUM), Validation, Data Ingestion, SMART on FHIR sandbox launch |
+| Build | `npm run build` (`VITE_DATA_SOURCE=local`, the default) | `VITE_DATA_SOURCE=api VITE_API_BASE_URL=…` |
 
-The data source is chosen at build time with `VITE_DATA_SOURCE`:
-**Local Demo Mode** (`local`, default; the GitHub Pages site; no backend) or
-**API Capstone Mode** (`api`). Both show identical classroom values. The
-API-only screens show a short notice in Local Demo Mode, and `/overview` (the
-**Capstone Overview**) links everything together.
+The public portfolio never depends on a server, an API key, an external AI
+service or a free tier that can expire. The full stack is the engineering
+implementation behind it and runs locally.
 
-### Architecture
+## What you can do in the portfolio
+
+- **Active Surveillance** — six surveillance profiles (Respiratory Viral
+  Syndrome, Influenza A, COVID-19, RSV, Cholera, Gastrointestinal Syndrome),
+  ranked by severity, each with its own score, status and alerts. One selected
+  profile drives every page (`?profile=`).
+- **Live Surveillance** — three simulated source feeds (FHIR R4, HL7 v2,
+  LIS/API) deliver deterministic synthetic results in the browser; every score
+  is recalculated as they arrive. Start / Pause / Resume / Reset, 1× / 2× / 4×,
+  a source-status panel, a feed outage, and an audit trail that explains each
+  score change by component. [docs/live-surveillance.md](docs/live-surveillance.md)
+- **Scenario Replay** — the controlled five-day scenario (Composite score
+  0 → 24 → 50 → 74 → 87), stepped one day at a time.
+- **Explainability** — every score split into its five weighted components;
+  Data Confidence (freshness, completeness, terminology mapping,
+  participation, integrity) kept separate from the score.
+- **Map, Facilities, Laboratory Data, Analytics, Signals, Investigations,
+  Reports** — with small counts (<5) withheld at every geographic level.
+- **Roella** — rule-based and grounded in the app's own state: no external
+  AI, no network request, no medical advice, and the same privacy rules as the
+  screens.
+
+## Architecture
 
 ```
- Synthetic FHIR R4 ─┐                                   ┌─ React (Vite, TypeScript)
- SMART sandbox ─────┼─► FastAPI ─► PostgreSQL ─► engines ┤   Local Demo | API Capstone
- (public, PKCE)     │   validate     observations        │   Presentation Mode
-                    │   normalize    signals, audit      └─ SMART sidecar
-                    └── pseudonymise  Alembic
- engines: Dynamic Surveillance (Composite) · EWMA · CUSUM · Capstone Evaluation (offline)
+ External EHR / LIS                  (simulated: FHIR R4 · HL7 v2 · LIS/API)
+   → source adapter                  parse, validate, reject or flag
+   → normalized observation          LOINC test, Positive / Negative, facility, pseudonym
+   → profile routing                 shared registry: one test → every applicable profile
+   → surveillance engine             rolling 7-day baseline, five components, severity
+   → dashboard                       Active Surveillance, map, explainability, Data Confidence
+   → Roella                          answers from the same state
 ```
 
-`/architecture` separates **Implemented** (React, FastAPI, PostgreSQL, FHIR
-ingestion, dynamic surveillance, EWMA, CUSUM, SMART sandbox, evaluation),
-**Prototype** (vendor sidecars, simulated reporting, the classroom demo, the
-Data Confidence model) and **Planned / Future** (production vendor
-registration, authentication, real reporting, epidemiological validation,
-multi-source and federated surveillance).
+In the **portfolio**, the adapters and engine run in the browser
+(`src/lib/live/`); a parity test runs the backend engine on the same
+observations and checks it gets identical results. In the **full stack**, the
+FHIR adapter and engine run in FastAPI against PostgreSQL. Details:
+[docs/architecture.md](docs/architecture.md).
 
-### Technology
+## Technology
 
 React 18, TypeScript, Vite, Tailwind, Recharts, Leaflet, React Router 6 ·
 FastAPI, Pydantic 2, SQLAlchemy 2, Alembic, PostgreSQL 16, `fhir.resources`
-(R4B) · `fhirclient` (SMART App Launch 2.2) · Vitest, Testing Library, pytest ·
-Docker (backend image). See [section 21](#21-technology-stack).
+(R4B) · `fhirclient` (SMART App Launch 2.2) · Vitest, Testing Library, pytest.
 
-### FHIR ingestion
+## Run it
 
-A development-only endpoint (`POST /api/fhir/ingest`) accepts synthetic FHIR R4
-Observations and Bundles, validates them, maps LOINC to a surveillance syndrome
-and SNOMED CT to a result, resolves the facility, replaces the patient with a
-salted pseudonym and stores the normalized observation. Duplicates and invalid
-resources are reported, never stored. The **FHIR Ingestion** page shows each
-step and the source-vs-normalized record.
-[Details](backend/README.md#fhir-r4-laboratory-ingestion-development).
-
-### SMART on FHIR
-
-With `VITE_SMART_ENABLED=true` the app is a real SMART App Launch 2.2 client
-(EHR and standalone launch, public client with PKCE, read-only
-`patient/Observation.rs`) against the public SMART Health IT sandbox, with a
-sidecar that shows LabSentinel context for the synthetic patient. No client
-secret or token is ever put in the build. Off by default.
-[Details](backend/README.md#smart-on-fhir-sandbox-launch-development).
-
-### Dynamic surveillance and three methods
-
-The **Dynamic Surveillance Engine** recalculates signals from the stored
-observations: daily aggregation, a rolling 7-day baseline, the same five
-weighted components and severity bands as the prototype, Data Confidence kept
-separate, and stored explanations. Beside it, two experimental statistical
-detectors run on daily test volume and positivity:
-
-- **EWMA** — λ 0.25, k 3, time-varying limits, 28-day reference;
-- **CUSUM** — standardized one-sided upper CUSUM, k 0.5, h 5, same reference.
-
-A **Three-Method Comparison** shows them side by side with an agreement count;
-they are never combined into one score. All three are frozen for the capstone.
-[Composite](backend/README.md#dynamic-surveillance-engine-development) ·
-[EWMA](backend/README.md#ewma-statistical-detector-experimental) ·
-[CUSUM](backend/README.md#cusum-statistical-detector-and-three-method-comparison-experimental).
-
-### Evaluation and key results
-
-The **capstone evaluation framework** runs the three methods, unchanged and
-with their defaults, on 15 synthetic scenarios with known ground truth (13
-primary + 2 coverage variants), **100 seeded runs each (seed 20260930)**, in
-throwaway databases. It reports sensitivity, specificity, PPV and NPV with
-Wilson 95 % intervals at run and day level, detection delay, alert burden,
-stability and robustness to data quality. Results are committed in
-[`backend/evaluation-results/`](backend/evaluation-results/) and shown on
-`/evaluation`. Pooled over the 13 primary scenarios (900 outbreak and 400
-no-outbreak runs):
-
-| Metric | Composite | EWMA | CUSUM |
-|---|---|---|---|
-| Outbreak runs detected (sensitivity) | 710/900 = 78.9 % (76.1–81.4) | 900/900 = 100 % (99.6–100) | 900/900 = 100 % (99.6–100) |
-| No-outbreak runs without any alert (specificity) | 228/400 = 57.0 % (52.1–61.8) | 141/400 = 35.2 % (30.7–40.1) | 147/400 = 36.8 % (32.2–41.6) |
-| Median detection delay (IQR), days | 6 (3–9) | 5 (3–6) | 5 (3–6) |
-| False-alert days per 100 normal days | 0.82 | 7.63 | 10.55 |
-| Outbreak days in alert (day-level sensitivity) | 8.4 % | 78.0 % | 79.1 % |
-
-**Tradeoffs, not a winner.**
-
-- **Composite:** more conservative, with the lowest false-alert burden;
-  slower and less sensitive on slow gradual (58/100) and single-facility
-  (37/100) outbreaks, because its rolling baseline absorbs sustained rises.
-- **EWMA:** more sensitive and earlier on gradual, positivity-only and
-  spreading outbreaks (slow gradual median 8 vs 11 days); higher false-alert
-  burden, including every volume-only surge (100/100).
-- **CUSUM:** sensitivity and timing similar to EWMA, responsive to sustained
-  shifts; the highest false-alert burden here (10.55 per 100 normal days).
-
-See [docs/evaluation-summary.md](docs/evaluation-summary.md) and the
-[full evaluation](backend/README.md#capstone-evaluation-framework-synthetic-scenarios),
-including the CDC/WHO attribute mapping and threats to validity.
-
-### Limitations
-
-- Synthetic data, one respiratory syndrome, three fictional facilities; no
-  seasonality and no population denominators.
-- Prototype methods with illustrative parameters; not epidemiologically
-  validated. The evaluation's ground truth is its own scenario design.
-- Development-only write endpoints (FHIR ingestion, recalculation) have no
-  authentication; there are no users, roles or RBAC.
-- SMART is sandbox-only: no vendor registration, no production EHR.
-- No real public-health reporting (the reporting workflow is simulated).
-- Investigation and reporting state live in the browser session.
-- Known weaknesses found by the evaluation are listed under
-  [Future work](#future-work); the methods were deliberately not re-tuned.
-
-### Privacy and synthetic data
-
-Every patient, result, facility and vendor environment is fictional. FHIR
-patient references are replaced by salted one-way pseudonyms before storage.
-Map areas below a small-count threshold are suppressed or rolled up. No real
-patient data is used anywhere, in any mode, test or fixture.
-
-### Run it
-
-**Classroom demo only (no backend):**
+**Public portfolio (no backend):**
 
 ```bash
 npm install
 npm run dev                  # http://localhost:5173/labsentinel/
+npm test && npm run build    # what the GitHub Pages workflow runs
 ```
 
-**Full stack (API Capstone Mode), Windows PowerShell:**
+**Full stack, Windows PowerShell:**
 
 ```powershell
 docker compose up -d db                                  # PostgreSQL 16 (loopback only)
@@ -216,81 +101,77 @@ cd backend
 python -m venv .venv; .\.venv\Scripts\pip install -r requirements.txt
 copy ..\deploy\env\backend.development.env.example .env
 .\.venv\Scripts\alembic upgrade head
-.\.venv\Scripts\python -m app.seed                       # frozen Day 1-5 demonstration
+.\.venv\Scripts\python -m app.seed                       # the frozen replay scenario
 .\.venv\Scripts\python -m app.demo.prepare               # dynamic dataset, detectors, checks → READY
 .\.venv\Scripts\uvicorn app.main:app --port 8000
 # new terminal, repository root:
 $env:VITE_DATA_SOURCE="api"; $env:VITE_SMART_ENABLED="true"; npm run dev
 ```
 
-Open http://localhost:5173/labsentinel/overview. Full instructions:
-[Full-stack development](backend/README.md#full-stack-development-api-capstone-mode).
+Open http://localhost:5173/labsentinel/overview. Backend tests: `pytest` in
+`backend/` (set `LABSENTINEL_TEST_DATABASE_URL` for the PostgreSQL suite).
+Full instructions: [backend/README.md](backend/README.md).
 
-**Tests:** `npm test` and `npm run build` (repository root); `pytest` in
-`backend/` (set `LABSENTINEL_TEST_DATABASE_URL` for the PostgreSQL integration
-suite).
+## Engineering highlights (full stack)
 
-### Presentation
+- **FHIR R4 ingestion** — `POST /api/fhir/ingest` validates Observations and
+  Bundles, maps LOINC and SNOMED CT, resolves the facility, replaces the
+  patient with a salted pseudonym, rejects duplicates.
+  [Details](backend/README.md#fhir-r4-laboratory-ingestion-development)
+- **SMART on FHIR** — a real SMART App Launch 2.2 public client (PKCE,
+  read-only `patient/Observation.rs`) against the public SMART Health IT
+  sandbox, with a clinician sidecar. Off by default.
+  [Details](backend/README.md#smart-on-fhir-sandbox-launch-development)
+- **Three detection methods, compared, never combined** — the Composite
+  Outbreak Signal Score per profile, EWMA (λ 0.25, k 3) and CUSUM (k 0.5,
+  h 5), both needing a 28-day reference period.
+- **Validation framework** — 15 synthetic scenarios with known ground truth,
+  100 seeded runs each. Pooled over the 13 primary scenarios:
 
-- `python -m app.demo.prepare` (backend) verifies the database, migrations,
-  frozen seed, FHIR fixtures, detectors, evaluation artifacts and health
-  endpoints, resets the live-demo data, and prints **READY / NOT READY**.
-- `python -m app.demo.reset --yes` returns the development data to the clean
-  presentation state; it never touches the frozen demonstration or the
-  evaluation artifacts.
-- `python -m app.demo.readiness` (or `GET /api/readiness`, development only)
-  prints the checklist without changing anything.
-- **Presentation Mode:** add `?presentation=true` to any URL (or use the
-  button on `/overview`) for a ten-step bar with Previous / Next through the
-  real application.
+| Metric | Composite | EWMA | CUSUM |
+|---|---|---|---|
+| Outbreak runs detected (sensitivity) | 710/900 = 78.9 % (76.1–81.4) | 900/900 = 100 % (99.6–100) | 900/900 = 100 % (99.6–100) |
+| No-outbreak runs without any alert (specificity) | 228/400 = 57.0 % (52.1–61.8) | 141/400 = 35.2 % (30.7–40.1) | 147/400 = 36.8 % (32.2–41.6) |
+| Median detection delay (IQR), days | 6 (3–9) | 5 (3–6) | 5 (3–6) |
+| False-alert days per 100 normal days | 0.82 | 7.63 | 10.55 |
 
-The ten-step final demonstration, expected values and recommended screenshots:
-[docs/presentation-guide.md](docs/presentation-guide.md).
+Tradeoffs, not a winner: the composite is the most conservative; EWMA and
+CUSUM are earlier and more sensitive with a higher false-alert burden. This
+demonstrates technical behaviour on synthetic scenarios — it is not clinical or
+epidemiological validation. [docs/evaluation-summary.md](docs/evaluation-summary.md)
 
-### Deployment
+## Limitations
 
-The public GitHub Pages site stays the Local Demo Mode build. The full-stack
-capstone deploys to **Render** from [`render.yaml`](render.yaml), a Blueprint
-validated against Render's schema, from the `capstone-development` branch:
+- All data is synthetic: three fictional facilities in Worcester County, MA;
+  no seasonality and no population denominators.
+- Methods and thresholds are illustrative prototypes, not validated.
+- Live Surveillance holds seven days of history, so EWMA and CUSUM (28-day
+  reference) are not shown there; it restarts on refresh.
+- Investigations and Reports follow Scenario Replay.
+- There is no real authentication, role-based access or production security.
+  What exists and what production would need: [docs/security.md](docs/security.md).
 
-- a static site (React, API Capstone Mode, base path `/`, SPA rewrite);
-- a Docker web service (FastAPI, `APP_ENV=presentation`, migrations once on
-  start);
-- Render Postgres 16.
+## Documentation
 
-Everything is served over HTTPS, with the exact frontend origin in CORS. There
-are no secrets in the repository: the database URL comes from `fromDatabase`,
-the salt is generated by Render, and the two public URLs are entered once in
-the Dashboard. A build guard blocks a misconfigured frontend. Step-by-step
-guide, free-vs-paid advice and the one-time data preparation:
-[docs/deployment.md](docs/deployment.md). Nothing has been provisioned yet.
-
-### Future work
-
-From the evaluation (documented, not changed): Data Confidence remembering
-silent facilities; the composite's shrinking facility denominator; the rolling
-baseline absorbing sustained increases; EWMA/CUSUM small-count behavior;
-volume-only surge and one-day spike false alerts; delayed-reporting effects.
-Beyond the prototype: real epidemiological validation, multi-syndrome support,
-seasonality, population denominators, production authentication and RBAC,
-production vendor registration, production public-health reporting and a
-real-world workflow evaluation. See `/architecture` and
-[the evaluation recommendations](backend/README.md#weaknesses-found-recommendations-not-redesigns).
-
-### Known technical debt
-
-- `npm audit` reports advisories in react-router 6 (2 moderate; the only ones in
-  the production dependency tree) and in the Vite / Vitest / esbuild development
-  toolchain. Every available fix is a major-version upgrade (React Router 7,
-  Vite 8, Vitest 5), deliberately deferred during final capstone polish.
-- Details, exposure and the upgrade plan: [docs/technical-debt.md](docs/technical-debt.md).
+[Architecture](docs/architecture.md) ·
+[Security](docs/security.md) ·
+[Live Surveillance](docs/live-surveillance.md) ·
+[Surveillance profiles](docs/surveillance-profiles.md) ·
+[Public release](docs/public-release.md) ·
+[Evaluation summary](docs/evaluation-summary.md) ·
+[Branding](docs/branding.md) ·
+[Technical debt](docs/technical-debt.md) ·
+[Backend](backend/README.md) ·
+[Optional full-stack hosting](docs/deployment.md)
 
 ---
 
-# Prototype reference
+# Prototype reference (historical)
 
-Sections 1–22 document the original browser prototype (Local Demo Mode, frozen
-on `main` / `submission-v1.4`). Where the capstone has since built something
+Kept for the record. Sections 1–22 document the original browser prototype
+(then called "Local Demo Mode", frozen on `main` / `submission-v1.4`), in that
+prototype's own words; the sections above describe the product as it is now.
+Where the capstone has since built something
 they list as missing or planned — backend, database, FHIR ingestion, SMART
 sandbox, statistical detection, evaluation — the capstone sections above take
 precedence; sections 18–20 carry status notes.
@@ -1140,7 +1021,7 @@ and a product:
 > **Status update (capstone).** The backend API, persistent database, FHIR
 > ingestion, SMART on FHIR (sandbox) and CUSUM/EWMA detection in this plan have
 > been built on `capstone-development`. What remains is listed under
-> [Future work](#future-work) and on `/architecture`.
+> [the evaluation recommendations](backend/README.md#weaknesses-found-recommendations-not-redesigns) and on `/architecture`.
 
 | Area | Planned work |
 |------|--------------|

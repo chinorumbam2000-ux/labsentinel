@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('LabSentinel render error:', error, info.componentStack);
+    console.error('Signal by ProbeSyQ render error:', error, info.componentStack);
   }
 
   handleRetry = (): void => {

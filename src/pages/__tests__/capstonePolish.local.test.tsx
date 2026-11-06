@@ -61,7 +61,7 @@ describe('mode labelling', () => {
   it('shows the data source only on System pages', async () => {
     renderAt('/overview');
     await screen.findByRole('heading', { name: 'Laboratory-First Public Health Early Warning' });
-    expect(within(topBar()).getByText('Local Demo Mode')).toBeTruthy();
+    expect(within(topBar()).getByText('Static portfolio build')).toBeTruthy();
   });
 
   it('names the mode instead of the classroom controls elsewhere', async () => {
@@ -102,7 +102,7 @@ describe('Capstone Overview', () => {
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       '/dashboard', '/fhir-ingestion', '/dynamic-surveillance', '/smart-demo', '/evaluation', '/architecture',
     ]);
-    expect(within(explore).getAllByText('Requires API Capstone Mode (this build shows a notice).')).toHaveLength(3);
+    expect(within(explore).getAllByText('Requires the full-stack build (this build shows a notice).')).toHaveLength(3);
     expect(within(explore).getByText('Not enabled in this build (VITE_SMART_ENABLED).')).toBeTruthy();
 
     expect(screen.getByText('Synthetic data only. No real patient data.')).toBeTruthy();
@@ -131,9 +131,9 @@ describe('Presentation Mode', () => {
     await screen.findByRole('button', { name: 'Next replay day' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Next ›' }));
-    await screen.findByText('FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.', {}, { timeout: 5000 }); // lazy route, cold
+    await screen.findByText('Data Ingestion needs the full-stack build (FastAPI and PostgreSQL).', {}, { timeout: 5000 }); // lazy route, cold
     expect(bar.textContent).toContain('Step 4 of 10');
-    expect(bar.textContent).toContain('Needs API Capstone Mode');
+    expect(bar.textContent).toContain('Needs the full-stack build');
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Next ›' }));
     expect(bar.textContent).toContain('Step 5 of 10');
@@ -173,7 +173,7 @@ describe('Architecture page', () => {
     for (const item of ['React frontend', 'FastAPI backend', 'PostgreSQL', 'FHIR ingestion', 'EWMA', 'CUSUM', 'SMART sandbox', 'Evaluation framework']) {
       expect(within(implemented).getAllByText(item).length).toBeGreaterThan(0);
     }
-    expect(implemented.textContent).toContain('This build runs in Local Demo Mode');
+    expect(implemented.textContent).toContain('This build is the static portfolio build');
     const future = document.getElementById('future-work') as HTMLElement;
     expect(future.textContent).toContain('Data Confidence should remember silent facilities');
     expect(future.textContent).toContain('Population denominators');

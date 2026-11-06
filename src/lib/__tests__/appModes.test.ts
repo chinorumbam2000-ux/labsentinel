@@ -37,7 +37,7 @@ describe('presentation steps', () => {
   it('follows the ten-step final demonstration', () => {
     expect(PRESENTATION_STEPS.map((s) => s.title)).toEqual([
       'Problem and overview',
-      'Frozen classroom demo',
+      'Scenario Replay',
       'Vendor-agnostic sidecar',
       'FHIR ingestion',
       'Normalization',

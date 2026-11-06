@@ -46,7 +46,7 @@ describe('FHIR ingestion page — Local Demo Mode', () => {
   it('shows only an informational notice and makes no requests', async () => {
     renderPage('local');
 
-    expect(screen.getByText('FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.')).toBeTruthy();
+    expect(screen.getByText('Data Ingestion needs the full-stack build (FastAPI and PostgreSQL).')).toBeTruthy();
     expect(screen.getByText(SYNTHETIC_NOTICE, { exact: false })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeNull();
     expect(screen.queryByLabelText('Synthetic FHIR JSON')).toBeNull();

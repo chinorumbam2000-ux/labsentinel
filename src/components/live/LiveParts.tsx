@@ -118,15 +118,36 @@ const minutesText = (minutes: number | null) =>
 
 /** The three simulated sources, from the live state (never a hard-coded "connected"). */
 export function SourceStatusPanel({ compact = false }: { compact?: boolean }) {
-  const { simulator } = useLiveSurveillance();
+  const { simulator, started, playing } = useLiveSurveillance();
   const feeds = simulator.feedHealth();
   const active = feeds.filter((f) => f.isReporting && f.status !== 'DELAYED').length;
+  // The feeds only send while the simulation runs: never "active" before Start or after the end.
+  const run: 'idle' | 'running' | 'paused' | 'complete' = simulator.finished
+    ? 'complete'
+    : !started
+      ? 'idle'
+      : playing
+        ? 'running'
+        : 'paused';
+  const heading =
+    run === 'idle'
+      ? 'Simulated sources · not started'
+      : run === 'complete'
+        ? 'Simulated sources · live period complete'
+        : run === 'paused'
+          ? `Simulated sources · paused (${active} / ${feeds.length} active when paused)`
+          : `${active} / ${feeds.length} simulated sources active`;
+  const chip = (status: string) => {
+    if (run === 'idle') return { text: 'Not started', style: 'border-hairline bg-canvas text-muted' };
+    if (run === 'complete') return { text: 'Completed', style: 'border-hairline bg-canvas text-ink' };
+    const label = status === 'HEALTHY' ? 'Active' : status === 'DELAYED' ? 'Delayed' : status === 'DEGRADED' ? 'Degraded' : 'Offline';
+    if (run === 'paused') return { text: `${label} · paused`, style: 'border-hairline bg-canvas text-ink' };
+    return { text: label, style: STATUS_STYLE[status] };
+  };
   return (
-    <section aria-label="Simulated source feeds" className="ls-card px-4 py-3" data-testid="source-status">
+    <section aria-label="Simulated source feeds" className="ls-card px-4 py-3" data-testid="source-status" data-run-state={run}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold text-ink">
-          {active} / {feeds.length} sources active
-        </h2>
+        <h2 className="text-sm font-semibold text-ink">{heading}</h2>
         <p className="text-[11px] text-muted">Simulated source feeds · times are simulated</p>
       </div>
       <ul className={`mt-2 grid gap-2 ${compact ? 'sm:grid-cols-3' : 'md:grid-cols-3'}`}>
@@ -137,8 +158,8 @@ export function SourceStatusPanel({ compact = false }: { compact?: boolean }) {
             </p>
             <p className="text-[11px] text-muted">{SOURCE_TYPE[f.hospitalId]} (simulated)</p>
             <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
-              <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLE[f.status]}`}>
-                {f.status === 'HEALTHY' ? 'Active' : f.status === 'DELAYED' ? 'Delayed' : f.status === 'DEGRADED' ? 'Degraded' : 'Offline'}
+              <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${chip(f.status).style}`}>
+                {chip(f.status).text}
               </span>
               <span className="text-muted">Last observation: {minutesText(simulator.minutesSinceResult(f.hospitalId))}</span>
             </p>
@@ -226,8 +247,9 @@ export function TodaySoFar() {
         {simulator.finished ? 'Live period complete' : `Today so far · ${liveDayLabel(dayIndex)} (provisional)`}
       </h2>
       <p className="text-[11px] text-muted">
-        Recalculated with every observation. The day&apos;s volume is compared with a full-day baseline, so scores
-        build up through the day; at 19:30 the day closes and becomes the current signal.
+        Provisional: recalculated with every observation. Today&apos;s volume is still being compared with a
+        full-day baseline, so these scores build up as results arrive. For comparisons use closed days: at 19:30
+        the day closes and becomes the current signal.
       </p>
       <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {LIVE_PROFILES.map((id) => {

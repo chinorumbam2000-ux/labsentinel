@@ -68,7 +68,7 @@ afterEach(() => {
 });
 
 describe('SMART sidecar regional panel in API mode', () => {
-  it('shows Demo Surveillance by default and Dynamic Surveillance only when chosen', async () => {
+  it('shows Scenario Replay by default and Dynamic Surveillance only when chosen', async () => {
     render(
       <DataSourceProvider configResult={{ ok: true, config: { mode: 'api', apiBaseUrl: BASE } }}>
         <MemoryRouter initialEntries={['/smart/sidecar']}>
@@ -88,8 +88,8 @@ describe('SMART sidecar regional panel in API mode', () => {
 
     const regional = await screen.findByRole('region', { name: 'Regional Respiratory Activity' });
     const choice = within(regional).getByRole('radiogroup', { name: 'Surveillance shown' });
-    expect(within(choice).getByRole('radio', { name: 'Demo Surveillance' }).getAttribute('aria-checked')).toBe('true');
-    expect(await within(regional).findByText('Demo Surveillance', { selector: 'strong' })).toBeTruthy();
+    expect(within(choice).getByRole('radio', { name: 'Scenario Replay' }).getAttribute('aria-checked')).toBe('true');
+    expect(await within(regional).findByText('Scenario Replay', { selector: 'strong' })).toBeTruthy();
     expect(calls.some((call) => call.includes('/api/surveillance/dynamic'))).toBe(false);
 
     fireEvent.click(within(choice).getByRole('radio', { name: 'Dynamic Surveillance' }));
@@ -108,7 +108,7 @@ describe('SMART sidecar regional panel in API mode', () => {
     expect(await within(regional).findByText('CUSUM Alert')).toBeTruthy();
     expect(within(regional).queryByText(/decision limit|cumulative|z-score/i)).toBeNull();
     expect(calls).toContain('GET /api/statistics/cusum/current?date=2026-01-20');
-    expect(within(regional).queryByText('Demo Surveillance', { selector: 'strong' })).toBeNull();
+    expect(within(regional).queryByText('Scenario Replay', { selector: 'strong' })).toBeNull();
     expect(calls).toContain('GET /api/surveillance/dynamic/signals/current');
   });
 });

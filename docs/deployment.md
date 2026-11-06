@@ -1,4 +1,13 @@
-# LabSentinel — full-stack deployment on Render
+# Optional full-stack hosting (Render) — historical plan
+
+> **Not the public release path.** The public portfolio is the static GitHub
+> Pages build, which needs no server, database or paid service — see
+> [public-release.md](public-release.md). This document records a full-stack
+> hosting plan prepared during the capstone. It is not recommended for the
+> portfolio: free hosting tiers expire, and the development endpoints have no
+> authentication. The full stack is meant to be run locally
+> ([backend/README.md](../backend/README.md)).
+
 
 Status: **prepared and validated locally, not deployed.** Nothing has been
 provisioned or purchased. Synthetic data only.

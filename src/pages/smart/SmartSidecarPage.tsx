@@ -329,7 +329,7 @@ function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: ()
                     surveillance === mode ? 'bg-brand text-white' : 'text-muted hover:text-ink'
                   }`}
                 >
-                  {mode === 'demo' ? 'Demo Surveillance' : 'Dynamic Surveillance'}
+                  {mode === 'demo' ? 'Scenario Replay' : 'Dynamic Surveillance'}
                 </button>
               ))}
             </div>
@@ -339,8 +339,8 @@ function ConnectedSidecar({ session, onEnd }: { session: SmartSession; onEnd: ()
           ) : (
             <>
               <p className="mt-1 text-xs text-muted">
-                <strong className="font-semibold text-ink">Demo Surveillance</strong> · Signal by ProbeSyQ regional intelligence
-                ({dataSourceMode === 'api' ? 'FastAPI + PostgreSQL' : 'local demo data'}), simulation Day {currentDay} — synthetic.
+                <strong className="font-semibold text-ink">Scenario Replay</strong> · Signal by ProbeSyQ regional intelligence
+                ({dataSourceMode === 'api' ? 'FastAPI + PostgreSQL' : 'computed in the browser'}), simulation Day {currentDay} — synthetic.
               </p>
               <dl className="mt-1 divide-y divide-hairline">
                 <Row label="Current severity">
@@ -435,7 +435,7 @@ function SandboxLabs({
     <>
       {onSend ? null : (
         <p className="px-5 pt-3 text-xs text-muted">
-          Sending an Observation to Signal by ProbeSyQ requires API Capstone Mode (VITE_DATA_SOURCE=api).
+          Sending an Observation to Signal by ProbeSyQ requires the full-stack build (VITE_DATA_SOURCE=api).
         </p>
       )}
       <ul className="divide-y divide-hairline" aria-label="Sandbox laboratory Observations">

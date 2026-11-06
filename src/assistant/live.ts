@@ -8,6 +8,7 @@
  */
 import { PROFILE_BY_ID, RVS_PROFILE_ID, type ProfileId } from '../lib/profiles/registry';
 import { profilesNamed } from './profiles';
+import { getAllFeedHealth } from '../data/feedHealth';
 import type { AnswerBlock, AssistantAnswer, AssistantContext, IntentId, LiveAssistantContext } from './types';
 
 const text = (value: string): AnswerBlock => ({ kind: 'text', text: value });
@@ -30,10 +31,15 @@ const FACILITY_WORDS: Array<[RegExp, string]> = [
 /** Which live intent a question asks, if any (only consulted in Live Surveillance, except real-time). */
 export const parseLiveIntent = (t: string, ctx: AssistantContext): { intent: IntentId; profiles: ProfileId[]; facility?: string } | null => {
   const has = (...needles: string[]) => needles.some((n) => t.includes(n));
+  // "Is this real patient data?" is answered before "is this real-time?".
+  if (has('patient data', 'real patient', 'actual patient', 'real data', 'data real', 'real hospital', 'real lab', 'synthetic data', 'fake data', 'made up', 'made-up')) {
+    return { intent: 'real_data', profiles: [] };
+  }
   if (has('real-time', 'real time', 'realtime', 'is this real', 'is this live', 'live data', 'actually live')) {
     return { intent: 'realtime', profiles: [] };
   }
-  if (!ctx.live) return null;
+  const aboutSources = has('all sources', 'sources active', 'source active', 'feeds active', 'any source', 'any feed', 'source delayed', 'feed delayed', 'are the sources', 'are the feeds', 'source status', 'feed status');
+  if (!ctx.live) return aboutSources ? { intent: 'source_status', profiles: [] } : null;
   const profiles = profilesNamed(t);
   const facility = FACILITY_WORDS.find(([re]) => re.test(t))?.[1];
   if (has('latest observation', 'last observation', 'latest result', 'last result', 'which source sent', 'which source', 'which feed sent')) {
@@ -42,8 +48,9 @@ export const parseLiveIntent = (t: string, ctx: AssistantContext): { intent: Int
   if (has('which profile changed', 'profile changed most recently', 'changed most recently', 'most recent change')) {
     return { intent: 'live_latest_profile', profiles };
   }
-  if (has('all sources', 'sources active', 'source active', 'feeds active', 'any source', 'any feed', 'source delayed', 'feed delayed', 'are the sources', 'are the feeds', 'source status', 'feed status')) {
-    return { intent: 'live_sources', profiles };
+  if (aboutSources) return { intent: 'live_sources', profiles };
+  if (has('which facilit', 'what facilit', 'which hospital') && has('contribut', 'driving', 'behind', 'elevated', 'above')) {
+    return { intent: 'live_facility', profiles, facility };
   }
   if (has('become affected', 'became affected', 'why is this facility', 'facility affected', 'why is worcester', 'why is shrewsbury', 'why is central')) {
     return { intent: 'live_facility', profiles, facility };
@@ -127,7 +134,23 @@ const latestProfile = (live: LiveAssistantContext): AssistantAnswer => {
 
 const sourcesAnswer = (live: LiveAssistantContext): AssistantAnswer => {
   const active = live.sources.filter((s) => s.status === 'HEALTHY').length;
+  if (!live.started && !live.finished) {
+    return answer('live_sources', [
+      text('The live simulation has not started, so none of the three simulated sources is sending yet. Press Start on the Live Surveillance page.'),
+      text(SIMULATED),
+    ], ['Is this real-time?']);
+  }
+  if (live.finished) {
+    return answer('live_sources', [
+      text('The live period is complete: the three simulated sources have stopped sending. Reset to run it again.'),
+      text(SIMULATED),
+    ], ['What changed?', 'Is this real-time?']);
+  }
+  const paused = live.playing
+    ? []
+    : [text('The simulation is paused, so the simulated sources are not sending; this is their status when it paused.')];
   return answer('live_sources', [
+    ...paused,
     text(
       active === live.sources.length
         ? `All ${live.sources.length} simulated sources are active.`
@@ -198,11 +221,41 @@ const realtimeAnswer = (ctx: AssistantContext): AssistantAnswer =>
         text('Neither mode uses real patient data or a real hospital connection.'),
       ], ['What is Scenario Replay?']);
 
+const realDataAnswer = (ctx: AssistantContext): AssistantAnswer =>
+  answer('real_data', [
+    text(
+      'No. Everything in Signal by ProbeSyQ is synthetic: the patients, laboratory results, facilities and source feeds were created for this portfolio. No real hospital, laboratory or EHR vendor is connected, and no real patient data is used anywhere.',
+    ),
+    text(
+      ctx.live
+        ? SIMULATED
+        : 'Scenario Replay is a fixed five-day synthetic scenario; Live Surveillance streams synthetic observations from simulated source feeds in your browser.',
+    ),
+    text('Patient identifiers are synthetic placeholders, and small counts (under 5) are still withheld, as a real deployment would require.'),
+  ], ['Is this real-time?', 'What is Signal by ProbeSyQ?']);
+
+/** Scenario Replay's feeds for the replay day: the frozen feed-health records. */
+const replaySourcesAnswer = (ctx: AssistantContext): AssistantAnswer => {
+  const feeds = getAllFeedHealth(ctx.day);
+  const healthy = feeds.filter((f) => f.status === 'HEALTHY').length;
+  return answer('source_status', [
+    text(
+      healthy === feeds.length
+        ? `On Replay Day ${ctx.day}, all ${feeds.length} facility feeds are healthy.`
+        : `On Replay Day ${ctx.day}, ${healthy} of ${feeds.length} facility feeds are healthy.`,
+    ),
+    list(feeds.map((f) => `${f.facilityName}: ${f.status.toLowerCase()} — ${f.note}`)),
+    text('Scenario Replay shows each day’s recorded feed health; nothing is streaming. Switch to Live Surveillance to watch three simulated source feeds deliver observations.'),
+  ], ['What does Data Confidence mean?', 'Is this real-time?']);
+};
+
 export const answerLiveIntent = (
   parsed: { intent: IntentId; profiles: ProfileId[]; facility?: string },
   ctx: AssistantContext,
 ): AssistantAnswer | null => {
   if (parsed.intent === 'realtime') return realtimeAnswer(ctx);
+  if (parsed.intent === 'real_data') return realDataAnswer(ctx);
+  if (parsed.intent === 'source_status') return replaySourcesAnswer(ctx);
   const live = ctx.live;
   if (!live) return null;
   const id = profileOf(parsed, ctx);

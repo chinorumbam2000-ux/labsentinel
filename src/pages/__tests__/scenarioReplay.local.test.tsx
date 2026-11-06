@@ -119,8 +119,8 @@ describe('simulated-data disclosure', () => {
     expect(screen.getByText('Simulated surveillance data.')).toBeTruthy();
     expect(screen.getByText(/All facilities, patients, laboratory observations and vendor environments are\s+fictional/)).toBeTruthy();
     // Technical wording is allowed here.
-    expect(document.body.textContent).toContain('API Capstone Mode');
-    expect(within(topBar()).getByText('Local Demo Mode')).toBeTruthy();
+    expect(document.body.textContent).toContain('full-stack build');
+    expect(within(topBar()).getByText('Static portfolio build')).toBeTruthy();
   });
 
   it('lands "About this data" on the limitations, which still say the data is synthetic and not validated', async () => {
