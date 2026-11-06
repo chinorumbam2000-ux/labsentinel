@@ -19,10 +19,10 @@ const ask = (question: string, context: AssistantContext = ctx(), state: Convers
 };
 
 describe('Roella — spec questions (Day 5)', () => {
-  it('describes ProbeSyQ Signal and says the local build is synthetic with no live connection', () => {
-    const { intent, text } = ask('What is ProbeSyQ Signal?');
+  it('describes Signal by ProbeSyQ and says the local build is synthetic with no live connection', () => {
+    const { intent, text } = ask('What is Signal by ProbeSyQ?');
     expect(intent).toBe('about');
-    expect(text).toContain('ProbeSyQ Signal is a vendor-agnostic');
+    expect(text).toContain('Signal by ProbeSyQ is a vendor-agnostic');
     expect(text).not.toContain('LabSentinel');
     expect(text).toMatch(/synthetic data/);
     expect(text).toMatch(/no live hospital, laboratory or FHIR connection/);

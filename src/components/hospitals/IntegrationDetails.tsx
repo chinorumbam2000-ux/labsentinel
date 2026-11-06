@@ -2,7 +2,7 @@ import type { FacilityFeedHealth, Hospital } from '../../types';
 import { formatMinutesAgo } from '../../lib/dataConfidence';
 
 /**
- * How a facility's laboratory data reaches ProbeSyQ Signal, for the reader who
+ * How a facility's laboratory data reaches Signal by ProbeSyQ, for the reader who
  * wants it — collapsed by default, because it is not part of an analyst's
  * routine work.
  *
@@ -34,7 +34,7 @@ export default function IntegrationDetails({
         <span>
           <span className="ls-card-title block">Integration details</span>
           <span className="mt-0.5 block text-xs text-muted">
-            How {facility.name}&apos;s laboratory data reaches ProbeSyQ Signal
+            How {facility.name}&apos;s laboratory data reaches Signal by ProbeSyQ
           </span>
         </span>
         <span aria-hidden="true" className="text-sm text-muted transition-transform group-open:rotate-90">

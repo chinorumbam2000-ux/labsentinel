@@ -535,7 +535,7 @@ def test_sandbox_source_without_a_configured_facility_is_not_stored(fhir_env) ->
 
     assert counts(response) == (0, 0, 0, 1)
     assert response["results"][0]["issue_code"] == "UNRESOLVED_FACILITY"
-    assert "no ProbeSyQ Signal facility mapping is configured" in response["errors"][0]["message"]
+    assert "no Signal by ProbeSyQ facility mapping is configured" in response["errors"][0]["message"]
     assert fhir_rows(engine) == []
 
 

@@ -23,7 +23,7 @@ export const PRESENTATION_STEPS: PresentationStep[] = [
   {
     title: 'Problem and overview',
     route: '/overview',
-    cue: 'Laboratory results arrive before case reports. ProbeSyQ Signal turns them into early, explainable, privacy-aware signals.',
+    cue: 'Laboratory results arrive before case reports. Signal by ProbeSyQ turns them into early, explainable, privacy-aware signals.',
   },
   {
     title: 'Frozen classroom demo',

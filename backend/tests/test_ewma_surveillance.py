@@ -267,7 +267,7 @@ def test_current_compares_without_combining(ewma_client: TestClient) -> None:
     assert (jan16["composite"]["severity"], jan16["agreement"]) == ("Moderate", "NEITHER")
     jan17 = ewma_client.get("/api/statistics/ewma/current", params={"date": "2026-01-17"}).json()
     assert (jan17["composite"]["composite_score"], jan17["agreement"]) == (80.0, "BOTH_METHODS_SIGNAL")
-    assert jan17["agreement_text"].startswith("ProbeSyQ Signal's rule-based signal and EWMA independently")
+    assert jan17["agreement_text"].startswith("The Signal by ProbeSyQ rule-based signal and EWMA independently")
     assert jan17["positivity"]["explanation"] == (
         "The exponentially weighted positivity signal exceeded its historical control limit."
     )

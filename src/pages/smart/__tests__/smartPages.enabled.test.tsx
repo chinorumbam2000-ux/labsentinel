@@ -149,7 +149,7 @@ describe('SMART launch and callback', () => {
     adapter.completeAuthorization.mockResolvedValue(sessionFor());
     adapter.restoreSession.mockResolvedValue(sessionFor());
     renderAt('/smart/callback?code=SECRET-CODE&state=s1');
-    expect(await screen.findByRole('heading', { name: 'ProbeSyQ Signal SMART Sidecar' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Signal by ProbeSyQ SMART Sidecar' })).toBeTruthy();
     expect(document.body.textContent).not.toContain('SECRET-CODE');
   });
 
@@ -166,7 +166,7 @@ describe('SMART sidecar', () => {
     adapter.restoreSession.mockResolvedValue(sessionFor());
     renderAt('/smart/sidecar');
 
-    expect(await screen.findByRole('heading', { name: 'ProbeSyQ Signal SMART Sidecar' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Signal by ProbeSyQ SMART Sidecar' })).toBeTruthy();
     const context = screen.getByRole('region', { name: 'SMART context' });
     expect(within(context).getByText('Connected')).toBeTruthy();
     expect(within(context).getByText('launch.smarthealthit.org')).toBeTruthy();

@@ -45,7 +45,7 @@ export const SMART_STATUS: Record<SmartStatus, { icon: string; label: string; me
   'config-error': {
     icon: '✕',
     label: 'SMART Configuration Error',
-    message: 'ProbeSyQ Signal could not start SMART authorization with this configuration or server.',
+    message: 'Signal by ProbeSyQ could not start SMART authorization with this configuration or server.',
   },
 };
 
@@ -186,7 +186,7 @@ export const bridgePayload = (resource: Json, issuer: string): Json => ({
 });
 
 export const NO_FACILITY_MAPPING =
-  'SMART source connected, but no ProbeSyQ Signal participating-facility mapping is configured.';
+  'SMART source connected, but no Signal by ProbeSyQ participating-facility mapping is configured.';
 
 export interface BridgeOutcome {
   tone: 'success' | 'warning' | 'error';
@@ -204,7 +204,7 @@ export const bridgeOutcome = (reply: IngestionReply): BridgeOutcome => {
   if (result.outcome === 'created') {
     return {
       tone: 'success',
-      title: 'Ingested into ProbeSyQ Signal',
+      title: 'Ingested into Signal by ProbeSyQ',
       message: `Validated, normalized and stored as observation ${result.observation_id} (${result.facility_code}).`,
     };
   }
@@ -212,7 +212,7 @@ export const bridgeOutcome = (reply: IngestionReply): BridgeOutcome => {
     return {
       tone: 'warning',
       title: 'Already ingested',
-      message: 'ProbeSyQ Signal detected the same source system + source observation ID and did not create a duplicate record.',
+      message: 'Signal by ProbeSyQ detected the same source system + source observation ID and did not create a duplicate record.',
     };
   }
   if (result.issue_code === 'UNRESOLVED_FACILITY') {
@@ -221,6 +221,6 @@ export const bridgeOutcome = (reply: IngestionReply): BridgeOutcome => {
   return {
     tone: 'error',
     title: `Rejected — ${result.issue_code ?? 'error'}`,
-    message: result.message ?? 'The Observation did not pass ProbeSyQ Signal validation.',
+    message: result.message ?? 'The Observation did not pass Signal by ProbeSyQ validation.',
   };
 };

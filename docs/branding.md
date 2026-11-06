@@ -1,20 +1,20 @@
-# Branding: ProbeSyQ Signal (formerly LabSentinel)
+# Branding: Signal by ProbeSyQ (formerly LabSentinel)
 
 | | |
 |---|---|
 | Company | **ProbeSyQ** — Healthcare Technology Systems |
-| Product | **ProbeSyQ Signal** — Outbreak Intelligence |
+| Product | **Signal by ProbeSyQ** — Outbreak Intelligence |
 | AI assistant | **Roella** — by ProbeSyQ (the in-app assistant, *Ask Roella*) |
-| Former product name | LabSentinel |
+| Former product names | LabSentinel (internal name), then briefly ProbeSyQ Signal |
 
-Everything a user sees says **ProbeSyQ Signal**, **ProbeSyQ** or **Roella**.
+Everything a user sees says **Signal by ProbeSyQ**, **ProbeSyQ** or **Roella**.
 "LabSentinel" remains the product's **internal** name wherever changing it
 would break compatibility, stored data or history. Seeing it in code, in
 storage or in a URL is expected.
 
 ## Visible names (renamed)
 
-- Sign-in screen, sidebar, browser title (`ProbeSyQ Signal — Outbreak Intelligence`), favicon.
+- Sign-in screen, sidebar, browser title (`Signal by ProbeSyQ — Outbreak Intelligence`), favicon.
 - The PSQ mark (`src/components/common/BrandMark.tsx`, `public/favicon.svg`):
   a "PSQ" monogram whose Q is a detection ring with a teal signal node. Below
   28 px, and in the favicon, only the Q's ring, tail and node are drawn.
@@ -22,7 +22,7 @@ storage or in a URL is expected.
   same navy tile with the same teal node.
 - Page text, error messages, the vendor sidecar, the SMART pages, and the
   backend messages a user can see: the API title and health service name
-  (`ProbeSyQ Signal API`), FHIR validation messages, example descriptions and
+  (`Signal by ProbeSyQ API`), FHIR validation messages, example descriptions and
   the EWMA agreement text.
 
 ## Renamed only where displayed

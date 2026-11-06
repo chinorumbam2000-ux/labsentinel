@@ -39,10 +39,10 @@ _BAND_RANK = {band: rank for rank, band in enumerate(("Low", *COMPOSITE_BANDS))}
 
 AGREEMENT_TEXT: dict[Agreement, str] = {
     "BOTH_METHODS_SIGNAL": (
-        "ProbeSyQ Signal's rule-based signal and EWMA independently indicate abnormal activity."
+        "The Signal by ProbeSyQ rule-based signal and EWMA independently indicate abnormal activity."
     ),
     "COMPOSITE_ONLY": (
-        "The multi-factor ProbeSyQ Signal score is elevated, while the EWMA time-series detector has "
+        "The multi-factor composite score is elevated, while the EWMA time-series detector has "
         "not crossed its control limit."
     ),
     "EWMA_ONLY": (

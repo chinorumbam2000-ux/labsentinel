@@ -103,7 +103,7 @@ export default function AssistantPanel({
           <p className="mt-0.5 text-[11px] font-medium text-muted">{contextLabel}</p>
           {/* Shown while the conversation is empty; kept for screen readers after. */}
           <p id={subtitleId} className={started ? 'sr-only' : 'mt-2 text-[13px] leading-snug text-muted'}>
-            Ask about active signals, trends, facilities, geography, analytics, or how ProbeSyQ Signal works.
+            Ask about active signals, trends, facilities, geography, analytics, or how Signal by ProbeSyQ works.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">

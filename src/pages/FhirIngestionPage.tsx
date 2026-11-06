@@ -53,7 +53,7 @@ export default function FhirIngestionPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">FHIR Laboratory Ingestion</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            Validate, normalize and persist synthetic FHIR laboratory resources into ProbeSyQ Signal.
+            Validate, normalize and persist synthetic FHIR laboratory resources into Signal by ProbeSyQ.
           </p>
         </div>
       </header>
@@ -75,7 +75,7 @@ function LocalModeNotice() {
   return (
     <Card title="Not available in Local Demo Mode" bodyClassName="p-0">
       <div className="space-y-2 p-5 text-sm text-muted">
-        <p className="font-medium text-ink">FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.</p>
+        <p className="font-medium text-ink">FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.</p>
         <p>
           This build runs the standalone synthetic demonstration in the browser, with no backend. To use the
           ingestion demonstration, run the FastAPI backend in development and start the app with{' '}
@@ -285,7 +285,7 @@ function IngestionWorkspace() {
       {availability === 'unavailable' ? (
         <Card>
           <ErrorState
-            title="ProbeSyQ Signal API is currently unavailable."
+            title="Signal by ProbeSyQ API is currently unavailable."
             message={`The FHIR ingestion endpoint at ${config.apiBaseUrl} could not be reached. Start the backend, then retry.`}
             onRetry={retry}
           />
@@ -454,7 +454,7 @@ function IngestionWorkspace() {
 
               {outcome?.outcome === 'duplicate' ? (
                 <p className="rounded-lg border border-severity-moderate/50 bg-severity-moderate/10 px-3 py-2 text-sm text-ink">
-                  <strong>Duplicate detected.</strong> ProbeSyQ Signal detected the same source system + source
+                  <strong>Duplicate detected.</strong> Signal by ProbeSyQ detected the same source system + source
                   observation ID and did not create a duplicate record.
                 </p>
               ) : null}
@@ -505,7 +505,7 @@ function IngestionWorkspace() {
             'Normalize LOINC / result',
             'Resolve facility',
             'Persist in PostgreSQL',
-            'Expose through ProbeSyQ Signal API',
+            'Expose through Signal by ProbeSyQ API',
           ].map((step, index) => (
             <li key={step} className="flex gap-2">
               <span className="font-semibold text-brand">{index + 1}.</span>

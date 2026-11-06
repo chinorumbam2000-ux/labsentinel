@@ -19,7 +19,7 @@ export interface ModeDefinition {
 export const MODES: Record<AppMode, ModeDefinition> = {
   overview: {
     label: 'Project Overview',
-    description: 'How ProbeSyQ Signal fits together: workflow, architecture and status',
+    description: 'How Signal by ProbeSyQ fits together: workflow, architecture and status',
     chip: 'border-hairline bg-canvas text-ink',
   },
   // The five-day Scenario Replay (internal key kept from the first release).

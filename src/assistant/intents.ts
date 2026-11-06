@@ -87,7 +87,7 @@ const parseSeverity = (text: string): ParsedQuestion['severity'] => {
   return undefined;
 };
 
-/** Words that mark a question as being about ProbeSyQ Signal at all. */
+/** Words that mark a question as being about Signal by ProbeSyQ at all. */
 const DOMAIN = [
   'probesyq', 'roella', 'labsentinel', 'score', 'signal', 'outbreak', 'hospital', 'facility', 'facilities', 'zip', 'area', 'positiv', 'test',
   'volume', 'severity', 'critical', 'confidence', 'alert', 'day', 'trend', 'analytic', 'map', 'lab', 'observation',
@@ -130,7 +130,7 @@ export const parseQuestion = (question: string, context: AssistantContext, state
 
   if (/^(hi|hello|hey|good (morning|afternoon|evening)|thanks|thank you|help|what can you do|what can i ask)\b/.test(t) && t.split(' ').length <= 6) return result('greeting');
   if (has(t, 'who are you', 'what are you', 'who is roella', 'what is roella', 'are you roella', 'your name')) return result('greeting');
-  // "What is ProbeSyQ Signal?" before the topic checks, which would read "signal" as the score.
+  // "What is Signal by ProbeSyQ?" before the topic checks, which would read "signal" as the score.
   if (PRODUCT_NAMES.some((name) => t.includes(name)) &&
       has(t, 'what is', 'what does', 'how does', 'who is', 'about', 'tell me', 'explain') &&
       !has(t, 'score', 'fhir', 'smart', 'loinc', 'page', 'confidence', 'day ')) {

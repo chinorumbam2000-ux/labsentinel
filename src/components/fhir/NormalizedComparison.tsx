@@ -64,7 +64,7 @@ export default function NormalizedComparison({
 
         <section aria-labelledby="normalized-record" className="rounded-lg border border-brand/30 bg-brand-light p-3">
           <h3 id="normalized-record" className="ls-label">
-            Normalized ProbeSyQ Signal record
+            Normalized Signal by ProbeSyQ record
           </h3>
           <dl className="mt-1">
             <Row label="Observation" value={`#${record.id}`} mono />
@@ -94,7 +94,7 @@ export default function NormalizedComparison({
           <p className="font-mono text-xs text-ink">code: {record.loinc_code}</p>
           <p className="break-words text-xs text-ink">display: {record.code_display ?? source?.loinc?.display ?? '—'}</p>
           <p aria-hidden="true" className="my-1 text-center text-xs text-muted">↓</p>
-          <p className="text-xs text-muted">ProbeSyQ Signal</p>
+          <p className="text-xs text-muted">Signal by ProbeSyQ</p>
           {mapped ? (
             <>
               <p className="text-xs text-ink">Normalized test: <strong>{record.test_name}</strong></p>
@@ -130,7 +130,7 @@ export default function NormalizedComparison({
           <p className="text-[11px] text-muted">When the synthetic laboratory event occurred.</p>
           <p className="mt-2 text-xs font-semibold text-ink">Received time</p>
           <p className="text-xs text-ink">{formatTime(record.received_datetime) ?? 'Not recorded'}</p>
-          <p className="text-[11px] text-muted">When ProbeSyQ Signal ingested the FHIR resource.</p>
+          <p className="text-[11px] text-muted">When Signal by ProbeSyQ ingested the FHIR resource.</p>
         </section>
       </div>
     </div>

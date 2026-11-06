@@ -52,7 +52,7 @@ function NotFoundPage() {
   );
 }
 
-/** The simulation's state, shared by every route that shows ProbeSyQ Signal data. */
+/** The simulation's state, shared by every route that shows Signal by ProbeSyQ data. */
 function SimulationLayout() {
   return (
     <SimulationProvider>

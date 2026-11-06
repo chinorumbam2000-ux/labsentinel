@@ -131,7 +131,7 @@ describe('Presentation Mode', () => {
     await screen.findByRole('button', { name: 'Next replay day' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Next ›' }));
-    await screen.findByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.');
+    await screen.findByText('FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.', {}, { timeout: 5000 }); // lazy route, cold
     expect(bar.textContent).toContain('Step 4 of 10');
     expect(bar.textContent).toContain('Needs API Capstone Mode');
 
@@ -165,7 +165,7 @@ describe('Presentation Mode', () => {
 describe('Architecture page', () => {
   it('separates implemented, prototype and planned work, with future work', async () => {
     renderAt('/architecture');
-    await screen.findByRole('heading', { name: 'ProbeSyQ Signal Architecture' });
+    await screen.findByRole('heading', { name: 'Signal by ProbeSyQ Architecture' });
     for (const title of ['Implemented', 'Prototype', 'Planned and future', 'Future work']) {
       expect(screen.getByRole('heading', { name: title })).toBeTruthy();
     }

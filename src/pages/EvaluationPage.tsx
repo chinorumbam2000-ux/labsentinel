@@ -66,7 +66,7 @@ function LocalModeNotice() {
   return (
     <Card title="Not available in Local Demo Mode" bodyClassName="p-0">
       <div className="space-y-2 p-5 text-sm text-muted">
-        <p className="font-medium text-ink">The Capstone Evaluation requires ProbeSyQ Signal API Capstone Mode.</p>
+        <p className="font-medium text-ink">The Capstone Evaluation requires Signal by ProbeSyQ API Capstone Mode.</p>
         <p>
           The evaluation results are produced by the FastAPI backend (
           <code className="font-mono">python -m app.evaluation.run --all</code>) and served read-only in development. Start

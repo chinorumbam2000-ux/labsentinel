@@ -46,7 +46,7 @@ describe('FHIR ingestion page — Local Demo Mode', () => {
   it('shows only an informational notice and makes no requests', async () => {
     renderPage('local');
 
-    expect(screen.getByText('FHIR ingestion requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
+    expect(screen.getByText('FHIR ingestion requires Signal by ProbeSyQ API Capstone Mode.')).toBeTruthy();
     expect(screen.getByText(SYNTHETIC_NOTICE, { exact: false })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeNull();
     expect(screen.queryByLabelText('Synthetic FHIR JSON')).toBeNull();
@@ -95,7 +95,7 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     const pipeline = screen.getByRole('list', { name: 'Ingestion pipeline' });
     expect(within(pipeline).getAllByText('Success')).toHaveLength(6);
 
-    const normalized = await screen.findByRole('region', { name: 'Normalized ProbeSyQ Signal record' });
+    const normalized = await screen.findByRole('region', { name: 'Normalized Signal by ProbeSyQ record' });
     const sourceFhir = screen.getByRole('region', { name: 'Source FHIR' });
     expect(within(sourceFhir).getByText(/92142-9/)).toBeTruthy();
     expect(within(normalized).getByText('A-FLU-20260112-0001')).toBeTruthy();
@@ -108,7 +108,7 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     expect(within(sourceFhir).getByText(/\(not stored\)/)).toBeTruthy();
     expect(screen.getByText('Performer logical identifier (urn:labsentinel:facility-code)')).toBeTruthy();
     expect(screen.getByText('Simulated Epic Environment')).toBeTruthy();
-    expect(screen.getByText('When ProbeSyQ Signal ingested the FHIR resource.')).toBeTruthy();
+    expect(screen.getByText('When Signal by ProbeSyQ ingested the FHIR resource.')).toBeTruthy();
     expect(
       screen.getByText(
         'Facility mappings are synthetic development configuration and do not represent live vendor connectivity.',
@@ -128,7 +128,7 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     expect(summaryValue('Created')).toBe('0');
     expect(summaryValue('Duplicates')).toBe('1');
     expect(
-      screen.getByText(/ProbeSyQ Signal detected the same source system \+ source observation ID/),
+      screen.getByText(/Signal by ProbeSyQ detected the same source system \+ source observation ID/),
     ).toBeTruthy();
     const pipeline = screen.getByRole('list', { name: 'Ingestion pipeline' });
     expect(within(pipeline).getByText(/nothing written/)).toBeTruthy();
@@ -165,12 +165,12 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     const issues = screen.getByRole('list', { name: 'Structured ingestion issues' });
     expect(within(issues).getByText('NON_LAB_OBSERVATION')).toBeTruthy();
     expect(
-      within(issues).getByText('This Observation does not meet ProbeSyQ Signal laboratory-surveillance criteria.'),
+      within(issues).getByText('This Observation does not meet Signal by ProbeSyQ laboratory-surveillance criteria.'),
     ).toBeTruthy();
     const pipeline = screen.getByRole('list', { name: 'Ingestion pipeline' });
     expect(within(pipeline).getByText('Failed')).toBeTruthy();
     expect(within(pipeline).getAllByText('Not reached')).toHaveLength(4);
-    expect(screen.queryByText('Normalized ProbeSyQ Signal record')).toBeNull();
+    expect(screen.queryByText('Normalized Signal by ProbeSyQ record')).toBeNull();
     expect(document.body.textContent).not.toMatch(/Traceback|stack/i);
   });
 
@@ -215,7 +215,7 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     useBackend({ down: true });
     renderPage();
 
-    await screen.findByText('ProbeSyQ Signal API is currently unavailable.');
+    await screen.findByText('Signal by ProbeSyQ API is currently unavailable.');
     expect(screen.queryByRole('button', { name: 'Ingest Synthetic FHIR' })).toBeNull();
 
     backend.setDown(false);

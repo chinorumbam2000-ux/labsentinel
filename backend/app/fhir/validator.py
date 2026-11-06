@@ -88,7 +88,7 @@ def check_laboratory(obs: Observation, label: str) -> None:
         return
     raise IngestionError(
         IssueCode.NON_LAB_OBSERVATION,
-        "No 'laboratory' category, and the code is not a recognized ProbeSyQ Signal laboratory test.",
+        "No 'laboratory' category, and the code is not a recognized Signal by ProbeSyQ laboratory test.",
         label,
     )
 

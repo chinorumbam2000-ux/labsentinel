@@ -1,4 +1,4 @@
-# ProbeSyQ Signal
+# Signal by ProbeSyQ
 
 **Outbreak Intelligence** · by **ProbeSyQ** (Healthcare Technology Systems)
 
@@ -454,7 +454,7 @@ to the five-day replay.
 After sign-in, an **Ask Roella** button in the lower-right corner opens Roella,
 the ProbeSyQ intelligence assistant. It answers questions about the current
 signal, day-to-day changes, facilities, surveillance areas, trends, Data
-Confidence, navigation and how ProbeSyQ Signal works (including FHIR, SMART on
+Confidence, navigation and how Signal by ProbeSyQ works (including FHIR, SMART on
 FHIR and LOINC).
 
 - It runs entirely in the browser. There is no AI service, no API key and no

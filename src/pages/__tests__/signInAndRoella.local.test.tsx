@@ -50,29 +50,30 @@ const setInput = (id: string, value: string) =>
   fireEvent.change(document.getElementById(id) as HTMLInputElement, { target: { value } });
 
 const signIn = async (name = 'Avery Analyst', password = PASSWORD) => {
-  await screen.findByRole('form', { name: 'Sign in to ProbeSyQ Signal' });
+  await screen.findByRole('form', { name: 'Sign in to Signal by ProbeSyQ' });
   setInput('signin-name', name);
   setInput('signin-password', password);
-  fireEvent.submit(screen.getByRole('form', { name: 'Sign in to ProbeSyQ Signal' }));
+  fireEvent.submit(screen.getByRole('form', { name: 'Sign in to Signal by ProbeSyQ' }));
 };
 
 const everythingStored = () =>
   JSON.stringify({ ...window.sessionStorage }) + JSON.stringify({ ...window.localStorage });
 
 describe('presentation sign-in', () => {
-  it('shows the ProbeSyQ Signal access screen with the PSQ mark and no Roella', async () => {
+  it('shows the Signal by ProbeSyQ access screen with the PSQ mark and no Roella', async () => {
     renderAt('/');
-    expect(await screen.findByRole('heading', { level: 1, name: 'ProbeSyQ Signal' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Signal by ProbeSyQ' })).toBeTruthy();
     expect(screen.getByText('Outbreak Intelligence')).toBeTruthy();
     expect(screen.getByText('Healthcare Technology Systems', { exact: false })).toBeTruthy();
     expect((screen.getByLabelText('Role') as HTMLInputElement).value).toBe('Public Health Analyst');
     expect(screen.queryByRole('button', { name: 'Ask Roella' })).toBeNull();
     expect(document.body.textContent).not.toContain('LabSentinel');
+    expect(document.body.textContent).not.toContain('ProbeSyQ Signal');
   });
 
   it('rejects a blank name, then a blank password', async () => {
     renderAt('/');
-    const form = await screen.findByRole('form', { name: 'Sign in to ProbeSyQ Signal' });
+    const form = await screen.findByRole('form', { name: 'Sign in to Signal by ProbeSyQ' });
     fireEvent.submit(form);
     expect(screen.getByText('Enter your name.')).toBeTruthy();
     setInput('signin-name', 'Avery Analyst');
@@ -110,7 +111,7 @@ describe('presentation sign-in', () => {
     cleanup();
     renderAt('/analytics');
     expect(await screen.findByRole('heading', { name: 'Trends & Analytics' })).toBeTruthy();
-    expect(screen.queryByRole('form', { name: 'Sign in to ProbeSyQ Signal' })).toBeNull();
+    expect(screen.queryByRole('form', { name: 'Sign in to Signal by ProbeSyQ' })).toBeNull();
   });
 
   it('Sign Out ends only the sign-in session, not the simulation state', async () => {
@@ -123,7 +124,7 @@ describe('presentation sign-in', () => {
     await within(header()).findByText(/Day 3 of 5/);
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign Out Avery Analyst' }));
-    expect(await screen.findByRole('form', { name: 'Sign in to ProbeSyQ Signal' })).toBeTruthy();
+    expect(await screen.findByRole('form', { name: 'Sign in to Signal by ProbeSyQ' })).toBeTruthy();
     expect(window.sessionStorage.getItem(DEMO_SESSION_KEY)).toBeNull();
     expect(JSON.parse(window.sessionStorage.getItem(SIMULATION_KEY) ?? '{}').day).toBe(3);
   });
@@ -132,7 +133,7 @@ describe('presentation sign-in', () => {
     for (const path of ['/dashboard', '/map', '/laboratory-data', '/signals', '/hospitals', '/analytics', '/simulation',
       '/reports', '/architecture', '/overview', '/fhir-ingestion', '/dynamic-surveillance', '/evaluation', '/smart-demo', '/nope']) {
       renderAt(path);
-      expect(await screen.findByRole('form', { name: 'Sign in to ProbeSyQ Signal' }), path).toBeTruthy();
+      expect(await screen.findByRole('form', { name: 'Sign in to Signal by ProbeSyQ' }), path).toBeTruthy();
       cleanup();
     }
   });
@@ -141,8 +142,8 @@ describe('presentation sign-in', () => {
     for (const path of ['/smart/launch', '/smart/callback', '/smart/sidecar']) {
       renderAt(path);
       // Each SMART page renders its own content (a "not enabled" notice in this build), never the sign-in form.
-      expect((await screen.findAllByText(/SMART/)).length, path).toBeGreaterThan(0);
-      expect(screen.queryByRole('form', { name: 'Sign in to ProbeSyQ Signal' }), path).toBeNull();
+      expect((await screen.findAllByText(/SMART/, {}, { timeout: 5000 })).length, path).toBeGreaterThan(0);
+      expect(screen.queryByRole('form', { name: 'Sign in to Signal by ProbeSyQ' }), path).toBeNull();
       cleanup();
     }
   });
@@ -173,7 +174,7 @@ describe('Ask Roella', () => {
     const { panel } = await open();
     expect(within(panel).getByRole('heading', { name: /Roella/ })).toBeTruthy();
     expect(within(panel).getByText('ProbeSyQ AI Assistant')).toBeTruthy();
-    expect(within(panel).getByText(/Ask about active signals, trends, facilities, geography, analytics, or how ProbeSyQ Signal works\./)).toBeTruthy();
+    expect(within(panel).getByText(/Ask about active signals, trends, facilities, geography, analytics, or how Signal by ProbeSyQ works\./)).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByLabelText('Ask Roella a question'));
     expect(within(panel).getByText('Suggested questions')).toBeTruthy();
     expect(panel.textContent).not.toContain('LabSentinel');

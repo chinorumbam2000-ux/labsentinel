@@ -67,7 +67,7 @@ describe('Capstone Evaluation — Local Demo Mode', () => {
   it('explains that API mode is required, keeps the disclaimer and sends no request', async () => {
     renderPage('local');
     expect(screen.getByRole('heading', { name: 'Capstone Evaluation' })).toBeTruthy();
-    expect(screen.getByText('The Capstone Evaluation requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
+    expect(screen.getByText('The Capstone Evaluation requires Signal by ProbeSyQ API Capstone Mode.')).toBeTruthy();
     expect(screen.getByText(EVALUATION_DISCLAIMER)).toBeTruthy();
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(calls).toEqual([]);

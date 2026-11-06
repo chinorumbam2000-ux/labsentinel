@@ -1,5 +1,5 @@
 /**
- * The ProbeSyQ Signal sign-in session (presentation UX, not authentication).
+ * The Signal by ProbeSyQ sign-in session (presentation UX, not authentication).
  *
  * Lightweight by design: any non-empty name and password are accepted, the
  * role is always Public Health Analyst, and nothing is sent anywhere. The

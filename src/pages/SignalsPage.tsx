@@ -130,7 +130,7 @@ export default function SignalsPage() {
               Signal Investigation
             </h1>
             <p className="mt-1 max-w-3xl text-sm text-muted">
-              How the ProbeSyQ Signal composite outbreak signal score was calculated.
+              How the composite outbreak signal score was calculated.
             </p>
           </div>
           <PageMeta />

@@ -19,15 +19,15 @@ import { ApiError, isAbortError } from './apiClient';
 import { canonicalJson } from './canonical';
 import { useDataSource } from './DataSourceProvider';
 
-export const API_UNAVAILABLE_MESSAGE = 'ProbeSyQ Signal API is currently unavailable.';
+export const API_UNAVAILABLE_MESSAGE = 'Signal by ProbeSyQ API is currently unavailable.';
 
 /** A user-facing explanation of why API data could not be shown. */
 export const describeDataError = (error: unknown): string => {
   if (error instanceof ApiError) {
-    if (error.kind === 'invalid-response') return `The ProbeSyQ Signal API returned unexpected data. ${error.message}`;
+    if (error.kind === 'invalid-response') return `The Signal by ProbeSyQ API returned unexpected data. ${error.message}`;
     return `${API_UNAVAILABLE_MESSAGE} ${error.message}`;
   }
-  if (error instanceof DataIntegrityError) return `The ProbeSyQ Signal API returned inconsistent data. ${error.message}`;
+  if (error instanceof DataIntegrityError) return `The Signal by ProbeSyQ API returned inconsistent data. ${error.message}`;
   return `${API_UNAVAILABLE_MESSAGE} ${error instanceof Error ? error.message : String(error)}`;
 };
 

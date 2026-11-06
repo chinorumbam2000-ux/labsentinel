@@ -73,7 +73,7 @@ const greeting = (ctx: AssistantContext): AssistantAnswer => {
   const f = factsFor(ctx.day, ctx);
   return answer('greeting', [
     text(`I'm Roella, the ProbeSyQ intelligence assistant. I answer from the data on screen: right now that is Day ${f.day}, with a Composite Outbreak Signal Score of ${f.score.composite} (${f.score.severity}).`),
-    text('Ask about the signal, what changed, facilities, ZIP codes, trends, Data Confidence, or how ProbeSyQ Signal works.'),
+    text('Ask about the signal, what changed, facilities, ZIP codes, trends, Data Confidence, or how Signal by ProbeSyQ works.'),
   ], PAGE_QUESTIONS[ctx.route]);
 };
 
@@ -245,7 +245,7 @@ const facilityRanking = (p: ParsedQuestion, ctx: AssistantContext, state: Conver
     text(`${tied.length > 1 ? `${joinAnd(tied.map((h) => h.hospital.name))} are tied` : `${top.hospital.name} has the ${lowest ? 'lowest' : 'highest'}`} ${basis}${onlyAffected ? ' among the affected facilities' : ''} on Day ${f.day} (${show(top)}).`),
     list(sorted.map((h) => `${h.hospital.name}: ${show(h)} (${h.severity})`), `Ranked by ${basis}, as shown on the Hospitals page`),
   ];
-  if (/\b(worst|most affected|most severe)\b/.test(t)) blocks.push(text('"Worst" here means highest positivity on the day; ProbeSyQ Signal does not rank facilities in any other way.'));
+  if (/\b(worst|most affected|most severe)\b/.test(t)) blocks.push(text('"Worst" here means highest positivity on the day; Signal by ProbeSyQ does not rank facilities in any other way.'));
   return answer('facility_ranking', [...blocks, ...aheadNote(f.day, ctx)], ['Which ZIP codes are affected?', 'What should I investigate next?']);
 };
 
@@ -501,8 +501,8 @@ const architecture = (ctx: AssistantContext): AssistantAnswer =>
     text(buildStatement(modeOf(ctx))),
     text(modeOf(ctx) === 'api'
       ? 'In this full-stack mode the React frontend reads a FastAPI backend with a PostgreSQL database. The backend adds development FHIR R4 ingestion, a dynamic surveillance engine with a rolling baseline, and the EWMA and CUSUM statistical detectors. The Architecture page labels what is implemented, what is a prototype and what is planned.'
-      : 'In this local mode the whole pipeline runs in your browser. ProbeSyQ Signal also has a full-stack mode (FastAPI and PostgreSQL) that adds FHIR R4 ingestion, a dynamic surveillance engine and the EWMA and CUSUM detectors; this build does not include it. The Architecture page labels what is implemented, what is a prototype and what is planned.'),
-  ], ['What is FHIR?', 'What is SMART on FHIR?', 'How does ProbeSyQ Signal work?']);
+      : 'In this local mode the whole pipeline runs in your browser. Signal by ProbeSyQ also has a full-stack mode (FastAPI and PostgreSQL) that adds FHIR R4 ingestion, a dynamic surveillance engine and the EWMA and CUSUM detectors; this build does not include it. The Architecture page labels what is implemented, what is a prototype and what is planned.'),
+  ], ['What is FHIR?', 'What is SMART on FHIR?', 'How does Signal by ProbeSyQ work?']);
 
 const concept = (intent: 'fhir' | 'smart' | 'loinc' | 'interoperability', ctx: AssistantContext): AssistantAnswer => {
   if (intent === 'fhir') return answer('fhir', [text(CONCEPTS.fhir), text(fhirInThisBuild(modeOf(ctx)))], ['What is SMART on FHIR?', 'What is LOINC?']);

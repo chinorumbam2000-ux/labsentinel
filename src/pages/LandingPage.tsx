@@ -5,7 +5,7 @@ import { useDemoSession } from '../context/DemoSessionContext';
 import { DEMO_ROLE, NAME_MAX_LENGTH, safeReturnPath, validateSignIn, type SignInErrors } from '../lib/demoSession';
 
 /**
- * The ProbeSyQ Signal access screen: name, the fixed Public Health Analyst
+ * The Signal by ProbeSyQ access screen: name, the fixed Public Health Analyst
  * role, and a password. Any non-empty name and password sign in; nothing is
  * sent anywhere.
  *
@@ -53,14 +53,16 @@ export default function LandingPage() {
     <main className="ls-shell ls-auth-backdrop flex flex-col items-center overflow-y-auto overflow-x-hidden overscroll-y-contain bg-canvas px-4 py-10 [&>:first-child]:mt-auto [&>:last-child]:mb-auto">
       <div className="ls-auth-brand flex flex-col items-center text-center">
         <BrandMark size={64} className="h-14 w-14 shrink-0 sm:h-16 sm:w-16" />
-        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">ProbeSyQ Signal</h1>
+        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          Signal <span className="text-lg font-medium tracking-normal text-muted sm:text-xl">by ProbeSyQ</span>
+        </h1>
         <p className="mt-1.5 text-base font-medium text-muted sm:text-lg">Outbreak Intelligence</p>
       </div>
 
       <form
         onSubmit={onSubmit}
         noValidate
-        aria-label="Sign in to ProbeSyQ Signal"
+        aria-label="Sign in to Signal by ProbeSyQ"
         className="ls-card mt-8 w-full max-w-sm p-6 text-left sm:p-7"
       >
         <div>
@@ -143,7 +145,7 @@ export default function LandingPage() {
         </div>
 
         <button type="submit" className="ls-btn-primary mt-6 w-full py-2.5 text-base">
-          Sign in to ProbeSyQ Signal
+          Sign in to Signal by ProbeSyQ
         </button>
       </form>
 

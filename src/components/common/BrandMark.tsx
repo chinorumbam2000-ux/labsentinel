@@ -7,7 +7,7 @@ interface BrandMarkProps {
   /**
    * Accessible name. Omit wherever the brand name already appears as text
    * beside the mark — which is every current usage — so screen readers do
-   * not announce "ProbeSyQ Signal" twice.
+   * not announce "Signal by ProbeSyQ" twice.
    */
   label?: string;
 }

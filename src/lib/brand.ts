@@ -1,8 +1,9 @@
 /**
  * Product naming.
  *
- * The product is ProbeSyQ Signal (by ProbeSyQ, Healthcare Technology
- * Systems). "LabSentinel" is its former name and remains its internal name:
+ * The product is Signal by ProbeSyQ: "Signal" is the product, ProbeSyQ
+ * (Healthcare Technology Systems) the company. It was briefly called ProbeSyQ
+ * Signal, and before that LabSentinel. "LabSentinel" is its former name and remains its internal name:
  * storage keys, the FHIR facility identifier system, database, seed and
  * package names keep it for compatibility (see docs/branding.md).
  *
@@ -13,7 +14,8 @@
  */
 import { SCORE_DISCLAIMER } from './signalScore';
 
-export const PRODUCT_NAME = 'ProbeSyQ Signal';
+export const PRODUCT_NAME = 'Signal by ProbeSyQ';
+export const PRODUCT_SHORT_NAME = 'Signal';
 export const PRODUCT_TAGLINE = 'Outbreak Intelligence';
 export const COMPANY_NAME = 'ProbeSyQ';
 export const COMPANY_TAGLINE = 'Healthcare Technology Systems';

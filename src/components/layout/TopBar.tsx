@@ -48,7 +48,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   };
 
   return (
-    <header className="relative z-30 flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-hairline bg-white px-4 py-3 lg:px-6">
+    <header className="relative z-30 flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-hairline bg-white px-4 py-3 lg:px-6 xl:flex-nowrap xl:gap-x-3">
       <button
         type="button"
         onClick={onOpenNav}
@@ -63,7 +63,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
           <div className="flex min-w-0 items-center gap-3">
             <div className="min-w-0">
               <p className="ls-label">Replay Day</p>
-              <p className="truncate text-sm font-semibold text-ink">
+              <p className="truncate text-sm font-semibold text-ink" title={`Day ${currentDay} of 5 · ${currentScenario.stage}`}>
                 Day {currentDay} of 5
                 <span className="ml-2 font-normal text-muted">{currentScenario.stage}</span>
               </p>
@@ -97,11 +97,15 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
           </div>
 
           {/* The one statement, on every analyst page, that the replay's data is simulated. */}
+          {/* The disclosure is also the way to the full limitations: one compact item, not two. */}
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             <ModeChip mode="classroom" />
-            <span className="text-xs text-muted">Simulated surveillance data</span>
-            <Link to="/overview#about-the-data" className="text-xs font-medium text-brand hover:underline">
-              About replay data
+            <Link
+              to="/overview#about-the-data"
+              title="About replay data"
+              className="text-xs text-muted underline decoration-dotted underline-offset-2 hover:text-brand"
+            >
+              Simulated surveillance data<span className="sr-only"> — about replay data</span>
             </Link>
           </div>
         </>
@@ -111,12 +115,13 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         </div>
       )}
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex shrink-0 items-center gap-3">
         {/* Local vs API is an implementation detail: shown on System pages only. */}
         {classroom ? null : <DataSourceIndicator />}
 
+        {/* Every page header repeats the surveillance date, so the top bar shows it only when there is room. */}
         {classroom ? (
-          <div className="hidden text-right lg:block">
+          <div className="hidden text-right 2xl:block">
             <p className="ls-label">Surveillance date</p>
             <p className="text-sm font-medium text-ink">{formatSimulationDate(simulationDate)}</p>
           </div>
@@ -228,7 +233,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2 border-l border-hairline pl-3">
+        <div className="flex shrink-0 items-center gap-2 border-l border-hairline pl-3">
           <span
             aria-hidden="true"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-light text-xs font-semibold text-brand"
@@ -239,12 +244,12 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             <p className="max-w-[11rem] truncate text-sm font-medium text-ink" title={displayName}>
               {displayName}
             </p>
-            <p className="text-[11px] text-muted">{session?.role ?? DEMO_ROLE}</p>
+            <p className="whitespace-nowrap text-[11px] text-muted">{session?.role ?? DEMO_ROLE}</p>
           </div>
           <button
             type="button"
             onClick={handleSignOut}
-            className="ls-btn ml-1 px-2.5 py-1.5 text-xs"
+            className="ls-btn ml-1 shrink-0 whitespace-nowrap px-2.5 py-1.5 text-xs"
             aria-label={`Sign Out ${displayName}`}
           >
             Sign Out

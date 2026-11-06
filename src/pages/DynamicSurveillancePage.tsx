@@ -58,7 +58,7 @@ export default function DynamicSurveillancePage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-ink">Detection Methods</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">
-          How ProbeSyQ Signal detects and confirms unusual activity: the Composite Outbreak Signal Score
+          How Signal by ProbeSyQ detects and confirms unusual activity: the Composite Outbreak Signal Score
           (the operational signal, against a rolling baseline of prior days) and two statistical
           confirmation methods, EWMA and CUSUM, calculated from the stored laboratory observations.
         </p>
@@ -79,7 +79,7 @@ function LocalModeNotice() {
   return (
     <Card title="Not available in Local Demo Mode" bodyClassName="p-0">
       <div className="space-y-2 p-5 text-sm text-muted">
-        <p className="font-medium text-ink">Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.</p>
+        <p className="font-medium text-ink">Dynamic Surveillance requires Signal by ProbeSyQ API Capstone Mode.</p>
         <p>
           This build runs the frozen classroom demonstration in the browser, with no backend. Dynamic signals are
           calculated by the FastAPI backend from observations in PostgreSQL; start the app with{' '}
@@ -645,7 +645,7 @@ function MethodCard({ summary }: { summary: DynamicSummary }) {
     ['Eligible observations', description.eligibility],
     [
       'Weights',
-      'Volume 25% · Positivity 30% · Affected facilities 20% · Geographic spread 15% · Persistence 10% — the existing ProbeSyQ Signal weights. Severity: 0-19 Low, 20-39 Watch, 40-64 Moderate, 65-84 High, 85-100 Critical.',
+      'Volume 25% · Positivity 30% · Affected facilities 20% · Geographic spread 15% · Persistence 10% — the existing Signal weights. Severity: 0-19 Low, 20-39 Watch, 40-64 Moderate, 65-84 High, 85-100 Critical.',
     ],
   ];
   return (

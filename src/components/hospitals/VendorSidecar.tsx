@@ -87,14 +87,14 @@ export default function VendorSidecar({
 
   return (
     <aside
-      aria-label="ProbeSyQ Signal regional respiratory activity"
+      aria-label="Signal by ProbeSyQ regional respiratory activity"
       className="overflow-hidden rounded-xl border border-hairline bg-white shadow-card"
     >
       <div className="flex items-center gap-2 bg-sidebar px-4 py-3">
         <BrandMark size={24} className="shrink-0" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-tight text-white">
-            ProbeSyQ Signal
+            Signal by ProbeSyQ
           </p>
           <p className="truncate text-[11px] leading-tight text-white/55">
             Regional Respiratory Activity

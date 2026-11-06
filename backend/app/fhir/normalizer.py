@@ -229,7 +229,7 @@ def terminology_fields(obs: Observation, loinc: LoincCoding, label: str, issues:
     issues.append(
         IngestionIssue(
             IssueCode.UNMAPPED_LOINC,
-            f"LOINC {loinc.code} has no ProbeSyQ Signal mapping; stored as 'unmapped' with no syndrome.",
+            f"LOINC {loinc.code} has no Signal by ProbeSyQ mapping; stored as 'unmapped' with no syndrome.",
             label,
             "warning",
         )

@@ -101,7 +101,10 @@ describe('simulated-data disclosure', () => {
     // The Scenario Replay indicator is the disclosure, with a link to the full limitations.
     expect(within(topBar()).getByText('Scenario Replay')).toBeTruthy();
     expect(within(topBar()).getByText('Simulated surveillance data')).toBeTruthy();
-    expect(within(topBar()).getByRole('link', { name: 'About replay data' }).getAttribute('href')).toBe('/overview#about-the-data');
+    // The disclosure is itself the link to the full limitations, named for both.
+    const about = within(topBar()).getByRole('link', { name: 'Simulated surveillance data — about replay data' });
+    expect(about.getAttribute('href')).toBe('/overview#about-the-data');
+    expect(about.getAttribute('title')).toBe('About replay data');
     // No persistent banner, and no repeated warning block in the sidebar.
     expect(screen.queryByText('Simulated surveillance data.')).toBeNull();
     expect((document.body.textContent ?? '').match(/Simulated surveillance data/g)).toHaveLength(1);
@@ -152,7 +155,7 @@ describe('simulated-data disclosure', () => {
 describe('analyst pages use product language', () => {
   const CLASSROOM = ['Classroom', 'classroom', 'Simulation Day', 'Simulation date', 'simulation day', 'Session updated', 'Session clock',
     'session clock', 'Demo Environment', 'DEMO ENVIRONMENT', 'Capstone', 'capstone', 'Respiratory Outbreak Simulation', 'Reset Simulation',
-    'API Capstone', 'Local Demo Mode', 'Synthetic data only', 'Demo User', 'simulation time'];
+    'API Capstone', 'Local Demo Mode', 'Synthetic data only', 'Demo User', 'simulation time', 'ProbeSyQ Signal'];
 
   it.each(ANALYST_ROUTES)('%s', async (path) => {
     renderAt(path);

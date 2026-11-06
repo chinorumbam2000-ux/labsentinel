@@ -1,5 +1,5 @@
 /**
- * The ProbeSyQ Signal navigation, organised around the Public Health
+ * The Signal by ProbeSyQ navigation, organised around the Public Health
  * Analyst's workflow: what is happening (Overview), where and why
  * (Surveillance), and what to do about it (Action).
  *
@@ -60,7 +60,7 @@ const SYSTEM_ITEMS: SystemItem[] = [
   { to: '/dynamic-surveillance', label: 'Detection Methods', icon: '∿', hint: 'Dynamic surveillance, EWMA and CUSUM in detail', requires: 'api' },
   { to: '/smart-demo', label: 'Integration Testing', icon: '⚿', hint: 'SMART on FHIR sandbox launch', requires: 'smart' },
   { to: '/evaluation', label: 'Validation', icon: '⚖', hint: 'Method evaluation on synthetic scenarios', requires: 'api' },
-  { to: '/architecture', label: 'Architecture', icon: '⊞', hint: 'How ProbeSyQ Signal is built, and what is planned' },
+  { to: '/architecture', label: 'Architecture', icon: '⊞', hint: 'How Signal by ProbeSyQ is built, and what is planned' },
   { to: '/overview', label: 'Project Overview', icon: '◈', hint: 'Workflow, routes and build status' },
 ];
 

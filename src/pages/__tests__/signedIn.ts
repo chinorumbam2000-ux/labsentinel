@@ -1,5 +1,5 @@
 /**
- * Test helper: start a ProbeSyQ Signal sign-in session, as the access screen
+ * Test helper: start a Signal by ProbeSyQ sign-in session, as the access screen
  * does, so a test can open a protected route directly. The sign-in is
  * presentation UX only; this stores exactly what it stores.
  */

@@ -42,7 +42,7 @@ export function SmartFrame({
         <div className="flex items-center gap-3 border-b border-hairline px-5 py-4">
           <BrandMark size={28} />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">ProbeSyQ Signal · SMART on FHIR Sandbox</p>
+            <p className="text-sm font-semibold text-ink">Signal by ProbeSyQ · SMART on FHIR Sandbox</p>
             <p className="text-xs text-muted">Synthetic sandbox data only</p>
           </div>
           <SmartStatusBadge status={status} />

@@ -66,7 +66,7 @@ EXAMPLES: tuple[FhirExample, ...] = (
     ),
     FhirExample(
         "unmapped-loinc", "Unmapped LOINC Observation",
-        "Hepatitis B surface antigen (LOINC 5195-3): a valid code with no ProbeSyQ Signal mapping.",
+        "Hepatitis B surface antigen (LOINC 5195-3): a valid code with no Signal by ProbeSyQ mapping.",
         "valid", "Created as unmapped with an UNMAPPED_LOINC warning; no syndrome guessed.",
         "case-h-unmapped-loinc.json",
     ),
@@ -78,7 +78,7 @@ EXAMPLES: tuple[FhirExample, ...] = (
     ),
     FhirExample(
         "unresolved-facility", "Unresolved facility",
-        "Performer identifier HOSP-Z is not a ProbeSyQ Signal facility.",
+        "Performer identifier HOSP-Z is not a Signal by ProbeSyQ facility.",
         "invalid", "Rejected — UNRESOLVED_FACILITY.",
         "case-i-unresolvable-facility.json",
     ),

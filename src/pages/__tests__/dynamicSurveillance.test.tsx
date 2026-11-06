@@ -61,7 +61,7 @@ afterEach(() => {
 describe('Dynamic Surveillance — Local Demo Mode', () => {
   it('explains that API mode is required and sends no request', async () => {
     renderPage('local');
-    expect(screen.getByText('Dynamic Surveillance requires ProbeSyQ Signal API Capstone Mode.')).toBeTruthy();
+    expect(screen.getByText('Dynamic Surveillance requires Signal by ProbeSyQ API Capstone Mode.')).toBeTruthy();
     expect(screen.getByText('DYNAMIC SURVEILLANCE MODE')).toBeTruthy();
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(calls.filter((call) => call.includes('/surveillance/'))).toEqual([]);

@@ -1,7 +1,7 @@
 /**
  * Roella — curated product knowledge.
  *
- * Concise, factual descriptions of ProbeSyQ Signal and of the build it is
+ * Concise, factual descriptions of Signal by ProbeSyQ and of the build it is
  * running in. Method details (weights, severity and confidence bands) are
  * read from the scorer and the confidence model themselves, never retyped.
  * What the build can do depends on its data source: local mode runs in the
@@ -13,9 +13,9 @@ import { SCORE_WEIGHTS, getSeverity } from '../lib/signalScore';
 import type { AssistantRoute, DataMode } from './types';
 
 export const PRODUCT = {
-  name: 'ProbeSyQ Signal',
+  name: 'Signal by ProbeSyQ',
   what:
-    'ProbeSyQ Signal is a vendor-agnostic outbreak intelligence and laboratory surveillance application from ProbeSyQ (Healthcare Technology Systems). It turns routine laboratory results into early-warning public-health signals.',
+    'Signal by ProbeSyQ is a vendor-agnostic outbreak intelligence and laboratory surveillance application. It turns routine laboratory results into early-warning public-health signals.',
   who: 'It is built for public health analysts and related surveillance users.',
   workflow: [
     'Laboratory signals',
@@ -30,7 +30,7 @@ export const PRODUCT = {
 /** What this build runs on. Synthetic data in both modes; never a live hospital connection. */
 export const buildStatement = (mode: DataMode): string =>
   mode === 'api'
-    ? 'This build reads its data from the ProbeSyQ Signal API (FastAPI and PostgreSQL), on synthetic data: three fictional facilities, three surveillance areas and five simulated days. No live hospital, laboratory or EHR system is connected.'
+    ? 'This build reads its data from the Signal by ProbeSyQ API (FastAPI and PostgreSQL), on synthetic data: three fictional facilities, three surveillance areas and five simulated days. No live hospital, laboratory or EHR system is connected.'
     : 'This build runs entirely in your browser on synthetic data: three fictional facilities, three surveillance areas and five simulated days. It has no backend and no live hospital, laboratory or FHIR connection.';
 
 export interface PageInfo {
@@ -109,7 +109,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
   architecture: {
     nav: 'Architecture',
     section: 'System',
-    title: 'ProbeSyQ Signal Architecture',
+    title: 'Signal by ProbeSyQ Architecture',
     shows:
       'the current prototype pipeline, the configurable geography, future multi-source surveillance, the next development stage and the longer-term architecture, each labelled with its status.',
     use: 'Read the status labels to separate what this prototype implements from what is planned.',
@@ -160,7 +160,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
 /** Why a page cannot show its content in this build, or null when it can. */
 export const pageUnavailable = (page: PageInfo, mode: DataMode, smartEnabled: boolean): string | null => {
   if (page.requires === 'api' && mode !== 'api') {
-    return `In this build (local mode, no backend) the ${page.nav} page shows a notice instead: it needs the ProbeSyQ Signal API.`;
+    return `In this build (local mode, no backend) the ${page.nav} page shows a notice instead: it needs the Signal by ProbeSyQ API.`;
   }
   if (page.requires === 'smart' && !smartEnabled) {
     return `The SMART sandbox is not enabled in this build, so the ${page.nav} page shows a notice instead.`;
@@ -192,9 +192,9 @@ export const CONCEPTS = {
   smart:
     'SMART on FHIR is the standard way for an app to launch inside, or alongside, an EHR and read FHIR data with OAuth 2.0 authorization, so the same app can run across different EHR vendors.',
   loinc:
-    'LOINC is the standard code system for laboratory tests. ProbeSyQ Signal groups results by LOINC code into a surveillance syndrome, so the same test counts the same way whichever system sent it.',
+    'LOINC is the standard code system for laboratory tests. Signal by ProbeSyQ groups results by LOINC code into a surveillance syndrome, so the same test counts the same way whichever system sent it.',
   vendorAgnostic:
-    'Vendor-agnostic means one ProbeSyQ Signal view works across EHR vendors. The Facilities page shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
+    'Vendor-agnostic means one Signal by ProbeSyQ view works across EHR vendors. The Facilities page shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
 };
 
 /** The score's components and weights, from the scorer. */
@@ -233,20 +233,20 @@ export const CONFIDENCE_BANDS = bands(getConfidenceLevel);
 export const fhirInThisBuild = (mode: DataMode): string =>
   mode === 'api'
     ? 'In this build, the backend has a development FHIR R4 ingestion endpoint: synthetic Observations or Bundles can be validated, resolved to a facility and a LOINC-coded test, and stored (FHIR Ingestion page, where the deployment enables it). The Day 1–5 records on Laboratory Data are the synthetic dataset. No hospital or EHR FHIR server is connected.'
-    : "In this build, every laboratory result is a synthetic FHIR-style Observation generated in your browser and shown on Laboratory Data. No FHIR server is contacted. FHIR R4 ingestion runs in ProbeSyQ Signal's full-stack (API) mode.";
+    : "In this build, every laboratory result is a synthetic FHIR-style Observation generated in your browser and shown on Laboratory Data. No FHIR server is contacted. FHIR R4 ingestion runs in the full-stack (API) mode of Signal by ProbeSyQ.";
 
 /** SMART in this build. */
 export const smartInThisBuild = (smartEnabled: boolean): string =>
   smartEnabled
-    ? 'In this build, the SMART Sandbox page can launch ProbeSyQ Signal against the public SMART Health IT synthetic sandbox, with read-only access to Observations. No real EHR is involved.'
-    : "In this build no SMART launch happens: the vendor sidecar on the Facilities page shows where a SMART-launched view would sit inside each simulated EHR environment. ProbeSyQ Signal's full-stack build can enable a SMART launch against a public synthetic sandbox.";
+    ? 'In this build, the SMART Sandbox page can launch Signal by ProbeSyQ against the public SMART Health IT synthetic sandbox, with read-only access to Observations. No real EHR is involved.'
+    : "In this build no SMART launch happens: the vendor sidecar on the Facilities page shows where a SMART-launched view would sit inside each simulated EHR environment. The full-stack build of Signal by ProbeSyQ can enable a SMART launch against a public synthetic sandbox.";
 
 export const OUT_OF_SCOPE =
-  'I can help with ProbeSyQ Signal, its surveillance data, outbreak signals, facilities, trends, analytics, and how the application works.';
+  'I can help with Signal by ProbeSyQ, its surveillance data, outbreak signals, facilities, trends, analytics, and how the application works.';
 export const MEDICAL_ADVICE =
-  "I can explain the surveillance information shown in ProbeSyQ Signal, but I don't provide individual medical diagnosis or treatment advice.";
+  "I can explain the surveillance information shown in Signal by ProbeSyQ, but I don't provide individual medical diagnosis or treatment advice.";
 export const NOT_ENOUGH =
-  "I don't have enough information in the current ProbeSyQ Signal data to answer that reliably.";
+  "I don't have enough information in the current Signal by ProbeSyQ data to answer that reliably.";
 
 /** Starter questions per screen (the panel adds day-aware ones). */
 export const PAGE_QUESTIONS: Record<AssistantRoute, string[]> = {
@@ -259,11 +259,11 @@ export const PAGE_QUESTIONS: Record<AssistantRoute, string[]> = {
   analytics: ['What trend do you see?', 'Is positivity increasing?', 'When did the signal become High?'],
   simulation: ['What changed since the previous day?', 'What happens on Day 1?', 'Summarize the current outbreak situation.'],
   reports: ['What does the Reports page show?', 'What should I investigate next?', 'Summarize the current outbreak situation.'],
-  architecture: ['How does ProbeSyQ Signal work?', 'What is FHIR?', 'What is SMART on FHIR?'],
-  overview: ['What is ProbeSyQ Signal?', 'Summarize the current outbreak situation.', 'What does this page show?'],
+  architecture: ['How does Signal by ProbeSyQ work?', 'What is FHIR?', 'What is SMART on FHIR?'],
+  overview: ['What is Signal by ProbeSyQ?', 'Summarize the current outbreak situation.', 'What does this page show?'],
   'fhir-ingestion': ['What does this page show?', 'What is FHIR?', 'What is LOINC?'],
   'dynamic-surveillance': ['What does this page show?', 'How is the Composite Score calculated?', 'What does Data Confidence mean?'],
-  evaluation: ['What does this page show?', 'How is the Composite Score calculated?', 'What is ProbeSyQ Signal?'],
+  evaluation: ['What does this page show?', 'How is the Composite Score calculated?', 'What is Signal by ProbeSyQ?'],
   'smart-demo': ['What is SMART on FHIR?', 'What is FHIR?', 'What does this page show?'],
-  other: ['What is ProbeSyQ Signal?', 'Summarize the current outbreak situation.', 'How does the Composite Outbreak Signal Score work?'],
+  other: ['What is Signal by ProbeSyQ?', 'Summarize the current outbreak situation.', 'How does the Composite Outbreak Signal Score work?'],
 };

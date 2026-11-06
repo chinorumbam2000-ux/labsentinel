@@ -218,7 +218,7 @@ export default function SignalInvestigation({
           <header className="ls-card-header">
             <h2 className="ls-card-title">
               {isDetection
-                ? `Why did ProbeSyQ Signal trigger this on Day ${day}?`
+                ? `Why did Signal by ProbeSyQ trigger this on Day ${day}?`
                 : `What is driving the signal on Day ${day}?`}
             </h2>
           </header>

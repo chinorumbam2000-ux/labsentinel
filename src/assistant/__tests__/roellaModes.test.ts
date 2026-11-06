@@ -70,23 +70,23 @@ describe('Roella says only what is true of the build it runs in', () => {
   const modes: DataMode[] = ['local', 'api'];
 
   it('never claims "no backend" or "no FHIR server" in API mode', () => {
-    for (const question of ['What is ProbeSyQ Signal?', 'What is FHIR?', 'Is this connected to a live FHIR server?', 'What is the architecture?']) {
+    for (const question of ['What is Signal by ProbeSyQ?', 'What is FHIR?', 'Is this connected to a live FHIR server?', 'What is the architecture?']) {
       const text = ask(question, api()).text;
       expect(text).not.toMatch(/no backend/i);
       expect(text).not.toContain('No FHIR server is contacted');
     }
-    expect(ask('What is ProbeSyQ Signal?', api()).text).toContain('reads its data from the ProbeSyQ Signal API');
+    expect(ask('What is Signal by ProbeSyQ?', api()).text).toContain('reads its data from the Signal by ProbeSyQ API');
     expect(ask('What is FHIR?', api()).text).toContain('development FHIR R4 ingestion endpoint');
   });
 
   it('says there is no backend and no FHIR server in local mode', () => {
-    expect(ask('What is ProbeSyQ Signal?', local()).text).toContain('It has no backend and no live hospital, laboratory or FHIR connection.');
+    expect(ask('What is Signal by ProbeSyQ?', local()).text).toContain('It has no backend and no live hospital, laboratory or FHIR connection.');
     expect(ask('What is FHIR?', local()).text).toContain('No FHIR server is contacted.');
   });
 
   it('never claims a live hospital connection in either mode', () => {
     for (const mode of modes) {
-      const text = ask('What is ProbeSyQ Signal?', mode === 'api' ? api() : local()).text;
+      const text = ask('What is Signal by ProbeSyQ?', mode === 'api' ? api() : local()).text;
       expect(text).toMatch(/synthetic data/);
       expect(text).toMatch(/[Nn]o live hospital/);
     }
@@ -94,7 +94,7 @@ describe('Roella says only what is true of the build it runs in', () => {
 
   it('describes SMART according to the build flag', () => {
     expect(ask('What is SMART on FHIR?', api(5, 'dashboard', true)).text).toContain(
-      'can launch ProbeSyQ Signal against the public SMART Health IT synthetic sandbox',
+      'can launch Signal by ProbeSyQ against the public SMART Health IT synthetic sandbox',
     );
     expect(ask('What is SMART on FHIR?', api(5, 'dashboard', false)).text).toContain('no SMART launch happens');
   });
@@ -102,8 +102,8 @@ describe('Roella says only what is true of the build it runs in', () => {
   it('explains the API-only pages, and says when this build cannot show them', () => {
     const page = ask('What does this page show?', local(5, 'fhir-ingestion')).text;
     expect(page).toContain('FHIR Laboratory Ingestion');
-    expect(page).toContain('needs the ProbeSyQ Signal API');
-    expect(ask('What does this page show?', api(5, 'fhir-ingestion')).text).not.toContain('needs the ProbeSyQ Signal API');
+    expect(page).toContain('needs the Signal by ProbeSyQ API');
+    expect(ask('What does this page show?', api(5, 'fhir-ingestion')).text).not.toContain('needs the Signal by ProbeSyQ API');
     expect(ask('What does this page show?', api(5, 'dynamic-surveillance')).text).toContain('EWMA and CUSUM');
     expect(ask('Where can I see EWMA?', local()).text).toContain('Open System → Detection Methods');
   });
@@ -112,13 +112,14 @@ describe('Roella says only what is true of the build it runs in', () => {
 describe('Roella identity', () => {
   const modes: DataMode[] = ['local', 'api'];
 
-  it('introduces itself as Roella and uses the ProbeSyQ Signal name', () => {
+  it('introduces itself as Roella and uses the Signal by ProbeSyQ name', () => {
     const intro = ask('Who are you?', local());
     expect(intro.intent).toBe('greeting');
     expect(intro.text).toContain('Roella, the ProbeSyQ intelligence assistant');
     expect(ask('What is Roella?', local()).text).toContain('Roella');
-    const about = ask('What is ProbeSyQ Signal?', local()).text;
-    expect(about).toContain('outbreak intelligence and laboratory surveillance application from ProbeSyQ');
+    const about = ask('What is Signal by ProbeSyQ?', local()).text;
+    expect(about).toContain('Signal by ProbeSyQ is a vendor-agnostic outbreak intelligence and laboratory surveillance application.');
+    expect(about).not.toContain('ProbeSyQ Signal');
     expect(about).not.toMatch(/prototype|classroom|capstone/i);
   });
 
@@ -128,13 +129,15 @@ describe('Roella identity', () => {
 
   it('never says LabSentinel in an answer', () => {
     const questions = [
-      'Hello', 'What is ProbeSyQ Signal?', 'What is FHIR?', 'What is SMART on FHIR?', 'What is LOINC?', 'What is the architecture?',
+      'Hello', 'What is Signal by ProbeSyQ?', 'What is FHIR?', 'What is SMART on FHIR?', 'What is LOINC?', 'What is the architecture?',
       'Which facility is worst?', 'How is the Composite Score calculated?', 'What should I investigate next?',
       'What is the capital of France?', 'Should I take antibiotics?', 'How many deaths were there?', 'Where can I see trends?',
     ];
     for (const mode of modes) {
       for (const question of questions) {
-        expect(ask(question, mode === 'api' ? api() : local()).text, `${mode}: ${question}`).not.toContain('LabSentinel');
+        const text = ask(question, mode === 'api' ? api() : local()).text;
+        expect(text, `${mode}: ${question}`).not.toContain('LabSentinel');
+        expect(text, `${mode}: ${question}`).not.toContain('ProbeSyQ Signal');
       }
     }
   });

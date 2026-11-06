@@ -9,7 +9,7 @@ def test_health_reports_service_and_version(client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {
         "status": "healthy",
-        "service": "ProbeSyQ Signal API",
+        "service": "Signal by ProbeSyQ API",
         "version": __version__,
     }
     assert __version__ == "0.1.0"
