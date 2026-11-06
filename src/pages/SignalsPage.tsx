@@ -14,6 +14,11 @@ import { formatPercent, formatSimulationDateTime } from '../lib/format';
 import { findDetection } from '../lib/alerts';
 import { useNavigate } from 'react-router-dom';
 import MethodNote from '../components/common/MethodNote';
+import { usePortfolio } from '../lib/profiles/usePortfolio';
+import ProfileSelector from '../components/profiles/ProfileSelector';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
+import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/profiles/portfolio';
+import { isScope } from '../lib/profiles/selection';
 
 /**
  * Investigation context lives in the URL:
@@ -32,7 +37,6 @@ export default function SignalsPage() {
   const {
     currentDay,
     currentScenario,
-    signalScore,
     alerts,
     dataConfidence,
     feedHealth,
@@ -42,8 +46,6 @@ export default function SignalsPage() {
     prepareReport,
     reports,
     acknowledgeAlert,
-    unacknowledgedCount,
-    newTodayCount,
     isLoading,
     error,
     clearError,
@@ -51,10 +53,19 @@ export default function SignalsPage() {
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // The alert list follows the selected surveillance profile (?profile=):
+  // Respiratory Viral Syndrome by default, exactly as before; "All profiles"
+  // lists every profile's alerts together, each labelled with its profile.
+  const portfolio = usePortfolio();
+  const { selection, view } = portfolio;
   const alertParam = searchParams.get(ALERT_PARAM);
   const viewParam = searchParams.get(VIEW_PARAM);
 
-  const openList = () => setSearchParams({});
+  const keepProfile = (): Record<string, string> => {
+    const profile = searchParams.get('profile');
+    return profile ? { profile } : {};
+  };
+  const openList = () => setSearchParams(keepProfile());
 
   const openInvestigation = (alertId: string) => {
     // Detection-time is the default: the user clicked a specific historical alert.
@@ -87,6 +98,32 @@ export default function SignalsPage() {
 
     // An alert reference we cannot honour: either it does not exist at all, or
     // it exists but has not been detected by the currently selected day.
+    // An alert of another profile: acknowledged from the list; the full
+    // investigation view covers Respiratory Viral Syndrome in this release.
+    const profileDetection = alertParam ? findProfileDetection(alertParam) : undefined;
+    if (alertParam && !selectedAlert && profileDetection && profileDetection.profileId !== RVS_PROFILE_ID) {
+      const profileName = PROFILE_BY_ID[profileDetection.profileId].displayName;
+      return (
+        <div className="space-y-5">
+          <header>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
+          </header>
+          <Card>
+            <EmptyState
+              icon="!"
+              title="Detailed investigation is not available for this profile yet"
+              message={`"${profileDetection.title}" is a ${profileName} alert. In this release the full investigation view covers Respiratory Viral Syndrome; ${profileName} alerts are reviewed and acknowledged from the alert list.`}
+              action={
+                <button type="button" onClick={openList} className="ls-btn-primary">
+                  Back to all signals
+                </button>
+              }
+            />
+          </Card>
+        </div>
+      );
+    }
+
     if (alertParam && !selectedAlert) {
       const detection = findDetection(alertParam);
       return (
@@ -165,7 +202,34 @@ export default function SignalsPage() {
     );
   }
 
-  const acknowledged = alerts.filter((alert) => alert.status === 'Acknowledged');
+  const activeProfiles = new Set(
+    portfolio.summaries.filter((s) => s.status === 'ACTIVE_SIGNAL').map((s) => s.profile.id),
+  );
+  const multiProfile = isScope(selection);
+  const listAlerts: Array<ProfileAlert | (typeof alerts)[number]> =
+    selection === RVS_PROFILE_ID
+      ? alerts
+      : multiProfile
+        ? portfolio.alerts
+            .filter((alert) => selection === 'all' || activeProfiles.has(alert.profileId))
+            .sort(
+              (a, b) =>
+                SEVERITY_RANK[b.detection.severity] - SEVERITY_RANK[a.detection.severity] ||
+                b.detectedDay - a.detectedDay ||
+                PROFILE_BY_ID[a.profileId].displayName.localeCompare(PROFILE_BY_ID[b.profileId].displayName),
+            )
+        : portfolio.alerts.filter((alert) => alert.profileId === selection);
+  const profileNames = multiProfile
+    ? Object.fromEntries(portfolio.alerts.map((alert) => [alert.id, PROFILE_BY_ID[alert.profileId].displayName]))
+    : undefined;
+  const otherProfileAlerts = multiProfile ? 0 : portfolio.alerts.length - listAlerts.length;
+  const unacknowledgedCount = listAlerts.filter((alert) => alert.status !== 'Acknowledged').length;
+  const newTodayCount = listAlerts.filter((alert) => alert.detectedDay === currentDay).length;
+  const acknowledged = listAlerts.filter((alert) => alert.status === 'Acknowledged');
+  const focusScore = view.score;
+  const focusScenario = view.isNarrated ? currentScenario : view.scenario;
+  const nameOf = (alert: { id: string; title: string }) =>
+    profileNames?.[alert.id] ? `${profileNames[alert.id]} — ${alert.title}` : alert.title;
 
   return (
     <div className="space-y-5">
@@ -183,6 +247,24 @@ export default function SignalsPage() {
         <PageMeta />
       </header>
 
+      <div className="flex flex-col gap-1">
+        <ProfileSelector portfolio={portfolio} />
+        {otherProfileAlerts > 0 ? (
+          <p className="text-xs text-muted">
+            Showing {view.profile.displayName} alerts. {otherProfileAlerts} more{' '}
+            {otherProfileAlerts === 1 ? 'alert belongs' : 'alerts belong'} to other profiles —{' '}
+            <button
+              type="button"
+              onClick={() => portfolio.setSelection('all')}
+              className="font-semibold text-brand hover:underline"
+            >
+              show all profiles
+            </button>
+            .
+          </p>
+        ) : null}
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="ls-card p-5">
           <p className="ls-label">Alerts awaiting acknowledgement</p>
@@ -190,7 +272,7 @@ export default function SignalsPage() {
             {unacknowledgedCount}
           </p>
           <p className="mt-1 text-xs text-muted">
-            of {alerts.length} detected through Day {currentDay}
+            of {listAlerts.length} detected through Day {currentDay}
           </p>
         </div>
         <div className="ls-card p-5">
@@ -205,18 +287,21 @@ export default function SignalsPage() {
         <div className="ls-card p-5">
           <p className="ls-label">Current composite score</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-ink">
-            {signalScore.composite}
-            <span className="text-base font-medium text-muted"> / 100</span>
+            {focusScore ? focusScore.composite : '—'}
+            {focusScore ? <span className="text-base font-medium text-muted"> / 100</span> : null}
           </p>
-          <p className="mt-1 text-xs text-muted">Severity: {signalScore.severity}</p>
+          <p className="mt-1 text-xs text-muted">
+            {view.isNarrated ? '' : `${view.profile.displayName} · `}
+            {focusScore ? `Severity: ${focusScore.severity}` : view.statusReason}
+          </p>
         </div>
         <div className="ls-card p-5">
           <p className="ls-label">Current scope</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-ink">
-            {currentScenario.affectedHospitals.length} / 3
+            {focusScenario.affectedHospitals.length} / 3
           </p>
           <p className="mt-1 text-xs text-muted">
-            facilities · {currentScenario.affectedZipCodes.length} surveillance areas
+            facilities · {focusScenario.affectedZipCodes.length} surveillance areas
           </p>
         </div>
       </div>
@@ -230,56 +315,64 @@ export default function SignalsPage() {
           <LoadingState label="Loading alert history…" />
         ) : (
           <SignalTable
-            alerts={alerts}
+            alerts={listAlerts}
             onInvestigate={(alert) => openInvestigation(alert.id)}
             onAcknowledge={acknowledgeAlert}
+            profileNames={profileNames}
+            emptyMessage={
+              selection === RVS_PROFILE_ID
+                ? undefined
+                : `No ${multiProfile ? '' : `${view.profile.displayName} `}alert has been raised through Day ${currentDay}.`
+            }
           />
         )}
       </Card>
 
       {/* Current values kept explicitly separate from the frozen detection values. */}
       <Card
-        title={`Current regional figures — Day ${currentDay}`}
+        title={`Current regional figures — ${view.isNarrated ? '' : `${view.profile.displayName}, `}Day ${currentDay}`}
         subtitle="Values for the selected replay day, shown separately from the detection-time values above"
         action={
+          view.isNarrated ? (
           <button
             type="button"
-            onClick={() => setSearchParams({ [VIEW_PARAM]: 'current' })}
+            onClick={() => setSearchParams({ ...keepProfile(), [VIEW_PARAM]: 'current' })}
             className="ls-btn px-3 py-1.5 text-xs"
           >
             Investigate current conditions →
           </button>
+          ) : undefined
         }
       >
         <dl className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Tests</dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {currentScenario.totalTests}
+              {focusScenario.totalTests}
             </dd>
           </div>
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Positives</dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {currentScenario.totalPositives}
+              {focusScenario.totalPositives}
             </dd>
           </div>
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Positivity</dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {formatPercent(currentScenario.positivityRate)}
+              {formatPercent(focusScenario.positivityRate)}
             </dd>
           </div>
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Composite score</dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {signalScore.composite} / 100
+              {focusScore ? `${focusScore.composite} / 100` : 'No score'}
             </dd>
           </div>
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Severity</dt>
             <dd className="mt-1.5">
-              <SeverityBadge severity={signalScore.severity} />
+              {focusScore ? <SeverityBadge severity={focusScore.severity} /> : <span className="text-sm text-muted">—</span>}
             </dd>
           </div>
         </dl>
@@ -293,7 +386,7 @@ export default function SignalsPage() {
                 key={alert.id}
                 className="flex flex-wrap items-center justify-between gap-2 px-5 py-3"
               >
-                <span className="text-sm text-ink">{alert.title}</span>
+                <span className="text-sm text-ink">{nameOf(alert)}</span>
                 <span className="text-xs text-muted">
                   Acknowledged on Day {alert.acknowledgement?.day} ·{' '}
                   {alert.acknowledgement

@@ -7,11 +7,14 @@ import {
   getDisclosureSummary,
   getSuppressedAreaCount,
 } from '../../lib/geographicPrivacy';
+import type { AreaPrivacy } from '../../lib/profiles/privacy';
 
 interface HighestRiskAreaProps {
   zipMetrics: ZipMetrics[];
   currentDay: number;
   onOpenMap: () => void;
+  /** The selected profile's suppression; defaults to the narrated scenario's. */
+  privacy?: AreaPrivacy;
 }
 
 /**
@@ -24,11 +27,12 @@ export default function HighestRiskArea({
   zipMetrics,
   currentDay,
   onOpenMap,
+  privacy,
 }: HighestRiskAreaProps) {
   const affected = zipMetrics.filter((area) => area.isAffected);
   const ranked = [...affected].sort((a, b) => b.score - a.score);
   const top = ranked[0];
-  const suppressedCount = getSuppressedAreaCount(currentDay);
+  const suppressedCount = privacy ? privacy.suppressedCount : getSuppressedAreaCount(currentDay);
 
   return (
     <div className="ls-card flex flex-col">
@@ -60,13 +64,15 @@ export default function HighestRiskArea({
               <div className="rounded-lg bg-canvas p-3">
                 <dt className="ls-label">Positive (day)</dt>
                 <dd className="mt-1 text-sm font-semibold tabular-nums text-ink">
-                  <PrivacyValue privacy={getAreaPositivePrivacy(currentDay, top.hospitalId)} />
+                  <PrivacyValue
+                    privacy={privacy ? privacy.positive(top.hospitalId) : getAreaPositivePrivacy(currentDay, top.hospitalId)}
+                  />
                 </dd>
               </div>
               <div className="rounded-lg bg-canvas p-3">
                 <dt className="ls-label">Positivity</dt>
                 <dd className="mt-1 text-sm font-semibold tabular-nums text-ink">
-                  {getAreaPositivityDisplay(currentDay, top.hospitalId).value}
+                  {(privacy ? privacy.positivity(top.hospitalId) : getAreaPositivityDisplay(currentDay, top.hospitalId)).value}
                 </dd>
               </div>
               <div className="rounded-lg bg-canvas p-3">
@@ -110,7 +116,7 @@ export default function HighestRiskArea({
               Privacy suppression active — {suppressedCount} of 3 areas.{' '}
             </span>
           ) : null}
-          {getDisclosureSummary(currentDay)}
+          {privacy ? privacy.summary : getDisclosureSummary(currentDay)}
         </p>
         <PrivacyNote className="mt-1.5" />
       </div>

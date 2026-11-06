@@ -6,7 +6,9 @@ import DataConfidenceCard from '../components/common/DataConfidenceCard';
 import FeedHealthCard from '../components/common/FeedHealthCard';
 import WhyThisSignalPanel from '../components/signals/WhyThisSignalPanel';
 import { PrivacyDisclosure } from '../components/common/PrivacyValue';
-import { getDisclosureSummary } from '../lib/geographicPrivacy';
+import { usePortfolio } from '../lib/profiles/usePortfolio';
+import ProfileSelector from '../components/profiles/ProfileSelector';
+import ProfileHeading from '../components/profiles/ProfileHeading';
 import { ErrorState, LoadingState } from '../components/common/States';
 import VendorSidecar from '../components/hospitals/VendorSidecar';
 import IntegrationDetails from '../components/hospitals/IntegrationDetails';
@@ -50,7 +52,6 @@ export default function HospitalsPage() {
     currentDay,
     currentScenario,
     signalScore,
-    hospitalMetrics,
     facilities,
     dataConfidence,
     feedHealth,
@@ -58,6 +59,9 @@ export default function HospitalsPage() {
     error,
     clearError,
   } = useSimulation();
+  // Facility figures follow the selected surveillance profile (?profile=).
+  const portfolio = usePortfolio();
+  const { hospitalMetrics } = portfolio.view;
 
   const [activeId, setActiveId] = useState<HospitalId>('HOSP-A');
   // Facility identity comes from the active data source. The per-day metrics
@@ -92,12 +96,16 @@ export default function HospitalsPage() {
         <PageMeta />
       </header>
 
+      <ProfileSelector portfolio={portfolio} />
+
       {isLoading || !metrics ? (
         <Card>
           <LoadingState label="Loading facility data…" />
         </Card>
       ) : (
         <>
+          <ProfileHeading view={portfolio.view} compact />
+
           <FacilityStatusOverview
             facilities={facilities}
             feeds={feedHealth}
@@ -122,14 +130,16 @@ export default function HospitalsPage() {
             />
           </div>
 
-          <WhyThisSignalPanel
-            scenario={currentScenario}
-            score={signalScore}
-            confidence={dataConfidence}
-            feeds={feedHealth}
-          />
+          {portfolio.view.isNarrated ? (
+            <WhyThisSignalPanel
+              scenario={currentScenario}
+              score={signalScore}
+              confidence={dataConfidence}
+              feeds={feedHealth}
+            />
+          ) : null}
 
-          <PrivacyDisclosure summary={getDisclosureSummary(currentDay)} />
+          <PrivacyDisclosure summary={portfolio.view.privacy.summary} />
 
           <section aria-labelledby="sidecar-title" className="space-y-3">
             <div>

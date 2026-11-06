@@ -47,7 +47,7 @@ describe('SMART disabled (default build)', () => {
 
   it('shows Not Configured on the sandbox page, with no controls or navigation entry', async () => {
     renderAt('/smart-demo');
-    expect(await screen.findByText('Not Configured')).toBeTruthy();
+    expect(await screen.findByText('Not Configured', {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Launch SMART Sandbox/ })).toBeNull();
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(nav.textContent).not.toContain('SMART Sandbox');

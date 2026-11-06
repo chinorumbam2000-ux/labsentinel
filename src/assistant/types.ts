@@ -7,6 +7,9 @@
  * curated knowledge base. No question is ever sent anywhere.
  */
 import type { OutbreakAlert, SimulationDay, SurveillanceDay } from '../types';
+import type { ProfileId } from '../lib/profiles/registry';
+import type { ProfileSummary } from '../lib/profiles/portfolio';
+import type { ProfileSelection } from '../lib/profiles/selection';
 
 export type AssistantRoute =
   | 'dashboard'
@@ -45,6 +48,16 @@ export interface AssistantContext {
   dataMode?: DataMode;
   /** Whether this build enables the SMART on FHIR sandbox launch. */
   smartEnabled?: boolean;
+  /**
+   * Every surveillance profile's reading for the day, exactly as the
+   * Dashboard's Active Surveillance section shows it. Rebuilt from the same
+   * functions when absent.
+   */
+  profiles?: ProfileSummary[];
+  /** The profile the pages are showing (?profile=); Respiratory Viral Syndrome by default. */
+  profileId?: ProfileId;
+  /** The selector's value, when it is a portfolio view rather than one profile. */
+  profileSelection?: ProfileSelection;
 }
 
 export type IntentId =
@@ -81,6 +94,16 @@ export type IntentId =
   | 'smart'
   | 'loinc'
   | 'interoperability'
+  | 'profiles_attention'
+  | 'profiles_highest'
+  | 'profiles_critical'
+  | 'profiles_expected'
+  | 'profiles_baseline'
+  | 'profile_current'
+  | 'profile_status'
+  | 'profile_compare'
+  | 'profile_facilities'
+  | 'profile_unknown'
   | 'unsupported'
   | 'medical_advice'
   | 'out_of_scope';

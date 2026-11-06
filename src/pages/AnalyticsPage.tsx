@@ -16,7 +16,10 @@ import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
-import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulation';
+import { usePortfolio } from '../lib/profiles/usePortfolio';
+import { PROFILE_DAYS } from '../lib/profiles/derive';
+import ProfileSelector from '../components/profiles/ProfileSelector';
+import ProfileHeading from '../components/profiles/ProfileHeading';
 
 const VOLUME_COLOR = '#2563EB';
 const POSITIVITY_COLOR = '#DC2626';
@@ -51,7 +54,18 @@ const tooltipStyles = {
 };
 
 export default function AnalyticsPage() {
-  const { currentDay, trendSeries, isLoading, error, clearError } = useSimulation();
+  const { currentDay, isLoading, error, clearError } = useSimulation();
+  // Every series follows the selected surveillance profile (?profile=).
+  const portfolio = usePortfolio();
+  const { view } = portfolio;
+  const { trendSeries, baseline } = view;
+  // A day with no data or no usable baseline has no score — never plotted as 0.
+  const unscoredDays = new Set(
+    view.isNarrated ? [] : PROFILE_DAYS[view.profile.id].filter((d) => !d.score).map((d) => d.day as number),
+  );
+  const scoreSeries = trendSeries.map((point) =>
+    unscoredDays.has(point.day) ? { ...point, score: null as unknown as number } : point,
+  );
   const [tab, setTab] = useState<TabKey>('volume');
 
   if (error) {
@@ -68,13 +82,13 @@ export default function AnalyticsPage() {
   > = {
     volume: {
       title: 'Test Volume',
-      subtitle: `Respiratory tests per day · baseline ${BASELINE_TEST_VOLUME}`,
+      subtitle: `${view.isNarrated ? 'Respiratory' : view.profile.displayName} tests per day · baseline ${baseline.tests}`,
       unit: 'tests',
       rows: trendSeries.map((point) => ({ day: point.day, value: String(point.tests) })),
     },
     positivity: {
       title: 'Positivity',
-      subtitle: `Share of tests returning positive · baseline ${BASELINE_POSITIVITY_RATE.toFixed(1)}%`,
+      subtitle: `Share of tests returning positive · baseline ${baseline.positivityRate.toFixed(1)}%`,
       unit: '%',
       rows: trendSeries.map((point) => ({
         day: point.day,
@@ -85,7 +99,10 @@ export default function AnalyticsPage() {
       title: 'Signal Score',
       subtitle: 'Composite outbreak signal score, calculated from five weighted components',
       unit: '/ 100',
-      rows: trendSeries.map((point) => ({ day: point.day, value: String(point.score) })),
+      rows: trendSeries.map((point) => ({
+        day: point.day,
+        value: unscoredDays.has(point.day) ? 'No score' : String(point.score),
+      })),
     },
     geography: {
       title: 'Geographic Spread',
@@ -157,7 +174,7 @@ export default function AnalyticsPage() {
 
     if (tab === 'score') {
       return (
-        <AreaChart {...common}>
+        <AreaChart {...common} data={scoreSeries}>
           <defs>
             <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={SCORE_COLOR} stopOpacity={0.28} />
@@ -214,6 +231,9 @@ export default function AnalyticsPage() {
         </div>
         <PageMeta />
       </header>
+
+      <ProfileSelector portfolio={portfolio} />
+      <ProfileHeading view={view} compact />
 
       <div
         role="tablist"

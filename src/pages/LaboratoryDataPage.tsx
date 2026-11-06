@@ -7,6 +7,11 @@ import { LAB_TESTS } from '../data/tests';
 import { formatDateTime } from '../lib/format';
 import { useDataSource } from '../data-access/DataSourceProvider';
 import { useDebouncedValue, useObservationPage } from '../data-access/hooks';
+import { queryObservations } from '../data-access/observationQuery';
+import { usePortfolio } from '../lib/profiles/usePortfolio';
+import { TEST_BY_CODE } from '../lib/profiles/registry';
+import { profileObservationsThrough } from '../lib/profiles/derive';
+import ProfileSelector from '../components/profiles/ProfileSelector';
 import type {
   HospitalId,
   LabObservation,
@@ -55,6 +60,29 @@ export default function LaboratoryDataPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [page, setPage] = useState(1);
 
+  // The table follows the selected surveillance profile (?profile=):
+  //  - Respiratory Viral Syndrome: every result, exactly as before;
+  //  - a pathogen from the replay: only its test's results, from the active
+  //    data source (so the API serves them in API mode);
+  //  - a portfolio profile: its synthetic results, which exist only in the
+  //    browser (they are not in the API database), filtered by the same rules.
+  const portfolio = usePortfolio();
+  const focus = portfolio.view.profile;
+  const isPortfolioData = focus.dataOrigin === 'portfolio-fixture';
+  const profileTests = focus.id === 'respiratory-viral-syndrome'
+    ? LAB_TESTS.map((test) => ({ name: test.name, code: test.loincCode }))
+    : focus.testCodes.map((code) => ({ name: TEST_BY_CODE[code].name, code }));
+  const profileTestNames = profileTests.map((test) => test.name).join('|');
+  useEffect(() => {
+    // A test chosen under another profile does not belong to this one.
+    if (testFilter !== 'all' && !profileTestNames.split('|').includes(testFilter)) {
+      setTestFilter('all');
+      setPage(1);
+    }
+  }, [profileTestNames, testFilter]);
+  const effectiveTestName =
+    testFilter !== 'all' || focus.dataOrigin !== 'replay-derived' ? testFilter : profileTests[0].name;
+
   // Stepping the simulation backwards can strand the day filter on a day that
   // is no longer visible; fall back to "all days" instead of an empty table.
   useEffect(() => {
@@ -75,7 +103,7 @@ export default function LaboratoryDataPage() {
       vendor: vendorFilter,
       hospitalId: hospitalFilter as HospitalId | 'all',
       result: resultFilter as ObservationResult | 'all',
-      testName: testFilter,
+      testName: effectiveTestName,
       day: dayFilter === 'all' ? 'all' : Number(dayFilter),
       sortKey,
       sortDirection,
@@ -89,14 +117,21 @@ export default function LaboratoryDataPage() {
       vendorFilter,
       hospitalFilter,
       resultFilter,
-      testFilter,
+      effectiveTestName,
       dayFilter,
       sortKey,
       sortDirection,
       page,
     ],
   );
-  const observations = useObservationPage(query);
+  const sourcePage = useObservationPage(query);
+  const localPage = useMemo(
+    () => (isPortfolioData ? queryObservations(profileObservationsThrough(focus.id, currentDay), query) : null),
+    [isPortfolioData, focus.id, currentDay, query],
+  );
+  const observations: typeof sourcePage = localPage
+    ? { status: 'ready', page: localPage, refreshing: false }
+    : sourcePage;
   const pageData = observations.status === 'ready' ? observations.page : null;
 
   const filteredTotal = pageData?.total ?? 0;
@@ -161,6 +196,17 @@ export default function LaboratoryDataPage() {
         </div>
         <PageMeta />
       </header>
+
+      <div className="flex flex-col gap-1">
+        <ProfileSelector portfolio={portfolio} />
+        <p className="text-xs text-muted" data-testid="lab-profile-note">
+          {focus.id === 'respiratory-viral-syndrome'
+            ? 'All respiratory results in the replay feed.'
+            : isPortfolioData
+              ? `${focus.displayName}: synthetic portfolio results with demonstration test codes (not LOINC). They are held in the browser in every mode and are not in the API database.`
+              : `${focus.displayName}: the replay feed's ${profileTests.map((test) => test.name).join(', ')} results only. Each also counts towards Respiratory Viral Syndrome.`}
+        </p>
+      </div>
 
       <Card bodyClassName="p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -269,8 +315,8 @@ export default function LaboratoryDataPage() {
               }}
             >
               <option value="all">All tests</option>
-              {LAB_TESTS.map((test) => (
-                <option key={test.loincCode} value={test.name}>
+              {profileTests.map((test) => (
+                <option key={test.code} value={test.name}>
                   {test.name}
                 </option>
               ))}

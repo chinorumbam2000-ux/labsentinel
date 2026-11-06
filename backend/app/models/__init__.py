@@ -8,6 +8,7 @@ from app.models.demo_simulation_day import DemoSimulationDay
 from app.models.facility import Facility
 from app.models.lab_observation import LabObservation
 from app.models.statistical_signal import StatisticalSignal
+from app.models.surveillance_profile import LabTestProfileMembership, SurveillanceProfile
 from app.models.surveillance_signal import SurveillanceSignal
 
 __all__ = [
@@ -15,6 +16,8 @@ __all__ = [
     "DemoSimulationDay",
     "Facility",
     "LabObservation",
+    "LabTestProfileMembership",
     "StatisticalSignal",
+    "SurveillanceProfile",
     "SurveillanceSignal",
 ]

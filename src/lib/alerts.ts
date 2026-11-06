@@ -19,9 +19,11 @@ import type {
   AlertDetectionSnapshot,
   AlertKind,
   OutbreakAlert,
+  SignalScoreResult,
   SimulationDay,
+  SimulationScenario,
 } from '../types';
-import { SCENARIOS, getScenario, simulationTimestamp } from '../data/simulation';
+import { SCENARIOS, simulationTimestamp } from '../data/simulation';
 import { getScoreForDay } from './selectors';
 
 /** Deterministic detection times so alert history is stable across reloads. */
@@ -32,15 +34,19 @@ const DETECTION_CLOCK: Record<AlertKind, string> = {
   regional: '15:58',
 };
 
-const VOLUME_TRIGGER_PERCENT = 15;
-const POSITIVITY_TRIGGER_POINTS = 3;
-const CLUSTER_TRIGGER_FACILITIES = 3;
-const REGIONAL_TRIGGER_SCORE = 65;
+export const VOLUME_TRIGGER_PERCENT = 15;
+export const POSITIVITY_TRIGGER_POINTS = 3;
+export const CLUSTER_TRIGGER_FACILITIES = 3;
+export const REGIONAL_TRIGGER_SCORE = 65;
 
-/** Does this alert kind fire on this specific day, judged on that day's data? */
-const firesOn = (kind: AlertKind, day: SimulationDay): boolean => {
-  const scenario = getScenario(day);
-  const score = getScoreForDay(day);
+/** One scored day: what the alert rules are judged on. */
+export interface ScoredDay {
+  scenario: SimulationScenario;
+  score: SignalScoreResult;
+}
+
+/** Does this alert kind fire on this day, judged on that day's data only? */
+const firesOnDay = (kind: AlertKind, { scenario, score }: ScoredDay): boolean => {
   switch (kind) {
     case 'volume':
       return score.volumeIncreasePercent >= VOLUME_TRIGGER_PERCENT;
@@ -55,16 +61,8 @@ const firesOn = (kind: AlertKind, day: SimulationDay): boolean => {
   }
 };
 
-/** The earliest day on which this kind fires, or null if it never has. */
-const detectionDayFor = (kind: AlertKind): SimulationDay | null => {
-  const match = SCENARIOS.find((scenario) => firesOn(kind, scenario.day));
-  return match ? match.day : null;
-};
-
 /** Everything the alert reports, measured on its own detection day. */
-const snapshotFor = (kind: AlertKind, day: SimulationDay): AlertDetectionSnapshot => {
-  const scenario = getScenario(day);
-  const score = getScoreForDay(day);
+const snapshotFor = (kind: AlertKind, { scenario, score }: ScoredDay): AlertDetectionSnapshot => {
 
   const detail = (() => {
     switch (kind) {
@@ -135,25 +133,42 @@ export interface AlertDetection {
 }
 
 /**
+ * The detections in a run of scored days: each kind at most once, on the
+ * earliest day it fires, with the values frozen at that day. The same rules
+ * serve every surveillance profile; only the days (and the ids) differ.
+ */
+export const detectionsFor = (
+  days: ScoredDay[],
+  idFor: (kind: AlertKind, day: SimulationDay) => string,
+  investigable: (kind: AlertKind) => boolean,
+): AlertDetection[] =>
+  KIND_ORDER.flatMap((kind) => {
+    const first = days.find((d) => firesOnDay(kind, d));
+    if (!first) return [];
+    const day = first.scenario.day;
+    return [
+      {
+        id: idFor(kind, day),
+        kind,
+        title: TITLES[kind],
+        detectedDay: day,
+        detectedAt: simulationTimestamp(day, DETECTION_CLOCK[kind]),
+        detection: snapshotFor(kind, first),
+        investigable: investigable(kind),
+      },
+    ];
+  });
+
+/**
  * Every detection in the simulation, computed once. Frozen at module level so
  * the snapshot values are literally impossible to recompute against a later
  * day.
  */
-export const ALL_DETECTIONS: AlertDetection[] = KIND_ORDER.flatMap((kind) => {
-  const day = detectionDayFor(kind);
-  if (!day) return [];
-  return [
-    {
-      id: `ALERT-${kind.toUpperCase()}-D${day}`,
-      kind,
-      title: TITLES[kind],
-      detectedDay: day,
-      detectedAt: simulationTimestamp(day, DETECTION_CLOCK[kind]),
-      detection: snapshotFor(kind, day),
-      investigable: kind === 'regional',
-    },
-  ];
-});
+export const ALL_DETECTIONS: AlertDetection[] = detectionsFor(
+  SCENARIOS.map((scenario) => ({ scenario, score: getScoreForDay(scenario.day) })),
+  (kind, day) => `ALERT-${kind.toUpperCase()}-D${day}`,
+  (kind) => kind === 'regional',
+);
 
 /**
  * Alerts visible on the given day, with status resolved against the user's

@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { withProfileParam } from '../../lib/profiles/selection';
 import BrandMark from '../common/BrandMark';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
@@ -38,11 +39,14 @@ function NavItems({
   onNavigate?: () => void;
   unacknowledgedCount: number;
 }) {
+  // The selected surveillance profile (?profile=) travels with the analyst
+  // between the pages that follow it.
+  const { search } = useLocation();
   return (
     <ul className="space-y-0.5">
       {items.map((item) => (
         <li key={item.to}>
-          <NavLink to={item.to} className={linkClasses} onClick={onNavigate} title={item.hint}>
+          <NavLink to={withProfileParam(item.to, search)} className={linkClasses} onClick={onNavigate} title={item.hint}>
             {({ isActive }) => (
               <>
                 <ActiveMarker isActive={isActive} />

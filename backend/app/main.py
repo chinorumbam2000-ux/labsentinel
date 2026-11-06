@@ -18,6 +18,7 @@ from app.api import (
     fhir,
     health,
     observations,
+    profiles,
     readiness,
     signals,
     statistics,
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(facilities.router)
     app.include_router(observations.router)
+    app.include_router(profiles.router)
     app.include_router(signals.router)
     app.include_router(demo.router)
     # Dynamic surveillance: GET-only signal reads, plus a development-only

@@ -10,6 +10,10 @@ import {
 import type { ZipMetrics } from '../../types';
 import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM, ZIP_AREAS } from '../../data/zipAreas';
 import { SEVERITY_COLORS } from '../../lib/format';
+import type { AreaPrivacy } from '../../lib/profiles/privacy';
+
+/** Areas of a profile with no score are drawn neutral, never in the Low colour. */
+const UNSCORED_COLOR = '#94A3B8';
 
 interface OutbreakMapProps {
   zipMetrics: ZipMetrics[];
@@ -24,6 +28,10 @@ interface OutbreakMapProps {
   className?: string;
   onTileError?: () => void;
   onTileLoad?: () => void;
+  /** Small-count suppression for the tooltips' positive counts. */
+  privacy?: AreaPrivacy;
+  /** Set when the profile has no score today (no data or no baseline): the reason, shown instead of a severity. */
+  unscoredReason?: string | null;
 }
 
 /** Imperatively re-centres the map when the reset control is used. */
@@ -58,6 +66,8 @@ export default function OutbreakMap({
   className = 'h-full w-full',
   onTileError,
   onTileLoad,
+  privacy,
+  unscoredReason = null,
 }: OutbreakMapProps) {
   return (
     <MapContainer
@@ -95,7 +105,9 @@ export default function OutbreakMap({
       {ZIP_AREAS.map((area) => {
         const metrics = zipMetrics.find((item) => item.zipCode === area.zipCode);
         if (!metrics) return null;
-        const color = SEVERITY_COLORS[metrics.severity];
+        const color = unscoredReason ? UNSCORED_COLOR : SEVERITY_COLORS[metrics.severity];
+        const positives = privacy ? privacy.positive(metrics.hospitalId).displayValue : String(metrics.positiveTests);
+        const rate = privacy ? privacy.positivity(metrics.hospitalId).value : `${metrics.positivityRate.toFixed(1)}%`;
         const isSelected = selectedZip === area.zipCode;
 
         return (
@@ -116,12 +128,12 @@ export default function OutbreakMap({
                 {metrics.zipCode} — {metrics.city}, {metrics.state}
               </span>
               <span className="mt-0.5 block text-[11px] text-muted">
-                {metrics.totalTests} tests · {metrics.positiveTests} positive ·{' '}
-                {metrics.positivityRate.toFixed(1)}%
+                {metrics.totalTests} tests · {positives} positive · {rate}
               </span>
-              <span className="mt-0.5 block text-[11px] font-semibold" style={{ color }}>
-                {metrics.severity}
-                {!metrics.isAffected ? ' — no active signal' : ''}
+              <span className="mt-0.5 block text-[11px] font-semibold" style={{ color: unscoredReason ? '#475569' : color }}>
+                {unscoredReason
+                  ? 'No score'
+                  : `${metrics.severity}${!metrics.isAffected ? ' — no active signal' : ''}`}
               </span>
             </Tooltip>
           </Polygon>
@@ -140,7 +152,7 @@ export default function OutbreakMap({
                 pathOptions={{
                   color: '#FFFFFF',
                   weight: 2,
-                  fillColor: SEVERITY_COLORS[metrics.severity],
+                  fillColor: unscoredReason ? UNSCORED_COLOR : SEVERITY_COLORS[metrics.severity],
                   fillOpacity: 1,
                 }}
                 eventHandlers={{ click: () => onSelectZip(area.zipCode) }}

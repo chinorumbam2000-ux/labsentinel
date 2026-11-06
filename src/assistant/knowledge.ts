@@ -51,8 +51,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Dashboard',
     title: 'Regional Outbreak Status',
     shows:
-      'the current situation (the Composite Outbreak Signal Score beside Data Confidence), epidemiological indicators, geographic intelligence, data quality, the current alert and the day-to-day change.',
-    use: 'Start here for the regional picture, then follow the current alert into Signals.',
+      'Active Surveillance — every surveillance profile (Respiratory Viral Syndrome, Influenza A, COVID-19, RSV, Cholera and Gastrointestinal Syndrome), each scored against its own baseline — then, for the selected profile, the current situation (the Composite Outbreak Signal Score beside Data Confidence), epidemiological indicators, geographic intelligence, data quality, the current alert and the day-to-day change.',
+    use: 'Start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, then follow its alert into Signals.',
   },
   map: {
     nav: 'Outbreak Map',
@@ -250,7 +250,7 @@ export const NOT_ENOUGH =
 
 /** Starter questions per screen (the panel adds day-aware ones). */
 export const PAGE_QUESTIONS: Record<AssistantRoute, string[]> = {
-  dashboard: ['Why is the score this high?', 'Summarize the current outbreak situation.', 'What does Data Confidence mean?'],
+  dashboard: ['Which profiles need attention?', 'Why is the score this high?', 'Summarize the current outbreak situation.', 'What does Data Confidence mean?'],
   map: ['Which ZIP codes are affected?', 'Which area is most affected?', 'Why are some counts shown as <5?'],
   'laboratory-data': ['How many laboratory observations are there?', 'Which LOINC tests are included?', 'What is the positivity rate?'],
   signals: ['Which alerts are active?', 'What should I investigate next?', 'Why is the score this high?'],

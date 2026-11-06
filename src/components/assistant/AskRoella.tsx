@@ -5,6 +5,8 @@ import { routeFromPath } from '../../assistant/context';
 import { PAGES } from '../../assistant/knowledge';
 import type { AssistantContext, ConversationState } from '../../assistant/types';
 import { useSimulation } from '../../context/SimulationContext';
+import { usePortfolio } from '../../lib/profiles/usePortfolio';
+import { RVS_PROFILE_ID } from '../../lib/profiles/registry';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
 import AssistantButton from './AssistantButton';
 import AssistantPanel from './AssistantPanel';
@@ -26,6 +28,8 @@ const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled
 export default function AskRoella() {
   const { currentDay, alerts, surveillanceDays, dataSourceMode } = useSimulation();
   const location = useLocation();
+  // The same surveillance portfolio, and the same selected profile, as the page.
+  const portfolio = usePortfolio();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversation, setConversation] = useState<ConversationState>({});
@@ -40,8 +44,12 @@ export default function AskRoella() {
     days: surveillanceDays,
     dataMode: dataSourceMode,
     smartEnabled: SMART_ENABLED,
+    profiles: portfolio.summaries,
+    profileId: portfolio.focusId,
+    profileSelection: portfolio.selection,
   };
   const pageName = route === 'other' ? null : PAGES[route].nav;
+  const profileName = portfolio.focusId === RVS_PROFILE_ID ? null : portfolio.view.profile.displayName;
 
   const close = () => setOpen(false);
 
@@ -81,7 +89,7 @@ export default function AskRoella() {
           id={PANEL_ID}
           messages={messages}
           suggestions={suggestedQuestions(context)}
-          contextLabel={`Day ${currentDay} of 5${pageName ? ` · ${pageName}` : ''}`}
+          contextLabel={`Day ${currentDay} of 5${pageName ? ` · ${pageName}` : ''}${profileName ? ` · ${profileName}` : ''}`}
           onAsk={ask}
           onClear={clear}
           onClose={close}

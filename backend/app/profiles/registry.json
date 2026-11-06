@@ -1,0 +1,174 @@
+{
+  "_comment": "The single source of truth for surveillance profiles, read by the backend (app/profiles/registry.py) and the frontend (src/lib/profiles/registry.ts). Synthetic demonstration data only. Every setting is an illustrative default inherited from the current Respiratory Viral Syndrome configuration; none is clinically or epidemiologically validated for any profile.",
+  "version": 1,
+  "defaultProfileId": "respiratory-viral-syndrome",
+  "configs": {
+    "illustrative-defaults-v1": {
+      "label": "Illustrative defaults",
+      "note": "Inherited unchanged from the current signal configuration. Not validated for this profile.",
+      "replay": {
+        "baselineDay": 1,
+        "minimumBaselineTests": 10,
+        "affectedMarginPoints": 3,
+        "positivityScalePoints": 15,
+        "persistenceCapDays": 4,
+        "facilityCap": 3,
+        "areaCap": 3
+      },
+      "engine": {
+        "baselineWindowDays": 7,
+        "minimumBaselineDays": 5,
+        "facilityMinimumTests": 10,
+        "volumeIncreasePercent": 25,
+        "positivityIncreasePoints": 5,
+        "timezone": "America/New_York"
+      },
+      "ewma": {
+        "lambda": 0.25,
+        "k": 3,
+        "warningFraction": 0.6666666666666666,
+        "referenceDays": 28,
+        "minimumReferenceDays": 21
+      },
+      "cusum": {
+        "k": 0.5,
+        "h": 5,
+        "approachingFraction": 0.75
+      }
+    }
+  },
+  "tests": [
+    {
+      "code": "92142-9",
+      "system": "http://loinc.org",
+      "name": "Influenza A RNA",
+      "shortName": "Influenza A",
+      "specimen": "Nasopharyngeal swab"
+    },
+    {
+      "code": "94500-6",
+      "system": "http://loinc.org",
+      "name": "SARS-CoV-2 RNA",
+      "shortName": "SARS-CoV-2",
+      "specimen": "Nasopharyngeal swab"
+    },
+    {
+      "code": "85479-4",
+      "system": "http://loinc.org",
+      "name": "RSV RNA",
+      "shortName": "RSV",
+      "specimen": "Nasopharyngeal swab"
+    },
+    {
+      "code": "DEMO-GIP",
+      "system": "urn:labsentinel:demo-test-code",
+      "name": "Gastrointestinal pathogen panel (synthetic)",
+      "shortName": "GI panel",
+      "specimen": "Stool"
+    },
+    {
+      "code": "DEMO-VCH",
+      "system": "urn:labsentinel:demo-test-code",
+      "name": "Vibrio cholerae nucleic acid (synthetic)",
+      "shortName": "V. cholerae",
+      "specimen": "Stool"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "respiratory-viral-syndrome",
+      "displayName": "Respiratory Viral Syndrome",
+      "shortName": "Respiratory",
+      "category": "Syndrome",
+      "active": true,
+      "description": "Influenza A, SARS-CoV-2 and RSV RNA results together. The narrated five-day Scenario Replay.",
+      "legacySyndrome": "Respiratory Viral Syndrome",
+      "baselineConfigRef": "illustrative-defaults-v1",
+      "signalConfigRef": "illustrative-defaults-v1",
+      "replayAvailable": true,
+      "liveAvailable": true,
+      "dataOrigin": "replay-scenario"
+    },
+    {
+      "id": "influenza-a",
+      "displayName": "Influenza A",
+      "shortName": "Influenza A",
+      "category": "Pathogen",
+      "active": true,
+      "description": "Influenza A RNA results only, from the same replay results as Respiratory Viral Syndrome.",
+      "legacySyndrome": null,
+      "baselineConfigRef": "illustrative-defaults-v1",
+      "signalConfigRef": "illustrative-defaults-v1",
+      "replayAvailable": false,
+      "liveAvailable": false,
+      "dataOrigin": "replay-derived"
+    },
+    {
+      "id": "covid-19",
+      "displayName": "COVID-19",
+      "shortName": "COVID-19",
+      "category": "Pathogen",
+      "active": true,
+      "description": "SARS-CoV-2 RNA results only, from the same replay results as Respiratory Viral Syndrome.",
+      "legacySyndrome": null,
+      "baselineConfigRef": "illustrative-defaults-v1",
+      "signalConfigRef": "illustrative-defaults-v1",
+      "replayAvailable": false,
+      "liveAvailable": false,
+      "dataOrigin": "replay-derived"
+    },
+    {
+      "id": "rsv",
+      "displayName": "RSV",
+      "shortName": "RSV",
+      "category": "Pathogen",
+      "active": true,
+      "description": "RSV RNA results only, from the same replay results as Respiratory Viral Syndrome.",
+      "legacySyndrome": null,
+      "baselineConfigRef": "illustrative-defaults-v1",
+      "signalConfigRef": "illustrative-defaults-v1",
+      "replayAvailable": false,
+      "liveAvailable": false,
+      "dataOrigin": "replay-derived"
+    },
+    {
+      "id": "cholera",
+      "displayName": "Cholera",
+      "shortName": "Cholera",
+      "category": "Pathogen",
+      "active": true,
+      "description": "Vibrio cholerae results. Synthetic portfolio data: a few tests from the third replay day, none before.",
+      "legacySyndrome": null,
+      "baselineConfigRef": "illustrative-defaults-v1",
+      "signalConfigRef": "illustrative-defaults-v1",
+      "replayAvailable": false,
+      "liveAvailable": false,
+      "dataOrigin": "portfolio-fixture"
+    },
+    {
+      "id": "gastrointestinal-syndrome",
+      "displayName": "Gastrointestinal Syndrome",
+      "shortName": "Gastrointestinal",
+      "category": "Syndrome",
+      "active": true,
+      "description": "Gastrointestinal pathogen panel and Vibrio cholerae results together. Synthetic portfolio data.",
+      "legacySyndrome": null,
+      "baselineConfigRef": "illustrative-defaults-v1",
+      "signalConfigRef": "illustrative-defaults-v1",
+      "replayAvailable": false,
+      "liveAvailable": false,
+      "dataOrigin": "portfolio-fixture"
+    }
+  ],
+  "memberships": [
+    { "testCode": "92142-9", "profileId": "respiratory-viral-syndrome" },
+    { "testCode": "94500-6", "profileId": "respiratory-viral-syndrome" },
+    { "testCode": "85479-4", "profileId": "respiratory-viral-syndrome" },
+    { "testCode": "92142-9", "profileId": "influenza-a" },
+    { "testCode": "94500-6", "profileId": "covid-19" },
+    { "testCode": "85479-4", "profileId": "rsv" },
+    { "testCode": "DEMO-VCH", "profileId": "cholera" },
+    { "testCode": "DEMO-GIP", "profileId": "gastrointestinal-syndrome" },
+    { "testCode": "DEMO-VCH", "profileId": "gastrointestinal-syndrome" }
+  ]
+}

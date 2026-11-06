@@ -8,12 +8,17 @@ import {
   getAreaPositivePrivacy,
   getAreaPositivityDisplay,
 } from '../../lib/geographicPrivacy';
+import type { AreaPrivacy } from '../../lib/profiles/privacy';
 
 interface ZipDetailPanelProps {
   metrics: ZipMetrics | null;
   onClose: () => void;
   /** Needed to evaluate the privacy rule for the selected day. */
   currentDay: number;
+  /** The selected profile's suppression; defaults to the narrated scenario's. */
+  privacy?: AreaPrivacy;
+  /** The profile has no score today: shown instead of a risk level. */
+  unscoredReason?: string | null;
 }
 
 const TREND_TONE: Record<ZipMetrics['trend'], string> = {
@@ -27,6 +32,8 @@ export default function ZipDetailPanel({
   metrics,
   onClose,
   currentDay,
+  privacy,
+  unscoredReason = null,
 }: ZipDetailPanelProps) {
   const navigate = useNavigate();
 
@@ -45,8 +52,12 @@ export default function ZipDetailPanel({
   const styles = SEVERITY_STYLES[metrics.severity];
 
   // Small area counts go through the privacy rule before they are shown.
-  const positivePrivacy = getAreaPositivePrivacy(currentDay, metrics.hospitalId);
-  const positivityDisplay = getAreaPositivityDisplay(currentDay, metrics.hospitalId);
+  const positivePrivacy = privacy
+    ? privacy.positive(metrics.hospitalId)
+    : getAreaPositivePrivacy(currentDay, metrics.hospitalId);
+  const positivityDisplay = privacy
+    ? privacy.positivity(metrics.hospitalId)
+    : getAreaPositivityDisplay(currentDay, metrics.hospitalId);
 
   const rows = [
     { label: 'ZIP Code', value: metrics.zipCode },
@@ -111,13 +122,17 @@ export default function ZipDetailPanel({
           <div className="flex items-center justify-between gap-4 py-2.5">
             <dt className="text-sm text-muted">Current Risk</dt>
             <dd>
-              <SeverityBadge severity={metrics.severity} />
+              {unscoredReason ? (
+                <span className="text-sm font-medium text-muted">No score</span>
+              ) : (
+                <SeverityBadge severity={metrics.severity} />
+              )}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-2.5">
             <dt className="text-sm text-muted">Area Signal Score</dt>
             <dd className="text-sm font-semibold tabular-nums text-ink">
-              {metrics.score} / 100
+              {unscoredReason ? '—' : `${metrics.score} / 100`}
             </dd>
           </div>
         </dl>

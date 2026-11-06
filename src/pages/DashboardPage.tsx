@@ -18,7 +18,11 @@ import PageMeta from '../components/common/PageMeta';
 import { PrivacyNote } from '../components/common/PrivacyValue';
 import { ErrorState, LoadingState } from '../components/common/States';
 import { formatPercent, formatPercentagePoints, formatSignedPercent } from '../lib/format';
-import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulation';
+import { usePortfolio } from '../lib/profiles/usePortfolio';
+import ProfileSelector from '../components/profiles/ProfileSelector';
+import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
+import ProfileHeading from '../components/profiles/ProfileHeading';
+import ProfileAlertList from '../components/profiles/ProfileAlertList';
 
 /**
  * The Public Health Dashboard, organised as six numbered sections that read in
@@ -29,19 +33,18 @@ import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../data/simulati
  * Progressive disclosure throughout — each section answers its question on the
  * surface and keeps the working behind a toggle, so the page stays scannable
  * without anything becoming unreachable.
+ *
+ * Above them, Active Surveillance lists every surveillance profile. The six
+ * sections then show the selected profile (?profile=, Respiratory Viral
+ * Syndrome by default, exactly as before). A profile with no data or no
+ * usable baseline shows why it has no score instead of a score.
  */
 export default function DashboardPage() {
   const {
     currentDay,
-    currentScenario,
     simulationDate,
-    signalScore,
-    trendSeries,
-    zipMetrics,
-    cumulativeTotals,
     dataConfidence,
     feedHealth,
-    dayOverDay,
     regionalAlert,
     investigations,
     isLoading,
@@ -49,6 +52,17 @@ export default function DashboardPage() {
     clearError,
   } = useSimulation();
 
+  const portfolio = usePortfolio();
+  const { view } = portfolio;
+  const {
+    scenario: currentScenario,
+    score: signalScore,
+    trendSeries,
+    zipMetrics,
+    cumulativeTotals,
+    baseline,
+  } = view;
+  const mapPath = `/map?profile=${encodeURIComponent(view.profile.id)}`;
   const navigate = useNavigate();
   const [resetToken, setResetToken] = useState(0);
   const [showQualityDetail, setShowQualityDetail] = useState(false);
@@ -72,11 +86,13 @@ export default function DashboardPage() {
             Regional Outbreak Status
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Respiratory Viral Syndrome | Worcester County, MA
+            {view.profile.displayName} | Worcester County, MA
           </p>
         </div>
         <PageMeta />
       </header>
+
+      <ProfileSelector portfolio={portfolio} />
 
       {isLoading ? (
         <Card>
@@ -84,6 +100,12 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <>
+          <ActiveSurveillance portfolio={portfolio} day={currentDay} />
+
+          <ProfileHeading view={view} />
+
+          {signalScore ? (
+          <>
           {/* ============ SECTION 1 — CURRENT SITUATION ============ */}
           <section aria-labelledby="section-situation" className="space-y-3">
             <SectionHeading
@@ -116,7 +138,7 @@ export default function DashboardPage() {
                 value={currentScenario.totalTests.toLocaleString('en-US')}
                 delta={`${formatSignedPercent(signalScore.volumeIncreasePercent, 0)} vs baseline`}
                 deltaTone={signalScore.volumeIncreasePercent > 0 ? 'up' : 'neutral'}
-                footnote={`Baseline ${BASELINE_TEST_VOLUME} · ${cumulativeTotals.tests.toLocaleString(
+                footnote={`Baseline ${baseline.tests} · ${cumulativeTotals.tests.toLocaleString(
                   'en-US',
                 )} cumulative`}
               />
@@ -125,7 +147,7 @@ export default function DashboardPage() {
                 value={formatPercent(currentScenario.positivityRate)}
                 delta={formatPercentagePoints(signalScore.positivityDeltaPoints)}
                 deltaTone={signalScore.positivityDeltaPoints > 0 ? 'up' : 'neutral'}
-                footnote={`${currentScenario.totalPositives} of ${currentScenario.totalTests} tests · baseline ${BASELINE_POSITIVITY_RATE.toFixed(
+                footnote={`${currentScenario.totalPositives} of ${currentScenario.totalTests} tests · baseline ${baseline.positivityRate.toFixed(
                   1,
                 )}%`}
               />
@@ -184,10 +206,11 @@ export default function DashboardPage() {
                   <OutbreakMap
                     zipMetrics={zipMetrics}
                     selectedZip={null}
-                    onSelectZip={() => navigate('/map')}
+                    onSelectZip={() => navigate(mapPath)}
                     resetToken={resetToken}
                     interactive={false}
                     showLabels={false}
+                    privacy={view.privacy}
                   />
                   <div className="pointer-events-none absolute left-3 top-3 z-[1100]">
                     <MapLegend compact />
@@ -207,7 +230,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate('/map')}
+                      onClick={() => navigate(mapPath)}
                       className="ls-btn px-2.5 py-1 text-[11px]"
                     >
                       View details →
@@ -219,10 +242,13 @@ export default function DashboardPage() {
               <HighestRiskArea
                 zipMetrics={zipMetrics}
                 currentDay={currentDay}
-                onOpenMap={() => navigate('/map')}
+                onOpenMap={() => navigate(mapPath)}
+                privacy={view.privacy}
               />
             </div>
           </section>
+          </>
+          ) : null}
 
           {/* ============ SECTION 4 — DATA QUALITY ============ */}
           <section aria-labelledby="section-quality" className="space-y-3">
@@ -261,30 +287,36 @@ export default function DashboardPage() {
               title="Current alert"
               subtitle="What the signal is, who is reviewing it, and how to look closer"
             />
-            <CurrentAlertSection
-              scenario={currentScenario}
-              score={signalScore}
-              confidence={dataConfidence}
-              feeds={feedHealth}
-              alert={regionalAlert}
-              investigation={investigation}
-            />
+            {view.isNarrated && signalScore ? (
+              <CurrentAlertSection
+                scenario={currentScenario}
+                score={signalScore}
+                confidence={dataConfidence}
+                feeds={feedHealth}
+                alert={regionalAlert}
+                investigation={investigation}
+              />
+            ) : (
+              <ProfileAlertList view={view} day={currentDay} />
+            )}
           </section>
 
           {/* ============ SECTION 6 — DAY-TO-DAY CHANGE ============ */}
+          {view.dayOverDay ? (
           <section aria-labelledby="section-change" className="space-y-3">
             <SectionHeading
               id="section-change"
               index={6}
               title={
-                dayOverDay.available
-                  ? `What changed since Day ${dayOverDay.previousDay}?`
+                view.dayOverDay.available
+                  ? `What changed since Day ${view.dayOverDay.previousDay}?`
                   : 'What changed since the previous day?'
               }
               subtitle="Movement in each component input, and why the score responded"
             />
-            <DayOverDayChange comparison={dayOverDay} />
+            <DayOverDayChange comparison={view.dayOverDay} />
           </section>
+          ) : null}
 
           <PrivacyNote className="px-1 pb-2" />
         </>

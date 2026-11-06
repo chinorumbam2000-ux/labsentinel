@@ -30,6 +30,8 @@ import {
   smartInThisBuild,
 } from './knowledge';
 import type { AnswerBlock, AssistantAnswer, AssistantContext, ConversationState, IntentId } from './types';
+import { answerProfileIntent, profileScoreExplanation } from './profiles';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 
 const SEVERITY_ORDER: Severity[] = ['Low', 'Watch', 'Moderate', 'High', 'Critical'];
 const TOTAL_SITES = 3;
@@ -521,6 +523,12 @@ const unsupported = (ctx: AssistantContext): AssistantAnswer =>
 
 /* ----------------------------------------------------------------------- */
 
+/** Intents answered from the narrated scenario's figures. */
+const RVS_ONLY_INTENTS: IntentId[] = [
+  'day_change', 'day_overview', 'situation_summary', 'facilities', 'facility_ranking', 'geography',
+  'area_ranking', 'positivity', 'volume', 'trend', 'milestone', 'persistence', 'alerts', 'investigate',
+];
+
 export interface AssistantTurn {
   answer: AssistantAnswer;
   state: ConversationState;
@@ -528,7 +536,17 @@ export interface AssistantTurn {
 
 export const answerQuestion = (question: string, ctx: AssistantContext, state: ConversationState = {}): AssistantTurn => {
   const p = parseQuestion(question, ctx, state);
+  const viewing = ctx.profileId && ctx.profileId !== RVS_PROFILE_ID ? ctx.profileId : null;
   const result = ((): AssistantAnswer => {
+    const forProfile = answerProfileIntent(
+      { intent: p.intent, profiles: p.profiles ?? [], unknown: p.unknownCondition, day: p.day },
+      ctx,
+    );
+    if (forProfile) return forProfile;
+    // "Why is this signal high?" is about the profile on screen.
+    if (viewing && (p.intent === 'score_explanation' || p.intent === 'current_score')) {
+      return profileScoreExplanation(viewing, ctx, p.day);
+    }
     switch (p.intent) {
       case 'greeting': return greeting(ctx);
       case 'about': return about(ctx);
@@ -568,6 +586,12 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
       default: return answer('out_of_scope', [text(OUT_OF_SCOPE)], PAGE_QUESTIONS[ctx.route]);
     }
   })();
+  // The remaining figures are the narrated profile's: say so when another is on screen.
+  if (viewing && RVS_ONLY_INTENTS.includes(result.intent)) {
+    result.blocks.unshift(
+      text(`This answer is about Respiratory Viral Syndrome, the narrated replay. You are viewing ${PROFILE_BY_ID[viewing].displayName}; ask "What is happening with ${PROFILE_BY_ID[viewing].displayName}?" for its figures.`),
+    );
+  }
   // Never suggest the question that was just asked.
   const asked = normalize(question);
   result.followUps = result.followUps.filter((q) => normalize(q) !== asked);

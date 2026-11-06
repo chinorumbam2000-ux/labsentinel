@@ -6,17 +6,19 @@ import ZipDetailPanel from '../components/map/ZipDetailPanel';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import { ErrorState, LoadingState } from '../components/common/States';
-import { SYNDROME } from '../data/tests';
+import { usePortfolio } from '../lib/profiles/usePortfolio';
+import ProfileSelector from '../components/profiles/ProfileSelector';
+import ProfileHeading from '../components/profiles/ProfileHeading';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { PrivacyDisclosure, PrivacyValue } from '../components/common/PrivacyValue';
-import {
-  getAreaPositivePrivacy,
-  getAreaPositivityDisplay,
-  getDisclosureSummary,
-} from '../lib/geographicPrivacy';
 
 export default function MapPage() {
-  const { currentDay, zipMetrics, isLoading, error, clearError, goToDay } = useSimulation();
+  const { currentDay, isLoading, error, clearError, goToDay } = useSimulation();
+  // The map shows one surveillance profile at a time (?profile=, Respiratory
+  // Viral Syndrome by default); scores are never combined across profiles.
+  const portfolio = usePortfolio();
+  const { zipMetrics } = portfolio.view;
+  const unscoredReason = portfolio.view.score ? null : portfolio.view.statusReason;
 
   const [selectedZip, setSelectedZip] = useState<string | null>(null);
   const [resetToken, setResetToken] = useState(0);
@@ -63,12 +65,7 @@ export default function MapPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-hairline bg-white p-3 shadow-card">
-        <label className="flex items-center gap-2 text-sm">
-          <span className="ls-label">Syndrome</span>
-          <select className="ls-select" defaultValue={SYNDROME}>
-            <option value={SYNDROME}>{SYNDROME}</option>
-          </select>
-        </label>
+        <ProfileSelector portfolio={portfolio} />
 
         <label className="flex items-center gap-2 text-sm">
           <span className="ls-label">Day</span>
@@ -102,6 +99,8 @@ export default function MapPage() {
           </button>
         </div>
       </div>
+
+      <ProfileHeading view={portfolio.view} compact />
 
       {isLoading ? (
         <Card>
@@ -139,6 +138,8 @@ export default function MapPage() {
                 tileToken={tileToken}
                 onTileError={handleTileError}
                 onTileLoad={handleTileLoad}
+                privacy={portfolio.view.privacy}
+                unscoredReason={unscoredReason}
               />
               {/*
                 The legend is an overlay only where there is room for it. On
@@ -171,12 +172,14 @@ export default function MapPage() {
               metrics={selected}
               onClose={() => setSelectedZip(null)}
               currentDay={currentDay}
+              privacy={portfolio.view.privacy}
+              unscoredReason={unscoredReason}
             />
           </div>
         </div>
       )}
 
-      <PrivacyDisclosure summary={getDisclosureSummary(currentDay)} />
+      <PrivacyDisclosure summary={portfolio.view.privacy.summary} />
 
       <Card
         title="Surveillance areas"
@@ -223,17 +226,21 @@ export default function MapPage() {
                   <td className="ls-td">{area.hospitalName}</td>
                   <td className="ls-td text-right tabular-nums">{area.totalTests}</td>
                   <td className="ls-td text-right tabular-nums">
-                    <PrivacyValue privacy={getAreaPositivePrivacy(currentDay, area.hospitalId)} />
+                    <PrivacyValue privacy={portfolio.view.privacy.positive(area.hospitalId)} />
                   </td>
                   <td className="ls-td text-right tabular-nums">
-                    {getAreaPositivityDisplay(currentDay, area.hospitalId).value}
+                    {portfolio.view.privacy.positivity(area.hospitalId).value}
                   </td>
                   <td className="ls-td text-right tabular-nums text-muted">
                     {area.cumulativeTests}
                   </td>
                   <td className="ls-td text-muted">{area.trend}</td>
                   <td className="ls-td">
-                    <SeverityBadge severity={area.severity} />
+                    {unscoredReason ? (
+                      <span className="text-xs font-medium text-muted">No score</span>
+                    ) : (
+                      <SeverityBadge severity={area.severity} />
+                    )}
                   </td>
                 </tr>
               ))}

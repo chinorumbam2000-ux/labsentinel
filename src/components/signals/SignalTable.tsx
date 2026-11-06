@@ -7,6 +7,13 @@ interface SignalTableProps {
   alerts: OutbreakAlert[];
   onInvestigate: (alert: OutbreakAlert) => void;
   onAcknowledge: (alertId: string) => void;
+  /**
+   * The surveillance profile each alert belongs to, by alert id. When given,
+   * the table gains Profile and Score columns (alerts from several profiles).
+   */
+  profileNames?: Record<string, string>;
+  /** Shown when there are no alerts. */
+  emptyMessage?: string;
 }
 
 const STATUS_STYLES: Record<OutbreakAlert['status'], string> = {
@@ -19,16 +26,22 @@ export default function SignalTable({
   alerts,
   onInvestigate,
   onAcknowledge,
+  profileNames,
+  emptyMessage,
 }: SignalTableProps) {
   if (alerts.length === 0) {
     return (
       <EmptyState
         icon="✓"
         title="No alerts on this replay day"
-        message="Regional respiratory activity is at the expected baseline, so no Signal by ProbeSyQ alert has been raised. Advance the replay day to watch alerts appear as the signal develops."
+        message={
+          emptyMessage ??
+          'Regional respiratory activity is at the expected baseline, so no Signal by ProbeSyQ alert has been raised. Advance the replay day to watch alerts appear as the signal develops.'
+        }
       />
     );
   }
+  const profileOf = (alert: OutbreakAlert) => profileNames?.[alert.id];
 
   return (
     <div className="w-full overflow-x-auto">
@@ -39,7 +52,9 @@ export default function SignalTable({
         <thead className="border-b border-hairline bg-canvas">
           <tr>
             <th scope="col" className="ls-th">Detected</th>
+            {profileNames ? <th scope="col" className="ls-th">Profile</th> : null}
             <th scope="col" className="ls-th">Alert</th>
+            {profileNames ? <th scope="col" className="ls-th text-right">Score</th> : null}
             <th scope="col" className="ls-th">Severity</th>
             <th scope="col" className="ls-th">Geography</th>
             <th scope="col" className="ls-th">Facilities</th>
@@ -54,10 +69,17 @@ export default function SignalTable({
                 <span className="block">{formatSimulationDateTime(alert.detectedAt)}</span>
                 <span className="block text-[11px]">Day {alert.detectedDay}</span>
               </td>
+              {profileNames ? <td className="ls-td font-medium text-ink">{profileOf(alert)}</td> : null}
               <td className="px-4 py-3">
                 <p className="text-sm font-medium text-ink">{alert.title}</p>
                 <p className="text-xs text-muted">{alert.detection.detail}</p>
               </td>
+              {profileNames ? (
+                <td className="ls-td text-right tabular-nums text-ink">
+                  {alert.detection.compositeScore}
+                  <span className="sr-only"> out of 100 at detection</span>
+                </td>
+              ) : null}
               <td className="ls-td">
                 <SeverityBadge severity={alert.detection.severity} />
               </td>
@@ -95,7 +117,7 @@ export default function SignalTable({
                       type="button"
                       onClick={() => onAcknowledge(alert.id)}
                       className="ls-btn px-3 py-1.5 text-xs"
-                      aria-label={`Acknowledge alert: ${alert.title}, detected on replay day ${alert.detectedDay}`}
+                      aria-label={`Acknowledge alert: ${profileOf(alert) ? `${profileOf(alert)} — ` : ''}${alert.title}, detected on replay day ${alert.detectedDay}`}
                     >
                       Acknowledge
                     </button>

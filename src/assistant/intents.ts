@@ -7,6 +7,8 @@
 import type { SimulationDay } from '../types';
 import { isSimulationDay } from './context';
 import type { AssistantContext, AssistantRoute, ConversationState, IntentId } from './types';
+import type { ProfileId } from '../lib/profiles/registry';
+import { parseProfileIntent } from './profiles';
 
 export interface ParsedQuestion {
   intent: IntentId;
@@ -20,6 +22,10 @@ export interface ParsedQuestion {
   severity?: 'Watch' | 'Moderate' | 'High' | 'Critical';
   /** A composite score the question quotes ("why is the score 87"). */
   quotedScore?: number;
+  /** Surveillance profiles the question names. */
+  profiles?: ProfileId[];
+  /** A condition the question names that is not a surveillance profile. */
+  unknownCondition?: string;
   normalized: string;
 }
 
@@ -149,6 +155,12 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   if (has(t, 'where can i', 'where do i', 'where is the', 'where are', 'how do i view', 'how do i see', 'how do i find', 'how do i get to', 'which page', 'where to see', 'how can i see', 'where can we') &&
       !has(t, 'outbreak', 'spread', 'happening', 'affected', 'cases')) {
     return result('navigation');
+  }
+
+  // Surveillance profiles: which need attention, one profile, two compared.
+  const profileIntent = parseProfileIntent(t);
+  if (profileIntent) {
+    return result(profileIntent.intent, { profiles: profileIntent.profiles, unknownCondition: profileIntent.unknown });
   }
 
   // Concepts.

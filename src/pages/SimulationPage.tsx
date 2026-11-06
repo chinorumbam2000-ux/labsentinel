@@ -67,6 +67,10 @@ export default function SimulationPage() {
             the replay day here updates every analyst page: the dashboard, map, laboratory data,
             signals, facilities and the clinician sidecar.
           </p>
+          <p className="mt-1 max-w-3xl text-xs text-muted">
+            The narrated scenario is Respiratory Viral Syndrome. The other surveillance profiles on the
+            Dashboard follow the same replay day, with their own data and their own scores.
+          </p>
         </div>
         <PageMeta />
       </header>
