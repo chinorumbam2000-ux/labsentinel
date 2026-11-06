@@ -10,9 +10,9 @@ class SurveillanceProfile(TimestampMixin, Base):
     A surveillance target: a syndrome or a single pathogen.
 
     Defined in app/profiles/registry.json and stored by migration 0008.
-    ``legacy_syndrome`` is the value lab_observation.syndrome and the
-    dynamic engine use for this profile; it is NULL for a profile the engine
-    does not calculate yet.
+    ``legacy_syndrome`` is the lab_observation.syndrome value for the
+    syndrome profile itself. ``engine_key`` (migration 0009) is the key the
+    profile's dynamic, EWMA and CUSUM results are stored under.
     """
 
     __tablename__ = "surveillance_profile"
@@ -22,7 +22,7 @@ class SurveillanceProfile(TimestampMixin, Base):
             "data_origin IN ('replay-scenario', 'replay-derived', 'portfolio-fixture')",
             name="data_origin_valid",
         ),
-        CheckConstraint("NOT live_available OR legacy_syndrome IS NOT NULL", name="live_needs_engine_key"),
+        CheckConstraint("NOT live_available OR engine_key IS NOT NULL", name="live_needs_engine_key"),
     )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -33,6 +33,11 @@ class SurveillanceProfile(TimestampMixin, Base):
     description: Mapped[str] = mapped_column(Text)
     legacy_syndrome: Mapped[str | None] = mapped_column(
         String(100), comment="lab_observation.syndrome / engine key for this profile, if the engine calculates it."
+    )
+    engine_key: Mapped[str | None] = mapped_column(
+        String(100),
+        unique=True,
+        comment="Key its dynamic, EWMA and CUSUM results are stored under (the signal tables' syndrome column).",
     )
     baseline_config_ref: Mapped[str] = mapped_column(String(64))
     signal_config_ref: Mapped[str] = mapped_column(String(64))

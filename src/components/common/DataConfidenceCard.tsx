@@ -70,6 +70,7 @@ export default function DataConfidenceCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="ls-label">Data Confidence</p>
+          <p className="text-[11px] text-muted">Overall participating-source quality</p>
           <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-ink">
             {confidence.score}
             <span className="text-lg font-medium text-muted"> / 100</span>

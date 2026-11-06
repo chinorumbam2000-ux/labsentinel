@@ -104,6 +104,7 @@ export type IntentId =
   | 'profile_compare'
   | 'profile_facilities'
   | 'profile_unknown'
+  | 'profile_change'
   | 'unsupported'
   | 'medical_advice'
   | 'out_of_scope';

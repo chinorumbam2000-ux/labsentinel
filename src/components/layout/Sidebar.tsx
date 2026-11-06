@@ -57,7 +57,7 @@ function NavItems({
                 {item.to === '/signals' && unacknowledgedCount > 0 ? (
                   <span
                     className="rounded-full bg-severity-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
-                    aria-label={`${unacknowledgedCount} alerts awaiting acknowledgement`}
+                    aria-label={`${unacknowledgedCount} alerts awaiting acknowledgement across all profiles`}
                   >
                     {unacknowledgedCount}
                   </span>
@@ -78,7 +78,8 @@ function NavItems({
  * System is access-controlled.
  */
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { currentDay, signalScore, unacknowledgedCount } = useSimulation();
+  // The badge is global: alerts awaiting acknowledgement across ALL profiles.
+  const { currentDay, attentionCount: unacknowledgedCount } = useSimulation();
   const { source } = useDataSourceContext();
   const { pathname } = useLocation();
   const onSystemPage = isSystemPath(pathname);
@@ -112,11 +113,9 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">
           Replay Day
         </p>
-        <div className="mt-1 flex items-baseline justify-between gap-2">
+        {/* The replay calendar is shared by every profile; scores belong to profiles, so none is shown here. */}
+        <div className="mt-1">
           <span className="text-lg font-semibold leading-none">{currentDay} of 5</span>
-          <span className="text-[11px] font-medium text-white/60">
-            Score {signalScore.composite}
-          </span>
         </div>
       </div>
 

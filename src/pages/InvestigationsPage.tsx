@@ -6,6 +6,7 @@ import SeverityBadge from '../components/signals/SeverityBadge';
 import { useSimulation } from '../context/SimulationContext';
 import { INVESTIGATION_STATUS_STYLES, REVIEW_DISCLAIMER } from '../lib/investigationWorkflow';
 import { REPORT_STATUS_STYLES } from '../lib/reporting';
+import { PROFILE_BY_ID } from '../lib/profiles/registry';
 
 const STEPS = [
   { label: 'Signal', detail: 'A detected alert', to: '/signals' },
@@ -24,8 +25,15 @@ const STEPS = [
  * record.
  */
 export default function InvestigationsPage() {
-  const { alerts, getInvestigation, reports, currentDay } = useSimulation();
-  const ordered = [...alerts].sort((a, b) => b.detectedDay - a.detectedDay || a.title.localeCompare(b.title));
+  // Every profile's alerts: each row names its profile, and opens that
+  // profile's investigation (never another profile's).
+  const { profileAlerts: alerts, getInvestigation, reports, currentDay } = useSimulation();
+  const ordered = [...alerts].sort(
+    (a, b) =>
+      b.detectedDay - a.detectedDay ||
+      PROFILE_BY_ID[a.profileId].displayName.localeCompare(PROFILE_BY_ID[b.profileId].displayName) ||
+      a.title.localeCompare(b.title),
+  );
 
   return (
     <div className="space-y-5">
@@ -60,7 +68,7 @@ export default function InvestigationsPage() {
 
       <Card
         title="Signals and their review"
-        subtitle={`Every alert detected through Day ${currentDay}, newest first.`}
+        subtitle={`Every surveillance profile's alerts detected through Day ${currentDay}, newest first.`}
         bodyClassName="p-0"
       >
         {ordered.length === 0 ? (
@@ -70,10 +78,11 @@ export default function InvestigationsPage() {
           />
         ) : (
           <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Signals and their review table">
-            <table className="w-full min-w-[640px] border-collapse text-sm">
+            <table className="w-full min-w-[760px] border-collapse text-sm">
               <caption className="sr-only">Detected signals with their investigation and report status</caption>
               <thead className="border-b border-hairline bg-canvas">
                 <tr>
+                  <th scope="col" className="ls-th">Profile</th>
                   <th scope="col" className="ls-th">Signal</th>
                   <th scope="col" className="ls-th">Severity at detection</th>
                   <th scope="col" className="ls-th">Investigation</th>
@@ -87,6 +96,7 @@ export default function InvestigationsPage() {
                   const report = reports.find((item) => item.alertId === alert.id);
                   return (
                     <tr key={alert.id}>
+                      <td className="ls-td align-top font-medium text-ink">{PROFILE_BY_ID[alert.profileId].displayName}</td>
                       <th scope="row" className="px-4 py-3 text-left align-top font-normal">
                         <span className="block font-medium text-ink">{alert.title}</span>
                         <span className="block text-xs text-muted">
@@ -120,9 +130,9 @@ export default function InvestigationsPage() {
                       </td>
                       <td className="ls-td text-right align-top">
                         <Link
-                          to={`/signals?alert=${encodeURIComponent(alert.id)}`}
+                          to={`/signals?profile=${encodeURIComponent(alert.profileId)}&alert=${encodeURIComponent(alert.id)}`}
                           className="ls-btn px-3 py-1.5 text-xs"
-                          aria-label={`Open investigation: ${alert.title}`}
+                          aria-label={`Open investigation: ${PROFILE_BY_ID[alert.profileId].displayName} — ${alert.title}`}
                         >
                           Open investigation
                         </Link>

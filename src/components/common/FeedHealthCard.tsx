@@ -10,7 +10,7 @@ export const FEED_STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string
     dot: 'bg-severity-low',
   },
   DELAYED: {
-    badge: 'bg-severity-watch/15 text-[#9A7B0A] ring-1 ring-inset ring-severity-watch/40',
+    badge: 'bg-severity-watch/15 text-[#6B5102] ring-1 ring-inset ring-severity-watch/40',
     dot: 'bg-severity-watch',
   },
   DEGRADED: {

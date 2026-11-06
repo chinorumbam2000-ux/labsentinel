@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.profiles.params import engine_key_param
 from app.schemas.dynamic_surveillance import (
     DynamicMethod,
     DynamicSignalRead,
@@ -32,12 +33,13 @@ from app.surveillance.aggregator import observed_date_range
 from app.surveillance.engine import method_description
 from app.surveillance.persistence import recalculate
 from app.surveillance.scorer import SCORE_WEIGHTS
-from app.surveillance.types import DEFAULT_SYNDROME, ENGINE_VERSION, EngineConfig
+from app.surveillance.types import ENGINE_VERSION, EngineConfig
 
 router = APIRouter(prefix="/api/surveillance/dynamic", tags=["dynamic surveillance"])
 
 NOT_FOUND = {status.HTTP_404_NOT_FOUND: {"description": "Not found."}}
-Syndrome = Query(default=DEFAULT_SYNDROME, max_length=100)
+# ?profile=<id> or ?syndrome=<key>; neither means Respiratory Viral Syndrome.
+Syndrome = Depends(engine_key_param)
 
 
 def _config() -> EngineConfig:

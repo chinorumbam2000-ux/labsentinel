@@ -11,11 +11,16 @@ towards both Influenza A and Respiratory Viral Syndrome. ``profiles_for_test``
 is the routing rule an ingestion path uses so that one observation updates
 every profile it belongs to.
 
+Engine keys. Each profile has an ``engine_key``: the key its dynamic
+signals, EWMA and CUSUM results are calculated and stored under (the
+``syndrome`` column of surveillance_signal and statistical_signal).
+Respiratory Viral Syndrome's key is its legacy syndrome name, so everything
+stored before profiles existed still belongs to it. ``scope_for_key`` turns
+a key into the observations it covers: the engine itself is unchanged and
+simply receives each profile's key (see app/surveillance/aggregator.py).
+
 What does NOT change here:
-- ``lab_observation.syndrome`` and the engine's syndrome key keep working
-  exactly as before. A profile's ``legacy_syndrome`` names the engine key it
-  is calculated under; only Respiratory Viral Syndrome has one today, so it
-  is the only profile the dynamic engine (and EWMA / CUSUM) calculates.
+- ``lab_observation.syndrome`` stays single-valued and unchanged.
 - FHIR terminology (app/fhir/terminology.py) is unchanged. The registry
   references its LOINC codes; a test pins that they agree.
 
@@ -58,6 +63,7 @@ class SurveillanceProfileDefinition:
     active: bool
     description: str
     legacy_syndrome: str | None
+    engine_key: str | None
     baseline_config_ref: str
     signal_config_ref: str
     replay_available: bool
@@ -90,6 +96,7 @@ def _load(raw: dict) -> Registry:
             active=p["active"],
             description=p["description"],
             legacy_syndrome=p["legacySyndrome"],
+            engine_key=p["engineKey"],
             baseline_config_ref=p["baselineConfigRef"],
             signal_config_ref=p["signalConfigRef"],
             replay_available=p["replayAvailable"],
@@ -125,8 +132,11 @@ def validate(registry: Registry) -> None:
         for ref in (profile.baseline_config_ref, profile.signal_config_ref):
             if ref not in registry.configs:
                 raise ValueError(f"Profile {profile.id} references unknown configuration {ref}.")
-        if profile.live_available and not profile.legacy_syndrome:
+        if profile.live_available and not profile.engine_key:
             raise ValueError(f"Profile {profile.id} cannot be live without an engine key.")
+    keys = [p.engine_key for p in registry.profiles if p.engine_key]
+    if len(set(keys)) != len(keys):
+        raise ValueError("Engine keys must be unique.")
 
 
 @lru_cache(maxsize=1)
@@ -146,6 +156,63 @@ def profiles_for_test(code: str) -> list[str]:
     """Every profile one result for this test code updates (registry order)."""
     member_of = {profile_id for test_code, profile_id in get_registry().memberships if test_code == code}
     return [p.id for p in profiles() if p.id in member_of]
+
+
+@dataclass(frozen=True)
+class ObservationScope:
+    """
+    Which mapped observations an engine key covers.
+
+    ``syndrome`` is the lab_observation.syndrome value they carry;
+    ``test_codes`` narrows them to the profile's tests, or is None for every
+    test of that syndrome (the legacy behaviour, unchanged).
+    """
+
+    key: str
+    syndrome: str | None
+    test_codes: tuple[str, ...] | None
+
+
+def scope_for_key(key: str) -> ObservationScope:
+    """
+    The observations an engine key covers.
+
+    - A legacy syndrome name (Respiratory Viral Syndrome's key, or any other
+      syndrome string a caller passes) covers every mapped test of that
+      syndrome, exactly as before profiles existed.
+    - A profile's own key covers that profile's tests only. Their syndrome is
+      read from the FHIR terminology; tests with no terminology mapping (the
+      demonstration codes) are never ingested, so such a profile covers no
+      observations and the engine produces nothing for it.
+    """
+    from app.fhir import terminology  # local: keeps the registry importable on its own
+
+    profile = next((p for p in profiles() if p.engine_key == key), None)
+    if profile is None or profile.engine_key == profile.legacy_syndrome:
+        return ObservationScope(key, key, None)
+    syndromes = {m.syndrome for code in profile.test_codes if (m := terminology.lookup(code)) is not None}
+    if len(syndromes) != 1:
+        return ObservationScope(key, None, profile.test_codes)
+    return ObservationScope(key, syndromes.pop(), profile.test_codes)
+
+
+def resolve_engine_key(syndrome: str | None, profile_id: str | None, default: str) -> str:
+    """
+    The engine key a request means. ``profile`` names a surveillance profile;
+    ``syndrome`` is the older parameter and keeps working. With neither, the
+    default (Respiratory Viral Syndrome). Raises LookupError for an unknown
+    profile and ValueError when the two disagree or the profile has no key.
+    """
+    if profile_id is None:
+        return syndrome or default
+    definition = get_profile(profile_id)
+    if definition is None:
+        raise LookupError(f"Unknown surveillance profile {profile_id!r}.")
+    if not definition.engine_key:
+        raise ValueError(f"Profile {profile_id!r} has no engine key.")
+    if syndrome is not None and syndrome != definition.engine_key:
+        raise ValueError(f"syndrome {syndrome!r} does not match profile {profile_id!r}.")
+    return definition.engine_key
 
 
 def settings_for(profile: SurveillanceProfileDefinition) -> dict:

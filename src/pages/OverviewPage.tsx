@@ -137,6 +137,30 @@ export default function OverviewPage() {
               <li key={text}>{text}</li>
             ))}
           </ul>
+          <h3 className="mt-4 text-sm font-semibold text-ink">Surveillance profiles</h3>
+          <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm text-ink" data-testid="profile-data-sources">
+            <li>
+              Respiratory Viral Syndrome is the narrated five-day replay. In API mode its figures come from the
+              API; in local mode from the browser.
+            </li>
+            <li>
+              Influenza A, COVID-19 and RSV are the same replay results filtered by test. Their laboratory records
+              come from the active data source (the API in API mode); their scores are worked out in the browser.
+            </li>
+            <li>
+              Cholera and Gastrointestinal Syndrome are synthetic portfolio data with demonstration test codes
+              (not LOINC). Their results exist only in the browser, in every mode: the API database does not
+              contain them, and FHIR ingestion does not accept their codes.
+            </li>
+            <li>
+              Data Confidence is overall participating-source quality: the same for every profile, and never part
+              of a score.
+            </li>
+            <li>
+              Positive counts below 5, and the rates that would reveal them, are withheld at facility, area and
+              county level for every profile. Laboratory Data lists individual synthetic records.
+            </li>
+          </ul>
         </Card>
         <Card title="Presentation mode" subtitle="The ten-step final demonstration, through the real application">
           <p className="text-sm text-ink">

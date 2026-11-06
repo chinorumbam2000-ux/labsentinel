@@ -165,8 +165,10 @@ export const createInvestigation = (
   alertId: string,
   detectedDay: SimulationDay,
   detectedAt: string,
+  profileId?: string,
 ): InvestigationRecord => ({
   alertId,
+  ...(profileId ? { profileId } : {}),
   status: 'NEW',
   assignedInvestigator: null,
   acknowledged: false,
@@ -290,7 +292,7 @@ export const canPrepareReport = (record: InvestigationRecord | undefined): boole
 export const INVESTIGATION_STATUS_STYLES: Record<InvestigationStatus, string> = {
   NEW: 'bg-brand-light text-brand ring-1 ring-inset ring-brand/20',
   'UNDER REVIEW': 'bg-[#0369A1]/10 text-[#0369A1] ring-1 ring-inset ring-[#0369A1]/25',
-  MONITORING: 'bg-severity-watch/15 text-[#9A7B0A] ring-1 ring-inset ring-severity-watch/40',
+  MONITORING: 'bg-severity-watch/15 text-[#6B5102] ring-1 ring-inset ring-severity-watch/40',
   ESCALATED: 'bg-severity-high/10 text-[#C2410C] ring-1 ring-inset ring-severity-high/30',
   DISMISSED: 'bg-canvas text-muted ring-1 ring-inset ring-hairline',
   'CONFIRMED CONCERN':

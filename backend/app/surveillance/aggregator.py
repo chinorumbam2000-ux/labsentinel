@@ -21,6 +21,14 @@ terminology mapping quality for Data Confidence.
 
 Rows are read with one query per calculation and grouped here, so the same
 code runs on PostgreSQL and on the SQLite unit-test database.
+
+SURVEILLANCE PROFILES. The ``syndrome`` argument is an engine key. A legacy
+syndrome name (Respiratory Viral Syndrome) selects exactly what it always
+did. A surveillance profile's key (e.g. ``influenza-a``) selects the same
+eligible observations narrowed to that profile's tests (rule 1 then reads
+"mapped to the syndrome AND one of the profile's tests"); every other rule is
+unchanged. This is how one engine runs once per profile: nothing in the
+engine, baseline, scorer, EWMA or CUSUM changes. See app/profiles/registry.py.
 """
 
 from collections import defaultdict
@@ -28,11 +36,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, false, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.simulation import demo_period_utc
 from app.models import Facility, LabObservation
+from app.profiles.registry import ObservationScope, scope_for_key
 from app.surveillance.types import (
     COUNTED_STATUSES,
     NEGATIVE,
@@ -105,9 +114,20 @@ def participating_facilities(session: Session) -> dict[str, FacilityInfo]:
     }
 
 
+def _in_scope(scope: ObservationScope):
+    """SQL for "a mapped observation this engine key covers". Never matches when the scope has no syndrome."""
+    if scope.syndrome is None:
+        return false()
+    clause = LabObservation.syndrome == scope.syndrome
+    if scope.test_codes is not None:
+        clause = and_(clause, LabObservation.loinc_code.in_(scope.test_codes))
+    return clause
+
+
 def aggregate(
     session: Session, syndrome: str, first: date, last: date, config: EngineConfig
 ) -> Aggregation:
+    scope = scope_for_key(syndrome)
     zone = ZoneInfo(config.timezone)
     facilities = participating_facilities(session)
     start, end = utc_bounds(first, last, zone)
@@ -122,6 +142,7 @@ def aggregate(
             LabObservation.specimen_type,
             LabObservation.effective_datetime,
             LabObservation.received_datetime,
+            LabObservation.loinc_code,
         )
         .join(Facility, Facility.id == LabObservation.facility_id)
         .where(
@@ -134,17 +155,23 @@ def aggregate(
                 LabObservation.effective_datetime < demo_start,
                 LabObservation.effective_datetime >= demo_end,
             ),
-            or_(LabObservation.syndrome == syndrome, LabObservation.terminology_status == "unmapped"),
+            or_(_in_scope(scope), LabObservation.terminology_status == "unmapped"),
         )
     ).all()
 
     by_facility: dict[str, dict[date, FacilityDay]] = defaultdict(lambda: defaultdict(FacilityDay))
-    for code, row_syndrome, terminology, result, specimen, effective, received in rows:
+    for code, row_syndrome, terminology, result, specimen, effective, received, loinc in rows:
         effective = as_utc(effective)
         day = effective.astimezone(zone).date()
         fd = by_facility[code][day]
         fd.quality.lab_observations += 1
-        if terminology != "mapped" or row_syndrome != syndrome:
+        in_scope = (
+            terminology == "mapped"
+            and scope.syndrome is not None
+            and row_syndrome == scope.syndrome
+            and (scope.test_codes is None or loinc in scope.test_codes)
+        )
+        if not in_scope:
             continue  # counted for terminology quality only
         fd.quality.mapped_observations += 1
 
@@ -178,7 +205,7 @@ def observed_date_range(session: Session, syndrome: str, config: EngineConfig) -
         .where(
             Facility.facility_code.in_(facilities),
             LabObservation.status.in_(COUNTED_STATUSES),
-            LabObservation.syndrome == syndrome,
+            _in_scope(scope_for_key(syndrome)),
             or_(
                 LabObservation.effective_datetime < demo_start,
                 LabObservation.effective_datetime >= demo_end,

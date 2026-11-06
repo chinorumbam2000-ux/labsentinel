@@ -207,14 +207,16 @@ describe('Roella — scope and safety', () => {
         expect(text).not.toContain(formatPercent(zip.positivityRate));
       }
     }
-    // Day 2: only the non-suppressed area is ranked.
+    // Day 2: a suppressed area could rank anywhere, so no "most affected" area is named.
     const day2 = ask('Which area is most affected?', ctx(2)).text;
     const shown = getZipMetrics(2).filter((zip) => !getAreaPositivePrivacy(2, zip.hospitalId).suppressed);
     const hidden = getZipMetrics(2).filter((zip) => getAreaPositivePrivacy(2, zip.hospitalId).suppressed);
     expect(shown.map((zip) => zip.zipCode)).toEqual(['01604']);
     expect(day2).toContain('01604');
     for (const zip of hidden) expect(day2).toContain(`${zip.zipCode}`);
-    expect(day2).toMatch(/suppressed \(fewer than 5 positives\) and not compared/);
+    expect(day2).toMatch(/cannot be made from the displayed data/);
+    expect(day2).toMatch(/suppressed \(fewer than 5 positives\)/);
+    expect(day2).not.toContain('the most affected area');
   });
 
   it('marks answers about later days as ahead of the simulation', () => {

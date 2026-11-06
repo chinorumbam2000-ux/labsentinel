@@ -361,6 +361,11 @@ export interface InvestigationEvent {
 
 export interface InvestigationRecord {
   alertId: string;
+  /**
+   * The surveillance profile the alert belongs to. Absent on records saved
+   * before profiles existed, which were all Respiratory Viral Syndrome.
+   */
+  profileId?: string;
   status: InvestigationStatus;
   assignedInvestigator: string | null;
   acknowledged: boolean;
@@ -394,7 +399,14 @@ export interface ReportEvent {
 export interface ReportSnapshot {
   signalId: string;
   signalTitle: string;
+  /** The surveillance profile's display name (the syndrome or pathogen). */
   syndrome: string;
+  /** The surveillance profile's id. Absent on reports saved before profiles existed (Respiratory Viral Syndrome). */
+  profileId?: string;
+  /** Positive results and positivity as they may be displayed (small-count rule applied). */
+  positiveResultsDisplay?: string;
+  positivityDisplay?: string;
+  baselinePositivityDisplay?: string;
   detectedAt: string;
   detectedDay: SimulationDay;
   preparedForDay: SimulationDay;

@@ -103,3 +103,72 @@ export const areaPrivacyFor = (id: ProfileId, day: number): AreaPrivacy =>
         suppressedCount: profileSuppressedAreaCount(id, day),
         summary: profileDisclosureSummary(id, day),
       };
+
+/* ------------------------------------------------------------------------ *
+ * Facility and regional counts.
+ *
+ * The same rule (applyGeographicPrivacy, threshold unchanged) applied at the
+ * other levels a count is shown: a facility's positives (Facility level,
+ * rolled up to the county), and a profile's regional positives (County
+ * level, nothing broader to roll up to within the network). A positivity
+ * rate shown beside its test count would reveal the count, so a rate is
+ * withheld whenever its count is.
+ * ------------------------------------------------------------------------ */
+
+const COUNTY_LABEL = 'County';
+
+/** Positive results at one facility on one day, for a profile. */
+export const facilityPositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId): PrivacyResult => {
+  const hospital = HOSPITAL_BY_ID[hospitalId];
+  return applyGeographicPrivacy({
+    count: site(id, day, hospitalId).positives,
+    level: 'Facility',
+    measure: 'positive results',
+    areaLabel: hospital.name,
+    rollup: { level: COUNTY_LABEL, count: regionalPositives(id, day), label: hospital.county },
+  });
+};
+
+/** A facility's positives from Day 1 through the given day. */
+export const facilityCumulativePositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId): PrivacyResult => {
+  let positives = 0;
+  for (let d = 1; d <= day; d += 1) positives += site(id, d, hospitalId).positives;
+  return applyGeographicPrivacy({
+    count: positives,
+    level: 'Facility',
+    measure: 'positive results',
+    areaLabel: HOSPITAL_BY_ID[hospitalId].name,
+  });
+};
+
+/** A profile's positives across the whole network (the county) on one day. */
+export const regionalPositivePrivacy = (id: ProfileId, day: number): PrivacyResult =>
+  applyGeographicPrivacy({
+    count: regionalPositives(id, day),
+    level: COUNTY_LABEL,
+    measure: `${PROFILE_BY_ID[id].displayName} positive results`,
+    areaLabel: 'Worcester County',
+  });
+
+/** A rate shown only when its count may be shown. */
+export const rateDisplay = (privacy: PrivacyResult, rate: number): string =>
+  privacy.suppressed ? SUPPRESSED_VALUE : `${rate.toFixed(1)}%`;
+
+/** Replay days on which a profile's regional positives are withheld. */
+export const suppressedRegionalDays = (id: ProfileId): number[] =>
+  [1, 2, 3, 4, 5].filter((day) => regionalPositivePrivacy(id, day).suppressed);
+
+/**
+ * A score component's evidence as it may be displayed. The positivity
+ * component quotes rates that, with the test count, would reveal a withheld
+ * count; its points are shown, its rates are not.
+ */
+export const componentEvidence = (
+  component: { key: string; evidence: string },
+  regionalSuppressed: boolean,
+): string =>
+  regionalSuppressed && component.key === 'positivity'
+    ? `Rates withheld: fewer than ${MINIMUM_DISPLAY_COUNT} positive results on the day or the baseline day`
+    : component.evidence;
+
+export { SUPPRESSED_VALUE, MINIMUM_DISPLAY_COUNT };

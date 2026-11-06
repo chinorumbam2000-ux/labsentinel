@@ -14,6 +14,8 @@ interface SignalTableProps {
   profileNames?: Record<string, string>;
   /** Shown when there are no alerts. */
   emptyMessage?: string;
+  /** Alerts that open a profile's investigation shell ("Review"), e.g. another profile's alerts. */
+  canReview?: (alert: OutbreakAlert) => boolean;
 }
 
 const STATUS_STYLES: Record<OutbreakAlert['status'], string> = {
@@ -28,6 +30,7 @@ export default function SignalTable({
   onAcknowledge,
   profileNames,
   emptyMessage,
+  canReview = () => false,
 }: SignalTableProps) {
   if (alerts.length === 0) {
     return (
@@ -108,6 +111,15 @@ export default function SignalTable({
                       className="ls-btn px-3 py-1.5 text-xs"
                     >
                       Investigate
+                    </button>
+                  ) : canReview(alert) ? (
+                    <button
+                      type="button"
+                      onClick={() => onInvestigate(alert)}
+                      className="ls-btn px-3 py-1.5 text-xs"
+                      aria-label={`Review alert: ${profileOf(alert) ? `${profileOf(alert)} — ` : ''}${alert.title}`}
+                    >
+                      Review
                     </button>
                   ) : null}
                   {alert.status === 'Acknowledged' ? (

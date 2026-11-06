@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDemoSession } from '../../context/DemoSessionContext';
 import { DEMO_ROLE, FALLBACK_INITIALS, FALLBACK_NAME, initialsFor } from '../../lib/demoSession';
@@ -8,12 +8,19 @@ import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
 import DataSourceIndicator from './DataSourceIndicator';
 import ModeChip from './ModeChip';
+import { usePortfolio } from '../../lib/profiles/usePortfolio';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
+import { STATUS_LABEL } from '../../lib/profiles/derive';
 
 /**
- * The top bar. On Scenario Replay screens (every analyst page) it carries the
- * replay day controls, the scenario's Composite score and the "Simulated
- * surveillance data" indicator. On System pages it names the page's mode
- * instead, so the replay score is never read as, say, a dynamic signal.
+ * The top bar. On analyst pages it carries the replay day controls (the
+ * replay calendar is shared by every profile), the SELECTED profile's reading
+ * and the "Simulated surveillance data" indicator. On Scenario Replay itself
+ * the reading is the replay's own profile, Respiratory Viral Syndrome, named
+ * as such. A profile without a score shows its status in words, never
+ * another profile's score. The bell counts alerts across all profiles.
+ * On System pages it names the page's mode instead, so a replay score is
+ * never read as, say, a dynamic signal.
  */
 export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMode; onOpenNav: () => void }) {
   const classroom = mode === 'classroom';
@@ -27,13 +34,27 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
     resetSimulation,
     refresh,
     lastUpdated,
-    alerts,
-    unacknowledgedCount,
+    profileAlerts: alerts,
+    attentionCount: unacknowledgedCount,
     acknowledgeAlert,
     isFirstDay,
     isLastDay,
   } = useSimulation();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const portfolio = usePortfolio();
+  // Scenario Replay narrates Respiratory Viral Syndrome; elsewhere the reading follows ?profile=.
+  const onReplay = pathname === '/replay' || pathname === '/simulation';
+  const readingId = onReplay ? RVS_PROFILE_ID : portfolio.focusId;
+  const reading = portfolio.summaries.find((s) => s.profile.id === readingId);
+  const readingProfile = PROFILE_BY_ID[readingId];
+  const readingScore = onReplay ? signalScore : (reading?.score ?? null);
+  const readingStatus = onReplay ? null : (reading?.status ?? null);
+  const readingStatusText = readingStatus === 'NO_DATA' ? 'No current data' : STATUS_LABEL[readingStatus ?? 'NO_DATA'];
+  const readingAlerts = alerts.filter((a) => a.profileId === readingId && a.status !== 'Acknowledged').length;
+  const readingLabel = `${onReplay ? 'Replay profile' : 'Selected profile'}: ${readingProfile.displayName}, ${
+    readingScore ? `${readingScore.severity}, score ${readingScore.composite} out of 100` : readingStatusText.toLowerCase()
+  }; ${readingAlerts} ${readingAlerts === 1 ? 'alert' : 'alerts'} awaiting acknowledgement`;
   const [showAlerts, setShowAlerts] = useState(false);
   const { session, signOut } = useDemoSession();
   // The guard means a session always exists here; the fallback only covers
@@ -63,9 +84,15 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
           <div className="flex min-w-0 items-center gap-3">
             <div className="min-w-0">
               <p className="ls-label">Replay Day</p>
-              <p className="truncate text-sm font-semibold text-ink" title={`Day ${currentDay} of 5 · ${currentScenario.stage}`}>
+              {/* The stage belongs to the narrated replay: shown on Scenario Replay only. */}
+              <p
+                className="truncate text-sm font-semibold text-ink"
+                title={`Day ${currentDay} of 5 · ${onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}`}
+              >
                 Day {currentDay} of 5
-                <span className="ml-2 font-normal text-muted">{currentScenario.stage}</span>
+                <span className="ml-2 font-normal text-muted">
+                  {onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}
+                </span>
               </p>
             </div>
           </div>
@@ -119,13 +146,6 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         {/* Local vs API is an implementation detail: shown on System pages only. */}
         {classroom ? null : <DataSourceIndicator />}
 
-        {/* Every page header repeats the surveillance date, so the top bar shows it only when there is room. */}
-        {classroom ? (
-          <div className="hidden text-right 2xl:block">
-            <p className="ls-label">Surveillance date</p>
-            <p className="text-sm font-medium text-ink">{formatSimulationDate(simulationDate)}</p>
-          </div>
-        ) : null}
 
         {/* The browser session clock is not a data timestamp: shown on System pages only. */}
         {classroom ? null : (
@@ -143,12 +163,34 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         )}
 
         {classroom ? (
-          <div className="hidden items-center gap-2 sm:flex">
-            <SeverityBadge severity={signalScore.severity} />
-            <span className="text-sm font-semibold tabular-nums text-ink">
-              {signalScore.composite}
-              <span className="text-muted">/100</span>
+          <div
+            className="hidden items-center gap-2 sm:flex"
+            role="group"
+            aria-label={readingLabel}
+            title={readingLabel}
+            data-testid="profile-reading"
+          >
+            <span aria-hidden="true" className="max-w-[9rem] truncate text-sm font-semibold text-ink">
+              {readingProfile.shortName}
             </span>
+            {readingScore ? (
+              <>
+                <span aria-hidden="true">
+                  <SeverityBadge severity={readingScore.severity} />
+                </span>
+                <span aria-hidden="true" className="text-sm font-semibold tabular-nums text-ink">
+                  {readingScore.composite}
+                  <span className="text-muted">/100</span>
+                </span>
+              </>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="whitespace-nowrap rounded-full border border-dashed border-muted/60 px-2 py-0.5 text-[11px] font-semibold text-muted"
+              >
+                {readingStatusText}
+              </span>
+            )}
           </div>
         ) : null}
 
@@ -159,7 +201,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             className="ls-btn relative min-w-[34px] px-2.5 py-1.5"
             aria-label={`Notifications: ${unacknowledgedCount} ${
               unacknowledgedCount === 1 ? 'alert' : 'alerts'
-            } awaiting acknowledgement`}
+            } awaiting acknowledgement across all profiles`}
             aria-expanded={showAlerts}
           >
             <span aria-hidden="true">🔔</span>
@@ -180,7 +222,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               />
               <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-hairline bg-white p-2 shadow-panel">
                 <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                  {unacknowledgedCount} awaiting acknowledgement · Day {currentDay}
+                  {unacknowledgedCount} awaiting acknowledgement · all profiles · Day {currentDay}
                 </p>
                 {alerts.length === 0 ? (
                   <p className="px-2 py-3 text-sm text-muted">
@@ -194,7 +236,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                           type="button"
                           onClick={() => {
                             setShowAlerts(false);
-                            navigate('/signals');
+                            navigate(`/signals?profile=${encodeURIComponent(alert.profileId)}`);
                           }}
                           className="flex w-full items-start gap-2 text-left"
                         >
@@ -203,7 +245,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium text-ink">
-                              {alert.title}
+                              {PROFILE_BY_ID[alert.profileId].displayName} — {alert.title}
                             </span>
                             <span className="block truncate text-xs text-muted">
                               {alert.detection.detail} · detected Day {alert.detectedDay}
@@ -215,7 +257,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                             type="button"
                             onClick={() => acknowledgeAlert(alert.id)}
                             className="ls-btn mt-1.5 w-full px-2 py-1 text-[11px]"
-                            aria-label={`Acknowledge alert: ${alert.title}`}
+                            aria-label={`Acknowledge alert: ${PROFILE_BY_ID[alert.profileId].displayName} — ${alert.title}`}
                           >
                             Acknowledge
                           </button>

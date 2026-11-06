@@ -25,12 +25,15 @@ export default function FacilityStatusOverview({
   metrics,
   selectedId,
   onSelect,
+  positivityText = (_id, rate) => `${rate.toFixed(1)}%`,
 }: {
   facilities: Hospital[];
   feeds: FacilityFeedHealth[];
   metrics: HospitalMetrics[];
   selectedId: HospitalId;
   onSelect: (id: HospitalId) => void;
+  /** A facility's positivity as it may be shown: withheld ("<5") when its count is. */
+  positivityText?: (id: HospitalId, rate: number) => string;
 }) {
   const reporting = feeds.filter((feed) => feed.isReporting).length;
   const issues = feeds.filter((feed) => feed.status !== 'HEALTHY').length;
@@ -95,7 +98,7 @@ export default function FacilityStatusOverview({
                     {site?.isAffected ? (
                       <span className="inline-flex items-center gap-2">
                         <SeverityBadge severity={site.severity} />
-                        <span className="text-xs text-muted">{site.positivityRate.toFixed(1)}% positive</span>
+                        <span className="text-xs text-muted">{positivityText(site.hospital.id, site.positivityRate)} positive</span>
                       </span>
                     ) : (
                       <span className="text-muted">Not contributing</span>

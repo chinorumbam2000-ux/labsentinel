@@ -80,6 +80,10 @@ import {
   DEFAULT_INVESTIGATOR,
 } from '../lib/investigationWorkflow';
 import { applyReportAction, createReport } from '../lib/reporting';
+import { findProfileDetection, getProfileAlerts, type ProfileAlert } from '../lib/profiles/portfolio';
+import { PROFILE_BY_ID, RVS_PROFILE_ID, type ProfileId } from '../lib/profiles/registry';
+import { getProfileDay } from '../lib/profiles/derive';
+import { areaPrivacyFor, rateDisplay, regionalPositivePrivacy } from '../lib/profiles/privacy';
 import {
   clearSession,
   loadSession,
@@ -112,6 +116,13 @@ export interface SimulationContextValue {
   unacknowledgedCount: number;
   /** Alerts first detected on the current simulation day. */
   newTodayCount: number;
+  /** Every surveillance profile's alerts visible on the current day, with acknowledgement status. */
+  profileAlerts: ProfileAlert[];
+  /**
+   * Alerts awaiting acknowledgement across ALL profiles — what the global
+   * notification bell and the Signals badge count.
+   */
+  attentionCount: number;
   acknowledgements: Record<string, AcknowledgementRecord>;
   trendSeries: TrendPoint[];
   /** Data trust, kept entirely separate from the outbreak signal score. */
@@ -317,13 +328,12 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       const existing = investigations[alertId];
       if (existing) return existing;
 
-      const detection = getAlerts(currentDay, acknowledgements).find(
-        (alert) => alert.id === alertId,
-      );
-      if (!detection) return undefined;
-      return createInvestigation(alertId, detection.detectedDay, detection.detectedAt);
+      // Any profile's alert, once it has been detected on or before the current day.
+      const detection = findProfileDetection(alertId);
+      if (!detection || detection.detectedDay > currentDay) return undefined;
+      return createInvestigation(alertId, detection.detectedDay, detection.detectedAt, detection.profileId);
     },
-    [investigations, currentDay, acknowledgements],
+    [investigations, currentDay],
   );
 
   const getInvestigation = useCallback(
@@ -364,7 +374,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   const prepareReport = useCallback(
     (alertId: string, analystNotes?: string): string | null => {
-      const alert = getAlerts(currentDay, acknowledgements).find(
+      const alert = getProfileAlerts(currentDay, acknowledgements).find(
         (item) => item.id === alertId,
       );
       if (!alert) return 'That signal is not available on the current simulation day.';
@@ -375,13 +385,35 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       }
 
       if (!derived?.ok) return 'Surveillance data is not available right now.';
+      // The report describes the alert's own profile, never another one.
+      const profileId = alert.profileId as ProfileId;
+      const name = PROFILE_BY_ID[profileId].displayName;
+      const day = getProfileDay(profileId, currentDay);
+      const isNarrated = profileId === RVS_PROFILE_ID;
+      const scenario = isNarrated ? derived.currentScenario : day.scenario;
+      const score = isNarrated ? derived.signalScore : day.score;
+      if (!score) {
+        return `${name} has no score on Replay Day ${currentDay} (${day.statusReason}) A report needs a scored day.`;
+      }
+      const regional = regionalPositivePrivacy(profileId, currentDay);
+      const baselinePrivacy = regionalPositivePrivacy(profileId, day.baseline.day);
       const report = createReport({
         alert,
         investigation,
-        scenario: derived.currentScenario,
-        score: derived.signalScore,
+        scenario,
+        score,
         confidence: derived.dataConfidence,
         analystNotes,
+        profile: {
+          id: profileId,
+          name,
+          baselineTests: day.baseline.tests,
+          baselinePositivityRate: day.baseline.positivityRate,
+          areaDisclosure: areaPrivacyFor(profileId, currentDay).summary,
+          positiveResultsDisplay: regional.displayValue,
+          positivityDisplay: rateDisplay(regional, scenario.positivityRate),
+          baselinePositivityDisplay: rateDisplay(baselinePrivacy, day.baseline.positivityRate),
+        },
       });
 
       setReports((current) => [report, ...current]);
@@ -481,6 +513,10 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       regionalAlert: getRegionalAlert(currentDay, acknowledgements),
       unacknowledgedCount: getUnacknowledgedCount(currentDay, acknowledgements),
       newTodayCount: getNewTodayCount(currentDay),
+      profileAlerts: getProfileAlerts(currentDay, acknowledgements),
+      attentionCount: getProfileAlerts(currentDay, acknowledgements).filter(
+        (alert) => alert.status !== 'Acknowledged',
+      ).length,
       acknowledgements,
       trendSeries: derived.trendSeries,
       dataConfidence: derived.dataConfidence,

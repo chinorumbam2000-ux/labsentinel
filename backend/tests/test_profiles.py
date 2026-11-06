@@ -69,10 +69,13 @@ def test_registry_agrees_with_fhir_terminology_without_changing_it() -> None:
             assert terminology.lookup(test.code) is None
 
 
-def test_only_the_engine_backed_profile_is_live() -> None:
-    live = [p for p in registry.profiles() if p.live_available]
-    assert [p.id for p in live] == [RVS]
-    assert live[0].legacy_syndrome == terminology.RESPIRATORY_VIRAL_SYNDROME
+def test_profiles_with_ingestible_tests_are_live_under_their_own_engine_keys() -> None:
+    live = [p.id for p in registry.profiles() if p.live_available]
+    # LOINC-mapped tests are ingested through FHIR; the demonstration codes never are.
+    assert live == [RVS, "influenza-a", "covid-19", "rsv"]
+    assert registry.get_profile(RVS).engine_key == terminology.RESPIRATORY_VIRAL_SYNDROME
+    assert registry.get_profile(RVS).legacy_syndrome == terminology.RESPIRATORY_VIRAL_SYNDROME
+    assert [p.engine_key for p in registry.profiles()][1:] == EXPECTED_IDS[1:]
     assert [p.id for p in registry.profiles() if p.replay_available] == [RVS]
     assert all(p.legacy_syndrome is None for p in registry.profiles() if p.id != RVS)
 
@@ -109,7 +112,7 @@ def test_registry_validation_refuses_ambiguous_definitions() -> None:
         registry.validate(replace(good, memberships=good.memberships + (("99999-9", RVS),)))
     with pytest.raises(ValueError, match="only once"):
         registry.validate(replace(good, memberships=good.memberships + good.memberships[:1]))
-    flu = replace(good.profiles[1], live_available=True)
+    flu = replace(good.profiles[1], live_available=True, engine_key=None)
     with pytest.raises(ValueError, match="engine key"):
         registry.validate(replace(good, profiles=(good.profiles[0], flu) + good.profiles[2:]))
     empty = replace(good.profiles[1], test_codes=())
@@ -129,6 +132,7 @@ def test_migration_0008_stores_exactly_the_registry(db_session: Session) -> None
             row.active,
             row.description,
             row.legacy_syndrome,
+            row.engine_key,
             row.baseline_config_ref,
             row.signal_config_ref,
             row.replay_available,
@@ -141,6 +145,7 @@ def test_migration_0008_stores_exactly_the_registry(db_session: Session) -> None
             definition.active,
             definition.description,
             definition.legacy_syndrome,
+            definition.engine_key,
             definition.baseline_config_ref,
             definition.signal_config_ref,
             definition.replay_available,
@@ -207,6 +212,7 @@ def test_profiles_api(seeded_client: TestClient) -> None:
     rvs = body[0]
     assert [t["code"] for t in rvs["tests"]] == ["85479-4", "92142-9", "94500-6"]
     assert rvs["live_available"] is True and rvs["legacy_syndrome"] == "Respiratory Viral Syndrome"
+    assert rvs["engine_key"] == "Respiratory Viral Syndrome"
     assert rvs["settings"]["label"] == "Illustrative defaults"
     assert rvs["settings"]["ewma"]["referenceDays"] == 28
 
@@ -227,3 +233,36 @@ def test_registry_file_is_the_frontends_too() -> None:
     if frontend.exists():  # absent in the backend-only container image
         assert "backend/app/profiles/registry.json" in frontend.read_text(encoding="utf-8")
     assert raw["defaultProfileId"] == RVS
+
+
+def test_migration_0009_adds_engine_keys_and_keeps_every_membership(tmp_path: Path) -> None:
+    engine = sqlite_engine(tmp_path / "0009.db")
+    upgrade(engine, "0008")
+    upgrade(engine, "0009")
+    with engine.connect() as connection:
+        rows = connection.execute(text("SELECT id, engine_key, live_available FROM surveillance_profile ORDER BY id")).all()
+        assert {r[0]: r[1] for r in rows}["influenza-a"] == "influenza-a"
+        assert {r[0]: bool(r[2]) for r in rows} == {
+            "cholera": False,
+            "covid-19": True,
+            "gastrointestinal-syndrome": False,
+            "influenza-a": True,
+            "respiratory-viral-syndrome": True,
+            "rsv": True,
+        }
+        assert connection.execute(text("SELECT count(*) FROM lab_test_profile_membership")).scalar() == 9
+
+    config = alembic_config()
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.downgrade(config, "0008")
+    with engine.connect() as connection:
+        columns = [c["name"] for c in inspect(connection).get_columns("surveillance_profile")]
+        assert "engine_key" not in columns
+        live = connection.execute(text("SELECT id FROM surveillance_profile WHERE live_available")).scalars().all()
+        assert live == ["respiratory-viral-syndrome"]
+        assert connection.execute(text("SELECT count(*) FROM lab_test_profile_membership")).scalar() == 9
+    upgrade(engine, "0009")
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT count(*) FROM lab_test_profile_membership")).scalar() == 9
+    engine.dispose()

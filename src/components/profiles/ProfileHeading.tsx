@@ -37,11 +37,35 @@ export default function ProfileHeading({ view, compact = false }: { view: Profil
         </span>
       </div>
       <p className="text-sm text-ink">{statusReason}</p>
+      {view.display.lowVolume ? (
+        <p role="note" className="rounded-md border border-dashed border-muted/60 px-3 py-2 text-xs text-ink" data-testid="low-volume-note">
+          <span className="font-semibold">{view.display.lowVolume.title}: </span>
+          {view.display.lowVolume.text}
+        </p>
+      ) : null}
+      {score ? (
+        // Traceability: the score is the sum of these five components, the same
+        // objects Roella explains. Rates are withheld where the count is.
+        <details className="group" data-testid="score-components">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded text-xs font-semibold text-ink hover:text-brand [&::-webkit-details-marker]:hidden">
+            <span aria-hidden="true" className="transition-transform group-open:rotate-90">›</span>
+            Score components ({score.composite} of 100)
+          </summary>
+          <ul className="mt-1.5 space-y-1 text-xs text-ink">
+            {[...score.components].map((component) => (
+              <li key={component.key}>
+                <span className="font-semibold">{component.label}</span>: {component.points} of {component.maxPoints}{' '}
+                points — <span className="text-muted">{view.display.evidence(component)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       {compact ? null : (
         <>
           <p className="text-xs text-muted">
-            {ORIGIN_NOTE[profile.dataOrigin]} Tests: {tests}. Data Confidence describes the participating
-            facilities’ feeds as a whole, for every profile — it is not specific to {profile.displayName}.
+            {ORIGIN_NOTE[profile.dataOrigin]} Tests: {tests}. Data Confidence is overall participating-source
+            quality: the same for every profile, not specific to {profile.displayName}.
           </p>
           <MethodNote label="Profile settings">
             {settings.label}: {settings.note} Replay baseline Day {settings.replay.baselineDay} (at least{' '}

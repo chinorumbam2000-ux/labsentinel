@@ -61,7 +61,8 @@ function TrendTooltip({
             Positivity
           </dt>
           <dd className="font-semibold tabular-nums text-ink">
-            {point.positivity.toFixed(1)}%
+            {/* A day whose positive count is withheld has no positivity to show. */}
+            {point.positivity === null || point.positivity === undefined ? '<5 (withheld)' : `${point.positivity.toFixed(1)}%`}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-6 border-t border-hairline pt-1">

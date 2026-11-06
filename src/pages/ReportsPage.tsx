@@ -84,6 +84,10 @@ export default function ReportsPage() {
                 title={
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs text-muted">{report.id}</span>
+                    {/* Every report names its surveillance profile (older reports were all Respiratory Viral Syndrome). */}
+                    <span className="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-ink ring-1 ring-inset ring-hairline">
+                      {snap.syndrome}
+                    </span>
                     <span>{snap.signalTitle}</span>
                   </span>
                 }
@@ -128,7 +132,7 @@ export default function ReportsPage() {
                 <dl className="grid grid-cols-1 gap-px bg-hairline sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     { label: 'Signal ID', value: snap.signalId, mono: true },
-                    { label: 'Syndrome', value: snap.syndrome },
+                    { label: 'Surveillance profile', value: snap.syndrome },
                     {
                       label: 'Detection timestamp',
                       value: `${formatSimulationDateTime(snap.detectedAt)} (Day ${snap.detectedDay})`,
@@ -143,18 +147,21 @@ export default function ReportsPage() {
                     },
                     {
                       label: 'Positivity',
-                      value: `${formatPercent(snap.positivityRate)} (${snap.positiveResults} of ${snap.testVolume})`,
+                      // Shown as the screens show it: a count under 5 is withheld, and so is its rate.
+                      value: snap.positivityDisplay
+                        ? `${snap.positivityDisplay} (${snap.positiveResultsDisplay} of ${snap.testVolume})`
+                        : `${formatPercent(snap.positivityRate)} (${snap.positiveResults} of ${snap.testVolume})`,
                     },
                     {
                       label: 'Baseline positivity',
-                      value: formatPercent(snap.baselinePositivityRate),
+                      value: snap.baselinePositivityDisplay ?? formatPercent(snap.baselinePositivityRate),
                     },
                     {
                       label: 'Composite Outbreak Signal Score',
                       value: `${snap.compositeScore} / 100 · ${snap.severity}`,
                     },
                     {
-                      label: 'Data Confidence Score',
+                      label: 'Data Confidence Score (overall participating-source quality)',
                       value: `${snap.dataConfidenceScore} / 100 · ${snap.dataConfidenceLevel}`,
                     },
                     {

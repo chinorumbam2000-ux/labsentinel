@@ -97,7 +97,7 @@ export default function VendorSidecar({
             Signal by ProbeSyQ
           </p>
           <p className="truncate text-[11px] leading-tight text-white/55">
-            Regional Respiratory Activity
+            Respiratory Viral Syndrome · regional activity
           </p>
         </div>
       </div>

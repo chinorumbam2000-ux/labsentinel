@@ -26,6 +26,8 @@ import { getAllHospitalMetrics, getObservationCounts, getZipMetrics } from '../l
 import { buildLocalSurveillanceDays, dataConfidenceFor, findDay, signalScoreFor } from '../lib/surveillanceDays';
 import type { OutbreakAlert, Severity, SimulationDay, SurveillanceDay } from '../types';
 import type { AssistantRoute } from './types';
+import { facilityPositivePrivacy } from '../lib/profiles/privacy';
+import { RVS_PROFILE_ID } from '../lib/profiles/registry';
 
 export interface AreaFact {
   zipCode: string;
@@ -40,6 +42,14 @@ export interface AreaFact {
   suppressed: boolean;
   /** Only set when the UI shows the number (never for suppressed areas). */
   positivityValue: number | null;
+}
+
+/** A facility's positive count as the Facilities page shows it (small-count rule at Facility level). */
+export interface FacilityFact {
+  hospitalId: string;
+  positivesDisplay: string;
+  positivityDisplay: string;
+  suppressed: boolean;
 }
 
 export interface FactsOptions {
@@ -85,6 +95,16 @@ export const factsForDay = (day: SimulationDay, options: FactsOptions = {}) => {
       { scenario, composite: source.compositeScore },
     ),
     hospitals: getAllHospitalMetrics(day),
+    /** Facility positives exactly as the Facilities page shows them. */
+    facilityCounts: getAllHospitalMetrics(day).map((h): FacilityFact => {
+      const privacy = facilityPositivePrivacy(RVS_PROFILE_ID, day, h.hospital.id);
+      return {
+        hospitalId: h.hospital.id,
+        positivesDisplay: privacy.displayValue,
+        positivityDisplay: privacy.suppressed ? privacy.displayValue : `${h.positivityRate.toFixed(1)}%`,
+        suppressed: privacy.suppressed,
+      };
+    }),
     areas,
     disclosure: getDisclosureSummary(day),
     alerts: options.alerts ?? getAlerts(day, {}),

@@ -116,6 +116,7 @@ const parseInvestigations = (
 
     result[id] = {
       alertId: typeof entry.alertId === 'string' ? entry.alertId : id,
+      ...(typeof entry.profileId === 'string' ? { profileId: entry.profileId } : {}),
       status: entry.status as InvestigationRecord['status'],
       assignedInvestigator:
         typeof entry.assignedInvestigator === 'string' ? entry.assignedInvestigator : null,

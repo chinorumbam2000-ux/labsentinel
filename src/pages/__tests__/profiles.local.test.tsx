@@ -189,7 +189,7 @@ describe('profile-aware pages', () => {
     expect(screen.getByTestId('lab-profile-note').textContent).toContain('Each also counts towards Respiratory Viral Syndrome');
     fireEvent.change(selector(), { target: { value: 'cholera' } });
     await screen.findByText('9 of 9 observations', {}, WAIT);
-    expect(screen.getByTestId('lab-profile-note').textContent).toContain('not in the API database');
+    expect(screen.getByTestId('lab-profile-note').textContent).toContain('synthetic portfolio results');
     fireEvent.change(selector(), { target: { value: 'respiratory-viral-syndrome' } });
     await screen.findByText('699 of 699 observations', {}, WAIT);
   });
@@ -223,10 +223,18 @@ describe('profile-aware pages', () => {
     expect(within(table).getAllByRole('button', { name: 'Investigate' })).toHaveLength(1);
   });
 
-  it('explains that another profile’s alert has no investigation view yet', async () => {
+  it('opens another profile’s alert in its own investigation shell, never the RVS view', async () => {
     atDay(5);
-    renderAt('/signals?alert=ALERT-COVID-19-REGIONAL-D5&view=detection');
-    expect(await screen.findByText('Detailed investigation is not available for this profile yet', {}, WAIT)).toBeTruthy();
+    renderAt('/signals?profile=covid-19&alert=ALERT-COVID-19-REGIONAL-D5&view=detection');
+    const shell = await screen.findByTestId('profile-investigation', {}, WAIT);
+    expect(within(shell).getByText('COVID-19')).toBeTruthy();
+    expect(within(shell).getByText('Regional outbreak signal detected')).toBeTruthy();
+    expect(screen.getByTestId('evidence-unavailable').textContent).toContain(
+      'Detailed evidence review for COVID-19 is not yet available',
+    );
+    // No Respiratory Viral Syndrome evidence stands in for it.
+    expect(document.body.textContent).not.toContain('Why This Signal');
+    expect(within(shell).getByText('93 / 100')).toBeTruthy();
   });
 
   it('the sidebar carries the selected profile between profile-aware pages', async () => {
@@ -235,7 +243,8 @@ describe('profile-aware pages', () => {
     await screen.findByTestId('active-surveillance', {}, WAIT);
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(within(nav).getByRole('link', { name: /Outbreak Map/ }).getAttribute('href')).toBe('/map?profile=rsv');
-    expect(within(nav).getByRole('link', { name: /Reports/ }).getAttribute('href')).toBe('/reports');
+    expect(within(nav).getByRole('link', { name: /Reports/ }).getAttribute('href')).toBe('/reports?profile=rsv');
+    expect(within(nav).getByRole('link', { name: /Scenario Replay/ }).getAttribute('href')).toBe('/replay?profile=rsv');
   });
 
   it('Scenario Replay still narrates the five-day respiratory scenario', async () => {

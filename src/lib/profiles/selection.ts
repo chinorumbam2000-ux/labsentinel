@@ -44,12 +44,20 @@ export const focusProfileFor = (selection: ProfileSelection, summaries: ProfileS
 export const selectionLabel = (selection: ProfileSelection): string =>
   isScope(selection) ? SCOPE_LABEL[selection] : PROFILE_BY_ID[selection].displayName;
 
-/** Pages that follow the selected profile; the sidebar carries `?profile=` between them. */
+/** Pages that follow the selected profile. */
 export const PROFILE_AWARE_PATHS = ['/dashboard', '/map', '/signals', '/facilities', '/laboratory-data', '/analytics'];
+
+/**
+ * Analyst pages the sidebar carries `?profile=` to, so the selection never
+ * resets on the way through: the profile-aware pages, plus Investigations and
+ * Reports (which list every profile) and Scenario Replay (which always shows
+ * its own profile, and hands the selection back on the way out).
+ */
+export const PROFILE_CARRYING_PATHS = [...PROFILE_AWARE_PATHS, '/investigations', '/reports', '/replay'];
 
 /** A link target that keeps the current profile selection, when there is one to keep. */
 export const withProfileParam = (to: string, search: string): string => {
-  if (!PROFILE_AWARE_PATHS.includes(to)) return to;
+  if (!PROFILE_CARRYING_PATHS.includes(to)) return to;
   const value = new URLSearchParams(search).get(PROFILE_PARAM);
   const { selection, invalid } = parseSelection(value);
   if (value === null || invalid) return to;

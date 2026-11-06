@@ -19,6 +19,9 @@ class ProfileRead(BaseModel):
     legacy_syndrome: str | None = Field(
         description="The syndrome key the dynamic engine calculates this profile under, if any."
     )
+    engine_key: str | None = Field(
+        description="The key its dynamic, EWMA and CUSUM results are stored under; pass ?profile=<id> to those endpoints."
+    )
     baseline_config_ref: str
     signal_config_ref: str
     replay_available: bool

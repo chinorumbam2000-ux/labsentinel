@@ -25,10 +25,10 @@ export const SEVERITY_STYLES: Record<
   },
   Watch: {
     badge:
-      'bg-severity-watch/15 text-[#9A7B0A] ring-1 ring-inset ring-severity-watch/40',
+      'bg-severity-watch/15 text-[#6B5102] ring-1 ring-inset ring-severity-watch/40',
     accent: 'bg-severity-watch',
     soft: 'bg-severity-watch/5 border-severity-watch/40',
-    text: 'text-[#9A7B0A]',
+    text: 'text-[#6B5102]',
   },
   Moderate: {
     badge:

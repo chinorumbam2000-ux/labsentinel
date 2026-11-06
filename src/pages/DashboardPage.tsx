@@ -57,7 +57,6 @@ export default function DashboardPage() {
   const {
     scenario: currentScenario,
     score: signalScore,
-    trendSeries,
     zipMetrics,
     cumulativeTotals,
     baseline,
@@ -144,12 +143,14 @@ export default function DashboardPage() {
               />
               <KpiCard
                 label={`Positivity — Day ${currentDay}`}
-                value={formatPercent(currentScenario.positivityRate)}
-                delta={formatPercentagePoints(signalScore.positivityDeltaPoints)}
-                deltaTone={signalScore.positivityDeltaPoints > 0 ? 'up' : 'neutral'}
-                footnote={`${currentScenario.totalPositives} of ${currentScenario.totalTests} tests · baseline ${baseline.positivityRate.toFixed(
-                  1,
-                )}%`}
+                value={view.display.regional.suppressed ? view.display.positivity : formatPercent(currentScenario.positivityRate)}
+                delta={
+                  view.display.ratesWithheld
+                    ? 'Change withheld (fewer than 5 positives)'
+                    : formatPercentagePoints(signalScore.positivityDeltaPoints)
+                }
+                deltaTone={!view.display.ratesWithheld && signalScore.positivityDeltaPoints > 0 ? 'up' : 'neutral'}
+                footnote={`${view.display.positives} of ${currentScenario.totalTests} tests · baseline ${view.display.baselinePositivity}`}
               />
               <KpiCard
                 label="Affected Facilities"
@@ -187,7 +188,7 @@ export default function DashboardPage() {
               subtitle={`Day 1 through Day ${currentDay} — synthetic aggregate data`}
               bodyClassName="p-4"
             >
-              <TrendChart data={trendSeries} />
+              <TrendChart data={view.display.trendSeries} />
             </Card>
           </section>
 
@@ -314,7 +315,7 @@ export default function DashboardPage() {
               }
               subtitle="Movement in each component input, and why the score responded"
             />
-            <DayOverDayChange comparison={view.dayOverDay} />
+            <DayOverDayChange comparison={view.display.dayOverDay ?? view.dayOverDay} />
           </section>
           ) : null}
 

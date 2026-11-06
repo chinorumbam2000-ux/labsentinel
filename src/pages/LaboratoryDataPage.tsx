@@ -203,7 +203,7 @@ export default function LaboratoryDataPage() {
           {focus.id === 'respiratory-viral-syndrome'
             ? 'All respiratory results in the replay feed.'
             : isPortfolioData
-              ? `${focus.displayName}: synthetic portfolio results with demonstration test codes (not LOINC). They are held in the browser in every mode and are not in the API database.`
+              ? `${focus.displayName}: synthetic portfolio results with demonstration test codes (not LOINC).`
               : `${focus.displayName}: the replay feed's ${profileTests.map((test) => test.name).join(', ')} results only. Each also counts towards Respiratory Viral Syndrome.`}
         </p>
       </div>

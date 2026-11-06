@@ -25,6 +25,8 @@ import {
   type ProfileSummary,
 } from '../lib/profiles/portfolio';
 import type { AnswerBlock, AssistantAnswer, AssistantContext, IntentId } from './types';
+import { componentEvidence, rateDisplay, regionalPositivePrivacy } from '../lib/profiles/privacy';
+import { lowVolumeNote } from '../lib/profiles/display';
 import type { SimulationDay } from '../types';
 
 const text = (value: string): AnswerBlock => ({ kind: 'text', text: value });
@@ -100,6 +102,9 @@ export const parseProfileIntent = (t: string): { intent: IntentId; profiles: Pro
   }
   if (named.length === 1 && has('facilit', 'hospital', 'site', 'contribut', 'where')) {
     return { intent: 'profile_facilities', profiles: named };
+  }
+  if (named.length === 1 && has('why did', 'why has', 'why is it', 'jump', 'drop', 'fall', 'fell', 'rise', 'rose', 'swing', 'move', 'moved', 'change', 'sharp')) {
+    return { intent: 'profile_change', profiles: named };
   }
   if (named.length === 1 && named[0] !== RVS_PROFILE_ID) return { intent: 'profile_status', profiles: named };
   if (named.length === 1 && has('happening with', 'going on with', 'status of', 'how is', 'tell me about', 'what about')) {
@@ -217,13 +222,30 @@ const profilesCritical = (ctx: AssistantContext): AssistantAnswer => {
   ], ['Which profiles need attention?', `What is happening with ${critical[0].profile.displayName}?`]);
 };
 
+/** A regional positivity as the screens show it: withheld when its count is under 5. */
+const shownRate = (id: ProfileId, day: number, rate: number) => rateDisplay(regionalPositivePrivacy(id, day), rate);
+
+/** The baseline day's positivity as the screens show it. */
+const shownBaseline = (s: ProfileSummary) =>
+  rateDisplay(regionalPositivePrivacy(s.profile.id, s.current.baseline.day), s.current.baseline.positivityRate);
+
+/** Whether a day's positivity evidence is withheld (the day's or the baseline's count is under 5). */
+const ratesWithheld = (s: ProfileSummary) =>
+  regionalPositivePrivacy(s.profile.id, s.current.day).suppressed ||
+  regionalPositivePrivacy(s.profile.id, s.current.baseline.day).suppressed;
+
+const lowVolume = (s: ProfileSummary): AnswerBlock[] => {
+  const note = lowVolumeNote(s.profile.id, s.status);
+  return note ? [text(`${note.title}: ${note.text}`)] : [];
+};
+
 const profileMetrics = (s: ProfileSummary): AnswerBlock => {
   const sc = s.current.scenario;
   const items: Array<[string, string]> = [
     ['Status', STATUS_LABEL[s.status]],
     ['Score', s.score ? `${s.score.composite} / 100 (${s.score.severity})` : 'No score'],
     ['Tests', String(sc.totalTests)],
-    ['Positivity', sc.totalTests ? `${sc.positivityRate.toFixed(1)}%` : '—'],
+    ['Positivity', sc.totalTests ? shownRate(s.profile.id, s.current.day, sc.positivityRate) : '—'],
     ['Facilities above margin', `${sc.affectedHospitals.length} of 3`],
   ];
   if (s.scoreChange !== null) items.push(['Change since previous day', `${s.scoreChange > 0 ? '+' : ''}${s.scoreChange}`]);
@@ -244,6 +266,7 @@ const profileStatus = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
       `${profile.displayName} counts ${joinAnd(tests)} results (${DATA_ORIGIN_LABEL[profile.dataOrigin].toLowerCase()}). ${SEPARATE}`,
     ),
   ];
+  blocks.push(...lowVolume(s));
   if (day && day > ctx.day) blocks.push(text(`Note: Day ${day} is ahead of the current replay day (Day ${ctx.day}).`));
   return answer('profile_status', blocks, [
     `Which facilities contribute to ${profile.displayName}?`,
@@ -269,7 +292,7 @@ const profileCompare = (ids: ProfileId[], ctx: AssistantContext): AssistantAnswe
     blocks.push(
       text(
         higher
-          ? `${higher.profile.displayName} is higher by ${Math.abs(a.score.composite - b.score.composite)} ${Math.abs(a.score.composite - b.score.composite) === 1 ? 'point' : 'points'}. Tests: ${a.current.scenario.totalTests} vs ${b.current.scenario.totalTests}; positivity ${a.current.scenario.positivityRate.toFixed(1)}% vs ${b.current.scenario.positivityRate.toFixed(1)}%.`
+          ? `${higher.profile.displayName} is higher by ${Math.abs(a.score.composite - b.score.composite)} ${Math.abs(a.score.composite - b.score.composite) === 1 ? 'point' : 'points'}. Tests: ${a.current.scenario.totalTests} vs ${b.current.scenario.totalTests}; positivity ${shownRate(a.profile.id, a.current.day, a.current.scenario.positivityRate)} vs ${shownRate(b.profile.id, b.current.day, b.current.scenario.positivityRate)}.`
           : 'Both have the same score.',
       ),
     );
@@ -297,7 +320,7 @@ const profileFacilities = (id: ProfileId, ctx: AssistantContext): AssistantAnswe
         : `${affected.length} of 3 facilities ${affected.length === 1 ? 'is' : 'are'} above ${name}'s detection margin on Replay Day ${ctx.day}: ${joinAnd(affected)}.`,
     ),
     text(
-      `A facility contributes when its own ${name} positivity is at least 3 percentage points above ${name}'s Day 1 baseline (${s.current.baseline.positivityRate.toFixed(1)}%), with at least 10 tests that day. Small area counts are suppressed on the Map.`,
+      `A facility contributes when its own ${name} positivity is at least 3 percentage points above ${name}'s Day 1 baseline (${shownBaseline(s)}), with at least 10 tests that day. Counts under 5 are withheld on the Map and the Facilities page.`,
     ),
   ], [`What is happening with ${name}?`, 'Which profiles need attention?']);
 };
@@ -375,12 +398,47 @@ export const profileScoreExplanation = (id: ProfileId, ctx: AssistantContext, da
   const top = parts.filter((c) => c.points > 0).slice(0, 2).map((c) => c.label);
   return answer('score_explanation', [
     text(
-      `You are viewing ${name}. On Replay Day ${s.current.day} its score is ${s.score.composite} (${s.score.severity}), measured against ${name}'s own Day 1 baseline (${s.current.baseline.tests} tests, ${s.current.baseline.positivityRate.toFixed(1)}% positive). It is the sum of five weighted components:`,
+      `You are viewing ${name}. On Replay Day ${s.current.day} its score is ${s.score.composite} (${s.score.severity}), measured against ${name}'s own Day 1 baseline (${s.current.baseline.tests} tests, ${shownBaseline(s)} positive). It is the sum of five weighted components:`,
     ),
-    list(parts.map((c) => `${c.label}: ${c.points} of ${c.maxPoints} points — ${c.evidence}`)),
+    // The same components, and the same withheld rates, as the Score components list on screen.
+    list(parts.map((c) => `${c.label}: ${c.points} of ${c.maxPoints} points — ${componentEvidence(c, ratesWithheld(s))}`)),
+    ...lowVolume(s),
     ...(top.length ? [text(`The largest contributions come from ${joinAnd(top)}.`)] : []),
     text(`${SEPARATE} The score is an illustrative, non-validated demonstration model.`),
   ], ['Which profiles need attention?', `Which facilities contribute to ${name}?`]);
+};
+
+/** Why a profile's score moved since the previous day: component by component. */
+const profileChange = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay): AssistantAnswer => {
+  const s = day && day !== ctx.day ? summaryForDay(id, day) : portfolioFor(ctx).find((item) => item.profile.id === id)!;
+  const name = s.profile.displayName;
+  if (!s.score) {
+    return answer('profile_change', [text(`${name} has no score on Replay Day ${s.current.day}: ${s.current.statusReason}`)]);
+  }
+  if (!s.previous?.score) {
+    return answer('profile_change', [
+      text(`${name} scores ${s.score.composite} (${s.score.severity}) on Replay Day ${s.current.day}; there is no scored previous day to compare with.`),
+      ...lowVolume(s),
+    ]);
+  }
+  const before = s.previous.score;
+  const delta = s.score.composite - before.composite;
+  const moves = s.score.components.map((c) => {
+    const was = before.components.find((p) => p.key === c.key)?.points ?? 0;
+    const d = c.points - was;
+    return { label: c.label, d, line: `${c.label}: ${was} → ${c.points} points (${d > 0 ? '+' : ''}${d})` };
+  });
+  const biggest = [...moves].filter((m) => m.d !== 0).sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, 2);
+  return answer('profile_change', [
+    text(
+      `${name} moved from ${before.composite} to ${s.score.composite} (${delta > 0 ? '+' : ''}${delta}) between Replay Day ${s.current.day - 1} and Day ${s.current.day}.${
+        biggest.length ? ` The largest changes are in ${joinAnd(biggest.map((m) => m.label))}.` : ''
+      }`,
+    ),
+    list(moves.map((m) => m.line), 'Component points, previous day → this day'),
+    ...lowVolume(s),
+    text(SEPARATE),
+  ], [`What is happening with ${name}?`, 'Which profiles need attention?']);
 };
 
 export const answerProfileIntent = (
@@ -398,6 +456,7 @@ export const answerProfileIntent = (
     case 'profile_compare': return profileCompare(parsed.profiles, ctx);
     case 'profile_facilities': return profileFacilities(parsed.profiles[0], ctx);
     case 'profile_unknown': return profileUnknown(parsed.unknown ?? 'That');
+    case 'profile_change': return profileChange(parsed.profiles[0], ctx, parsed.day);
     default: return null;
   }
 };

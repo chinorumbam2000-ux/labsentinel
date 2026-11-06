@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.profiles.params import engine_key_param
 from app.schemas.cusum import (
     ComparisonRead,
     CusumDayRead,
@@ -28,11 +29,11 @@ from app.services import cusum_reads as reads
 from app.services import statistics_service as ewma_reads
 from app.statistics import cusum_persistence, cusum_service, service
 from app.statistics.cusum import DISCLAIMER, LABEL, CusumConfig
-from app.surveillance.types import DEFAULT_SYNDROME
 
 router = APIRouter(prefix="/api/statistics", tags=["statistical surveillance (experimental)"])
 
-Syndrome = Query(default=DEFAULT_SYNDROME, max_length=100)
+# ?profile=<id> or ?syndrome=<key>; neither means Respiratory Viral Syndrome.
+Syndrome = Depends(engine_key_param)
 FORMULA = {
     "z": "z_t = (Y_t - mean) / SD, with the reference mean and SD shared with EWMA",
     "cusum": "C_t = max(0, C_(t-1) + z_t - k), with C_0 = 0",

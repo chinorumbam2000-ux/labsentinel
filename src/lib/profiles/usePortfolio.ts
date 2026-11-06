@@ -21,6 +21,7 @@ import type { TrendPoint } from '../analytics';
 import { compareDays } from '../dayOverDay';
 import { PROFILE_BY_ID, RVS_PROFILE_ID, type ProfileId, type SurveillanceProfile } from './registry';
 import { areaPrivacyFor, type AreaPrivacy } from './privacy';
+import { buildProfileDisplay, type ProfileDisplay } from './display';
 import {
   PROFILE_SITE_DAY_COUNTS,
   profileHospitalMetrics,
@@ -67,6 +68,8 @@ export interface ProfileView {
   alerts: ProfileAlert[];
   /** Small-count suppression for this profile's area counts. */
   privacy: AreaPrivacy;
+  /** Every count and rate as it may be displayed (small-count rule applied). */
+  display: ProfileDisplay;
 }
 
 export interface Portfolio {
@@ -131,7 +134,7 @@ export function usePortfolio(): Portfolio {
   const alerts = useMemo(() => getProfileAlerts(currentDay, acknowledgements), [currentDay, acknowledgements]);
   const focusId = focusProfileFor(selection, summaries);
 
-  const view = useMemo<ProfileView>(() => {
+  const baseView = useMemo<Omit<ProfileView, 'display'>>(() => {
     const summary = summaries.find((s) => s.profile.id === focusId) ?? summaries[0];
     const profileAlerts = alerts.filter((a) => a.profileId === focusId);
     if (focusId === RVS_PROFILE_ID) {
@@ -205,6 +208,13 @@ export function usePortfolio(): Portfolio {
     visibleObservations,
     dayOverDay,
   ]);
+  const view = useMemo<ProfileView>(
+    () => ({
+      ...baseView,
+      display: buildProfileDisplay(focusId, currentDay, baseView.trendSeries, baseView.dayOverDay, baseView.status),
+    }),
+    [baseView, focusId, currentDay],
+  );
 
   return {
     selection,

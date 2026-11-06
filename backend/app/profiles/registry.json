@@ -83,6 +83,7 @@
       "active": true,
       "description": "Influenza A, SARS-CoV-2 and RSV RNA results together. The narrated five-day Scenario Replay.",
       "legacySyndrome": "Respiratory Viral Syndrome",
+      "engineKey": "Respiratory Viral Syndrome",
       "baselineConfigRef": "illustrative-defaults-v1",
       "signalConfigRef": "illustrative-defaults-v1",
       "replayAvailable": true,
@@ -97,10 +98,11 @@
       "active": true,
       "description": "Influenza A RNA results only, from the same replay results as Respiratory Viral Syndrome.",
       "legacySyndrome": null,
+      "engineKey": "influenza-a",
       "baselineConfigRef": "illustrative-defaults-v1",
       "signalConfigRef": "illustrative-defaults-v1",
       "replayAvailable": false,
-      "liveAvailable": false,
+      "liveAvailable": true,
       "dataOrigin": "replay-derived"
     },
     {
@@ -111,10 +113,11 @@
       "active": true,
       "description": "SARS-CoV-2 RNA results only, from the same replay results as Respiratory Viral Syndrome.",
       "legacySyndrome": null,
+      "engineKey": "covid-19",
       "baselineConfigRef": "illustrative-defaults-v1",
       "signalConfigRef": "illustrative-defaults-v1",
       "replayAvailable": false,
-      "liveAvailable": false,
+      "liveAvailable": true,
       "dataOrigin": "replay-derived"
     },
     {
@@ -125,10 +128,11 @@
       "active": true,
       "description": "RSV RNA results only, from the same replay results as Respiratory Viral Syndrome.",
       "legacySyndrome": null,
+      "engineKey": "rsv",
       "baselineConfigRef": "illustrative-defaults-v1",
       "signalConfigRef": "illustrative-defaults-v1",
       "replayAvailable": false,
-      "liveAvailable": false,
+      "liveAvailable": true,
       "dataOrigin": "replay-derived"
     },
     {
@@ -139,6 +143,7 @@
       "active": true,
       "description": "Vibrio cholerae results. Synthetic portfolio data: a few tests from the third replay day, none before.",
       "legacySyndrome": null,
+      "engineKey": "cholera",
       "baselineConfigRef": "illustrative-defaults-v1",
       "signalConfigRef": "illustrative-defaults-v1",
       "replayAvailable": false,
@@ -153,6 +158,7 @@
       "active": true,
       "description": "Gastrointestinal pathogen panel and Vibrio cholerae results together. Synthetic portfolio data.",
       "legacySyndrome": null,
+      "engineKey": "gastrointestinal-syndrome",
       "baselineConfigRef": "illustrative-defaults-v1",
       "signalConfigRef": "illustrative-defaults-v1",
       "replayAvailable": false,

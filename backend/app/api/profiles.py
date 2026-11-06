@@ -33,6 +33,7 @@ def _read(profile: SurveillanceProfile, members: list[LabTestProfileMembership])
         active=profile.active,
         description=profile.description,
         legacy_syndrome=profile.legacy_syndrome,
+        engine_key=profile.engine_key,
         baseline_config_ref=profile.baseline_config_ref,
         signal_config_ref=profile.signal_config_ref,
         replay_available=profile.replay_available,

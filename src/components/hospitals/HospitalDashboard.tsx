@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { HospitalMetrics } from '../../types';
+import type { HospitalMetrics, PrivacyResult } from '../../types';
 import { formatDateTime, formatSimulationDate } from '../../lib/format';
 import { getScenario } from '../../data/simulation';
 import SeverityBadge from '../signals/SeverityBadge';
@@ -20,9 +20,16 @@ const POSITIVITY_COLOR = '#DC2626';
 const AXIS_COLOR = '#64748B';
 const GRID_COLOR = '#DCE6F1';
 
+/** How the facility's positive counts may be shown (the small-count rule, applied at Facility level). */
+export interface FacilityCountPrivacy {
+  /** The facility's positives on a given day. */
+  on: (day: number) => PrivacyResult;
+}
+
 interface HospitalDashboardProps {
   metrics: HospitalMetrics;
   currentDay: number;
+  privacy: FacilityCountPrivacy;
 }
 
 const axisProps = {
@@ -44,7 +51,9 @@ const tooltipStyles = {
 export default function HospitalDashboard({
   metrics,
   currentDay,
+  privacy,
 }: HospitalDashboardProps) {
+  const today = privacy.on(currentDay);
   const stats = [
     {
       label: `Tests — Day ${currentDay}`,
@@ -53,8 +62,11 @@ export default function HospitalDashboard({
     },
     {
       label: `Positivity — Day ${currentDay}`,
-      value: `${metrics.positivityRate.toFixed(1)}%`,
-      note: `${metrics.positiveTests} of ${metrics.totalTests} tests positive`,
+      // A rate beside its test count would reveal a withheld count, so both follow the rule.
+      value: today.suppressed ? today.displayValue : `${metrics.positivityRate.toFixed(1)}%`,
+      note: today.suppressed
+        ? `Fewer than 5 of ${metrics.totalTests} tests positive — withheld`
+        : `${today.displayValue} of ${metrics.totalTests} tests positive`,
     },
     {
       // Never reveals a day the simulation has not reached yet.
@@ -77,10 +89,13 @@ export default function HospitalDashboard({
     ...point,
     dayLabel: `Day ${point.day}`,
   }));
+  // Days whose positive count is withheld are not plotted (a gap, never a value).
   const positivityData = metrics.positivitySeries.map((point) => ({
     ...point,
+    positivity: privacy.on(point.day).suppressed ? null : point.positivity,
     dayLabel: `Day ${point.day}`,
   }));
+  const withheldDays = metrics.positivitySeries.filter((point) => privacy.on(point.day).suppressed).map((p) => p.day);
 
   return (
     <div className="space-y-5">
@@ -141,7 +156,7 @@ export default function HospitalDashboard({
                 />
                 <Tooltip
                   {...tooltipStyles}
-                  formatter={(value: number) => [`${value}%`, 'Positivity']}
+                  formatter={(value: unknown) => [value === null || value === undefined ? '<5 (withheld)' : `${String(value)}%`, 'Positivity']}
                 />
                 <Line
                   type="monotone"
@@ -150,10 +165,17 @@ export default function HospitalDashboard({
                   strokeWidth={2}
                   dot={{ r: 3.5, fill: POSITIVITY_COLOR, stroke: '#FFFFFF', strokeWidth: 2 }}
                   activeDot={{ r: 5.5 }}
+                  connectNulls={false}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
+          {withheldDays.length ? (
+            <p className="px-4 pb-3 text-[11px] text-muted">
+              Not plotted: Day {withheldDays.join(', Day ')} — fewer than 5 positive results, withheld under the
+              small-count rule.
+            </p>
+          ) : null}
         </section>
       </div>
 
@@ -175,6 +197,11 @@ export default function HospitalDashboard({
             message="This facility has not delivered any simulated laboratory observations for the current replay day."
           />
         ) : (
+          <>
+          <p className="px-4 pt-3 text-[11px] text-muted">
+            Results are not listed here: on a facility summary they would reveal counts the small-count rule
+            withholds. Individual records are on Laboratory Data.
+          </p>
           <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Recent observations table">
             <table className="w-full min-w-[720px] border-collapse">
               <thead className="border-b border-hairline bg-canvas">
@@ -183,7 +210,6 @@ export default function HospitalDashboard({
                   <th scope="col" className="ls-th">Patient ID</th>
                   <th scope="col" className="ls-th">Test</th>
                   <th scope="col" className="ls-th">LOINC</th>
-                  <th scope="col" className="ls-th">Result</th>
                   <th scope="col" className="ls-th">FHIR Status</th>
                 </tr>
               </thead>
@@ -198,17 +224,6 @@ export default function HospitalDashboard({
                     <td className="ls-td font-mono text-xs text-muted">
                       {observation.loincCode}
                     </td>
-                    <td className="ls-td">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                          observation.result === 'Positive'
-                            ? 'bg-severity-critical/10 text-[#B91C1C] ring-1 ring-inset ring-severity-critical/25'
-                            : 'bg-severity-low/10 text-[#166534] ring-1 ring-inset ring-severity-low/20'
-                        }`}
-                      >
-                        {observation.result}
-                      </span>
-                    </td>
                     <td className="ls-td text-muted">
                       {observation.fhirStatus} <span className="text-[#166534]">✓</span>
                     </td>
@@ -217,6 +232,7 @@ export default function HospitalDashboard({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>

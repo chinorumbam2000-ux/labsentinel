@@ -157,12 +157,16 @@ describe('Investigations', () => {
     cleanup();
     renderAt('/investigations');
     const table = (await screen.findByRole('table', { name: /investigation and report status/ })) as HTMLElement;
+    // Every profile's alerts, each naming its profile and opening that profile's investigation.
     const rows = within(table).getAllByRole('row').slice(1);
-    expect(rows.length).toBe(4);
+    expect(rows.length).toBe(15);
+    expect(rows.filter((row) => row.textContent?.startsWith('Respiratory Viral Syndrome'))).toHaveLength(4);
     for (const row of rows) {
       expect(within(row).getByText('NEW')).toBeTruthy();
       expect(within(row).getByText('Not prepared')).toBeTruthy();
-      expect(within(row).getByRole('link', { name: /Open investigation/ }).getAttribute('href')).toMatch(/^\/signals\?alert=/);
+      expect(within(row).getByRole('link', { name: /Open investigation/ }).getAttribute('href')).toMatch(
+        /^\/signals\?profile=[a-z0-9-]+&alert=ALERT-/,
+      );
     }
   });
 

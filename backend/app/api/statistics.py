@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.profiles.params import engine_key_param
 from app.schemas.statistics import (
     EwmaDayRead,
     EwmaPointRead,
@@ -27,11 +28,11 @@ from app.schemas.statistics import (
 from app.services import statistics_service as reads
 from app.statistics import persistence, service
 from app.statistics.types import DETECTOR_NOTE, DISCLAIMER, LABEL, EwmaConfig
-from app.surveillance.types import DEFAULT_SYNDROME
 
 router = APIRouter(prefix="/api/statistics/ewma", tags=["statistical surveillance (experimental)"])
 
-Syndrome = Query(default=DEFAULT_SYNDROME, max_length=100)
+# ?profile=<id> or ?syndrome=<key>; neither means Respiratory Viral Syndrome.
+Syndrome = Depends(engine_key_param)
 FORMULA = {
     "ewma": "EWMA_t = lambda * Y_t + (1 - lambda) * EWMA_(t-1), with EWMA_0 = reference mean",
     "sigma": "sigma_t = SD * sqrt(lambda / (2 - lambda) * (1 - (1 - lambda)^(2t)))",

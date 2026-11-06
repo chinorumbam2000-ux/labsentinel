@@ -84,6 +84,8 @@ export interface SurveillanceProfile {
   description: string;
   /** The single-valued `syndrome` the dynamic engine calculates it under, if any. */
   legacySyndrome: string | null;
+  /** The key the backend's dynamic, EWMA and CUSUM results for this profile are stored under. */
+  engineKey: string | null;
   baselineConfigRef: string;
   signalConfigRef: string;
   /** Has the narrated five-day Scenario Replay. */

@@ -1,8 +1,9 @@
 from datetime import date
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.profiles.params import resolve_request_key
 from app.schemas.common import LocalDateTime
 from app.schemas.statistics import CompositeRef, EwmaReference
 
@@ -103,6 +104,16 @@ class CusumRecalculateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     syndrome: str = "Respiratory Viral Syndrome"
+    profile: str | None = Field(default=None, max_length=64, description="Surveillance profile id (optional).")
+
+    @model_validator(mode="after")
+    def _resolve_profile(self) -> "CusumRecalculateRequest":
+        # ``profile`` names a surveillance profile; it resolves to the engine key stored as ``syndrome``.
+        try:
+            self.syndrome = resolve_request_key(self.syndrome, self.profile, "syndrome" in self.model_fields_set)
+        except LookupError as error:
+            raise ValueError(str(error)) from error
+        return self
 
 
 class CusumRecalculateResponse(BaseModel):

@@ -216,8 +216,10 @@ const facilities = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
   const f = factsFor(p.day ?? ctx.day, ctx);
   const affected = f.hospitals.filter((h) => h.isAffected);
   const others = f.hospitals.filter((h) => !h.isAffected);
+  // Positive counts and rates as the Facilities page shows them: withheld under 5.
+  const shown = (h: (typeof f.hospitals)[number]) => f.facilityCounts.find((c) => c.hospitalId === h.hospital.id)!;
   const row = (h: (typeof f.hospitals)[number]) =>
-    `${h.hospital.name} (${h.hospital.zipCode}, ${h.hospital.environmentLabel}) — positivity ${facilityPositivity(h.positivityRate)}, ${h.positiveTests} of ${h.totalTests} tests positive, ${h.severity}${h.firstSignalDay ? `, signalling since Day ${h.firstSignalDay}` : ''}`;
+    `${h.hospital.name} (${h.hospital.zipCode}, ${h.hospital.environmentLabel}) — positivity ${shown(h).positivityDisplay}, ${shown(h).positivesDisplay} of ${h.totalTests} tests positive, ${h.severity}${h.firstSignalDay ? `, signalling since Day ${h.firstSignalDay}` : ''}`;
   const blocks: AnswerBlock[] = [];
   if (!affected.length) {
     blocks.push(text(`On Day ${f.day} no facility is above the detection margin; all ${TOTAL_SITES} are at baseline.`));
@@ -226,6 +228,9 @@ const facilities = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
     blocks.push(list(affected.map(row)));
   }
   if (others.length && affected.length) blocks.push(list(others.map(row), 'Not currently affected'));
+  if (f.facilityCounts.some((c) => c.suppressed)) {
+    blocks.push(text(`"<5" means fewer than ${MINIMUM_DISPLAY_COUNT} positive results: the exact count is withheld to reduce re-identification risk.`));
+  }
   blocks.push(...aheadNote(f.day, ctx));
   return answer('facilities', blocks, ['Which one has the highest positivity?', 'What vendor environment does each facility represent?', 'Which ZIP codes are affected?']);
 };
@@ -235,8 +240,20 @@ const facilityRanking = (p: ParsedQuestion, ctx: AssistantContext, state: Conver
   const t = p.normalized;
   const onlyAffected = state.lastTopic === 'facilities' && f.hospitals.some((h) => h.isAffected);
   const pool = onlyAffected ? f.hospitals.filter((h) => h.isAffected) : f.hospitals;
-  const byVolume = /\b(volume|tests|testing)\b/.test(t);
+  const byVolume = /\b(volume|tests|testing)\b/.test(t) && !/\bpositive/.test(t);
   const lowest = /\b(lowest|least)\b/.test(t);
+  // Positive counts and positivity are compared only where the Facilities page shows them.
+  const hiddenPool = byVolume ? [] : pool.filter((h) => f.facilityCounts.find((c) => c.hospitalId === h.hospital.id)?.suppressed);
+  if (hiddenPool.length) {
+    const visible = pool.filter((h) => !hiddenPool.includes(h));
+    const shownRate = (h: (typeof pool)[number]) => f.facilityCounts.find((c) => c.hospitalId === h.hospital.id)!.positivityDisplay;
+    return answer('facility_ranking', [
+      text(`The facilities cannot be ranked by positives or positivity on Day ${f.day} from the displayed data: ${joinAnd(hiddenPool.map((h) => h.hospital.name))} ${hiddenPool.length === 1 ? 'reports' : 'report'} fewer than ${MINIMUM_DISPLAY_COUNT} positive results, which are withheld, so ${hiddenPool.length === 1 ? 'its' : 'their'} position cannot be shown without revealing ${hiddenPool.length === 1 ? 'it' : 'them'}.`),
+      ...(visible.length ? [list(visible.map((h) => `${h.hospital.name}: ${shownRate(h)} positivity (${h.severity})`), 'Shown on the Facilities page')] : []),
+      text('Facilities can be compared by test volume, which is never withheld.'),
+      ...aheadNote(f.day, ctx),
+    ], ['Which facility has the highest test volume?', 'Why are some counts shown as <5?']);
+  }
   const metric = (h: (typeof pool)[number]) => (byVolume ? h.totalTests : h.positivityRate);
   const sorted = [...pool].sort((a, b) => (lowest ? metric(a) - metric(b) : metric(b) - metric(a)));
   const top = sorted[0];
@@ -293,11 +310,16 @@ const areaRanking = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer 
   }
   const sorted = [...shown].sort((a, b) => (b.positivityValue ?? 0) - (a.positivityValue ?? 0));
   const top = sorted[0];
-  const blocks: AnswerBlock[] = [
-    text(`By positivity, the most affected area on Day ${f.day} is ${top.zipCode} ${top.city} (${top.hospitalName}): ${top.positivityDisplay}, ${top.positivesDisplay} positive, ${top.severity}.`),
-    list(sorted.map((a) => `${a.zipCode} ${a.city}: ${a.positivityDisplay} (${a.severity})`)),
-  ];
-  if (hidden.length) blocks.push(text(`${joinAnd(hidden.map((a) => a.zipCode))} ${hidden.length === 1 ? 'is' : 'are'} suppressed (fewer than ${MINIMUM_DISPLAY_COUNT} positives) and not compared.`));
+  // A suppressed area could rank anywhere: naming a "most affected" area would imply its hidden value.
+  const blocks: AnswerBlock[] = hidden.length
+    ? [
+        text(`A complete ranking of areas on Day ${f.day} cannot be made from the displayed data: ${joinAnd(hidden.map((a) => a.zipCode))} ${hidden.length === 1 ? 'is' : 'are'} suppressed (fewer than ${MINIMUM_DISPLAY_COUNT} positives), so ${hidden.length === 1 ? 'its' : 'their'} position is not shown.`),
+        list(sorted.map((a) => `${a.zipCode} ${a.city}: ${a.positivityDisplay} (${a.severity})`), 'Areas shown on the Map'),
+      ]
+    : [
+        text(`By positivity, the most affected area on Day ${f.day} is ${top.zipCode} ${top.city} (${top.hospitalName}): ${top.positivityDisplay}, ${top.positivesDisplay} positive, ${top.severity}.`),
+        list(sorted.map((a) => `${a.zipCode} ${a.city}: ${a.positivityDisplay} (${a.severity})`)),
+      ];
   return answer('area_ranking', [...blocks, ...aheadNote(f.day, ctx)], ['Which facilities are affected?', 'What should I investigate next?']);
 };
 

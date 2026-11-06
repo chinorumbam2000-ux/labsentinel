@@ -98,7 +98,10 @@ describe('Roella — surveillance profiles', () => {
     expect(a.intent).toBe('score_explanation');
     expect(a.text).toContain('You are viewing Influenza A');
     expect(a.text).toContain('its score is 86 (Critical)');
-    expect(a.text).toContain("Influenza A's own Day 1 baseline (33 tests, 3.0% positive)");
+    // The baseline has 1 positive: its rate is withheld, as on screen.
+    expect(a.text).toContain("Influenza A's own Day 1 baseline (33 tests, <5 positive)");
+    expect(a.text).not.toContain('3.0%');
+    expect(a.text).toContain('Small numbers');
     // The narrated profile keeps its own explanation.
     expect(ask('Why is this signal high?', ctx(5)).text).toContain('the score is 87 (Critical');
     expect(ask('Why is the score this high?', ctx(4, 'cholera')).text).toContain('It has no score on Replay Day 4');
@@ -133,5 +136,37 @@ describe('Roella — surveillance profiles', () => {
     const withProfiles = ask('Which profiles need attention?', ctx(5)).text;
     const without = ask('Which profiles need attention?', { day: 5, route: 'dashboard' }).text;
     expect(without).toBe(withProfiles);
+  });
+
+  it('never reveals a facility count the Facilities page withholds', () => {
+    // Day 1: every facility has fewer than 5 positives.
+    const facilities = ask('Which facilities are affected?', ctx(1)).text;
+    expect(facilities).not.toMatch(/\b[0-4] of \d+ tests positive/);
+    const ranking = ask('Which facility has the most positives?', ctx(1));
+    expect(ranking.intent).toBe('facility_ranking');
+    expect(ranking.text).toContain('cannot be ranked by positives or positivity on Day 1 from the displayed data');
+    expect(ranking.text).not.toMatch(/\d+\.\d%/);
+    // By test volume (never withheld) a ranking is still given.
+    expect(ask('Which facility has the highest test volume?', ctx(1)).text).toContain('41 tests');
+    // Day 5: every facility meets the threshold, so positivity can be compared.
+    expect(ask('Which facility has the highest positivity?', ctx(5)).text).toMatch(/has the highest positivity/);
+  });
+
+  it('withholds a profile’s small county-level counts in comparisons', () => {
+    const a = ask('Compare Influenza A and RSV', ctx(2)).text;
+    expect(a).toContain('positivity <5 vs <5');
+    expect(a).not.toMatch(/\d+\.\d%/);
+    const status = ask('What is happening with Influenza A?', ctx(1)).text;
+    expect(status).toContain('Positivity: <5');
+  });
+
+  it('explains a sharp move component by component, with the small-numbers caution', () => {
+    const a = ask('Why did Influenza A drop?', ctx(5));
+    expect(a.intent).toBe('profile_change');
+    expect(a.text).toContain('Influenza A moved from 86 to 67 (-19) between Replay Day 4 and Day 5');
+    expect(a.text).toMatch(/Facilities: \d+ → \d+ points/);
+    expect(a.text).toContain('Small numbers');
+    // The narrated profile has no caution: its baseline has 8 positives.
+    expect(ask('What is happening with Respiratory Viral Syndrome?', ctx(5)).text).not.toContain('Small numbers');
   });
 });

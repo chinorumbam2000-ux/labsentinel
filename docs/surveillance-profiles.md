@@ -21,21 +21,23 @@ read it:
   "live" profile without an engine key.
 
 Each profile has an id, display name, category, active flag, description, test
-membership (derived from the membership list), baseline and signal configuration
-references, replay availability and live availability.
+membership (derived from the membership list), an engine key, baseline and
+signal configuration references, replay availability and live availability.
 
-| Profile | Category | Tests | Data | Replay | Live engine |
-|---|---|---|---|---|---|
-| Respiratory Viral Syndrome (default) | Syndrome | Influenza A, SARS-CoV-2, RSV RNA | The narrated Scenario Replay | Yes | Yes |
-| Influenza A | Pathogen | Influenza A RNA | Derived from the replay results | No | No |
-| COVID-19 | Pathogen | SARS-CoV-2 RNA | Derived from the replay results | No | No |
-| RSV | Pathogen | RSV RNA | Derived from the replay results | No | No |
-| Cholera | Pathogen | V. cholerae (demo code) | Synthetic portfolio data | No | No |
-| Gastrointestinal Syndrome | Syndrome | GI panel, V. cholerae (demo codes) | Synthetic portfolio data | No | No |
+| Profile | Category | Tests | Data | Replay | Live engine | Engine key |
+|---|---|---|---|---|---|---|
+| Respiratory Viral Syndrome (default) | Syndrome | Influenza A, SARS-CoV-2, RSV RNA | The narrated Scenario Replay | Yes | Yes | `Respiratory Viral Syndrome` (legacy) |
+| Influenza A | Pathogen | Influenza A RNA | Derived from the replay results | No | Yes | `influenza-a` |
+| COVID-19 | Pathogen | SARS-CoV-2 RNA | Derived from the replay results | No | Yes | `covid-19` |
+| RSV | Pathogen | RSV RNA | Derived from the replay results | No | Yes | `rsv` |
+| Cholera | Pathogen | V. cholerae (demo code) | Synthetic portfolio data | No | No | `cholera` |
+| Gastrointestinal Syndrome | Syndrome | GI panel, V. cholerae (demo codes) | Synthetic portfolio data | No | No | `gastrointestinal-syndrome` |
 
 "Replay" means the narrated five-day Scenario Replay. "Live engine" means the
-backend's dynamic engine (and EWMA / CUSUM) calculates the profile from ingested
-results. Only Respiratory Viral Syndrome has both today.
+backend's dynamic engine (and EWMA / CUSUM) can calculate the profile from
+FHIR-ingested results: true for every profile whose tests are LOINC-mapped.
+Cholera and Gastrointestinal Syndrome use demonstration codes that are never
+ingested, so the engine has nothing to calculate for them.
 
 ## Many-to-many test membership
 
@@ -118,6 +120,106 @@ shown as "within expected range".
 The pathogen profiles are the replay's own results filtered by test, so their
 daily counts are about a third of the syndrome's and their scores move more.
 
+## Global versus profile-specific
+
+Every analyst-facing element is one or the other, never a mix.
+
+| Global to Signal by ProbeSyQ | Specific to the selected profile |
+|---|---|
+| Signed-in analyst, Sign Out | Top bar reading: profile name, score and severity (or status words) |
+| Replay Day and its controls (one calendar for every profile) | Composite score, severity, status, component breakdown |
+| "Simulated surveillance data" disclosure | Volume, positives, positivity, baseline |
+| Notification bell and Signals badge: alerts awaiting acknowledgement across **all** profiles | Affected facilities and areas, persistence |
+| Active Surveillance counts (how many profiles are in each status) | Map, Facilities figures, Laboratory Data filter, Analytics series |
+| Data Confidence — overall participating-source quality | The profile's alerts and day-to-day change |
+| Feed health and facility reporting status | Small-count suppression of that profile's counts |
+
+Scenario Replay is the exception that proves the rule: it narrates Respiratory
+Viral Syndrome, so on that page the top bar names it as the *replay profile*
+and shows the replay stage; on every other page the stage (an RVS narrative)
+is not shown and the reading is the selected profile's. A profile with no data
+or no baseline shows its status in words ("Insufficient baseline", "No current
+data"); another profile's score is never shown in its place.
+
+## Small counts (privacy)
+
+The rule is unchanged (`geographicPrivacy.ts`: a count under 5 is withheld and
+rolled up). It now applies at every level a positive count appears, for every
+profile, through one function (`src/lib/profiles/display.ts`) that the
+screens, reports and Roella share:
+
+- **Area (ZIP)** — as before, per profile.
+- **Facility** — a facility's positives (Facility level, rolled up to the
+  county). Facilities cards, charts (withheld days are gaps, never values) and
+  tooltips. The facility summary no longer lists individual results, which
+  would let a small count be counted; record-level results are on Laboratory
+  Data.
+- **County** — a profile's network-wide positives. Respiratory Viral
+  Syndrome's are always at least 5 (a test pins it), so nothing changes for
+  it; a pathogen's may not be.
+- A **rate** shown beside its test count would reveal its count, so a rate is
+  withheld whenever its count is — including the positivity evidence of a
+  score component (its points are still shown, for traceability).
+- **Roella** answers from the displayed values: it says a ranking "cannot be
+  made from the displayed data" when a withheld value could change it, and
+  never names a "most affected" area or facility in that case.
+- **Reports** store the displayed values beside the raw snapshot.
+
+Laboratory Data is the record-level view: it lists individual synthetic
+results and is not an aggregate display.
+
+## Small numbers (volatility)
+
+When a profile's baseline day has fewer positive results than the app may
+display, one or two results move its positivity — and its score — sharply.
+The profile heading and Roella then show a "Small numbers" caution. This
+reuses the existing display threshold as a plain indicator; it is not a new
+statistical threshold and changes no score.
+
+## Investigations and reports
+
+- Every profile's alert can be acknowledged, reviewed (Begin Review, Continue
+  Monitoring, Escalate, Dismiss, Confirmed Concern, Close) and reported.
+- Investigation records store their `profileId`; the Investigations list names
+  each alert's profile.
+- A non-RVS alert opens **its own** investigation shell: the alert's frozen
+  detection-time values, the review workflow, and a clear statement that the
+  detailed evidence view (step-by-step score breakdown and facility, area and
+  data-quality trace) covers Respiratory Viral Syndrome only. Nothing stands
+  in for it, and the page never switches to Respiratory Viral Syndrome.
+- A report drafted from a COVID-19 alert describes COVID-19: its own figures,
+  baseline, area disclosure and profile name. A profile without a score on the
+  day cannot be reported, and the analyst is told why.
+- The clinician sidecar is a Respiratory Viral Syndrome example and is labelled
+  as such.
+
+## Backend: one engine, once per profile
+
+```
+normalized observations
+  -> route each observation to every applicable profile (test membership)
+  -> aggregate the profile's observation set      (aggregator, engine key)
+  -> the existing engine, baseline, scorer         (unchanged)
+  -> persist under the profile's engine key        (surveillance_signal.syndrome)
+  -> EWMA and CUSUM on the same set                (unchanged, 28-day reference)
+```
+
+`scope_for_key` (app/profiles/registry.py) turns an engine key into the
+observations it covers. The legacy key selects exactly what it always did; a
+profile key narrows the eligible observations to the profile's tests. Every
+eligibility rule is otherwise unchanged. Migration 0009 adds
+`surveillance_profile.engine_key`.
+
+Endpoints: the dynamic, EWMA and CUSUM endpoints accept `?profile=<id>`
+beside the older `?syndrome=`; neither means Respiratory Viral Syndrome. An
+unknown profile is 404; a profile and a different syndrome together are 422.
+The recalculation requests accept `"profile"` in their body.
+
+EWMA and CUSUM run per profile only where history exists: the 28-day reference
+(at least 21 days with data) is unchanged. A profile with no ingested history
+(Cholera, Gastrointestinal Syndrome, or any profile on the five-day replay) has
+no statistical result, and none is fabricated.
+
 ## In the app
 
 - **Dashboard** — *Active Surveillance*: "N signals require attention", the
@@ -127,15 +229,15 @@ daily counts are about a third of the syndrome's and their scores move more.
 - **Selected profile** — `?profile=<id>` (default Respiratory Viral
   Syndrome); `active` and `all` are portfolio views that focus single-profile
   pages on the highest active signal. An unknown value falls back to the
-  default and says so. The sidebar carries the value between the
-  profile-aware pages (Dashboard, Map, Signals, Facilities, Laboratory Data,
-  Analytics).
+  default and says so. The sidebar carries the value to every analyst page
+  (including Investigations, Reports and Scenario Replay), so it never resets
+  on the way through; back and forward restore it.
 - **Map, Facilities, Laboratory Data, Analytics** follow the selected profile.
   Small-count suppression applies to each profile's own counts with the same
   rule; a profile without a score is drawn neutral, never in the Low colour.
 - **Signals** lists every profile's alerts ("All profiles"), with profile and
-  detection-time score, using the same alert rules. Acknowledgement works for
-  every alert; the full investigation view covers Respiratory Viral Syndrome.
+  detection-time score, using the same alert rules. Every alert can be
+  acknowledged and reviewed (see Investigations and reports).
 - **Scenario Replay** is unchanged and narrates Respiratory Viral Syndrome.
 - **Roella** answers which profiles need attention, the highest or any Critical
   signal, what is happening with a profile, a comparison of two profiles, the
@@ -145,15 +247,24 @@ daily counts are about a third of the syndrome's and their scores move more.
 
 ## Data Confidence
 
-Data Confidence is **source-wide**: it describes the participating facilities'
-feeds as a whole and is the same for every profile. It is still never part of
-any score.
+Data Confidence is **overall participating-source quality**: it describes the
+participating facilities' feeds as a whole, is labelled so on screen, and is
+the same for every profile. It is never part of any score. (When the backend
+engine runs for one profile it computes its own data-quality inputs from that
+profile's observations; the screens do not use those.)
+
+## Data sources by profile
+
+| Profile | Local mode | API mode |
+|---|---|---|
+| Respiratory Viral Syndrome | Browser | Scores and days from the API |
+| Influenza A, COVID-19, RSV | Browser | Laboratory records from the API; scores derived in the browser from the replay feed |
+| Cholera, Gastrointestinal Syndrome | Browser | Browser only — not in the API database, not ingestible through FHIR |
 
 ## Not in this phase
 
-- No timer-driven or live ingestion. The routing rule (`routeObservations`)
-  already sends each observation to every applicable profile.
-- The backend engine, EWMA and CUSUM calculate Respiratory Viral Syndrome only;
-  the other profiles need an aggregator that filters by test membership before
-  they can be calculated live. The 28-day reference rule applies; the five-day
-  replay never shows statistical confirmation for any profile.
+- No timer-driven or live ingestion. The routing rule (`routeObservations`,
+  `profiles_for_test`) already sends each observation to every applicable
+  profile, and the backend can calculate each profile under its engine key.
+- The Detection Methods page still shows Respiratory Viral Syndrome; the API
+  behind it already accepts `?profile=`.

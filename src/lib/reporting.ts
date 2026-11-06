@@ -129,6 +129,20 @@ export interface BuildReportInput {
   confidence: DataConfidenceResult;
   analystNotes?: string;
   investigator?: string;
+  /**
+   * The surveillance profile the alert belongs to. Without it the report is
+   * the narrated Respiratory Viral Syndrome report, exactly as before.
+   */
+  profile?: {
+    id: string;
+    name: string;
+    baselineTests: number;
+    baselinePositivityRate: number;
+    areaDisclosure: string;
+    positiveResultsDisplay: string;
+    positivityDisplay: string;
+    baselinePositivityDisplay: string;
+  };
 }
 
 /** Freezes everything the report shows at the moment it is prepared. */
@@ -137,10 +151,19 @@ export const buildReportSnapshot = ({
   scenario,
   score,
   confidence,
+  profile,
 }: BuildReportInput): ReportSnapshot => ({
   signalId: alert.id,
   signalTitle: alert.title,
-  syndrome: SYNDROME,
+  syndrome: profile?.name ?? SYNDROME,
+  ...(profile
+    ? {
+        profileId: profile.id,
+        positiveResultsDisplay: profile.positiveResultsDisplay,
+        positivityDisplay: profile.positivityDisplay,
+        baselinePositivityDisplay: profile.baselinePositivityDisplay,
+      }
+    : {}),
   detectedAt: alert.detectedAt,
   detectedDay: alert.detectedDay,
   preparedForDay: scenario.day,
@@ -151,11 +174,11 @@ export const buildReportSnapshot = ({
   }),
   affectedAreas: scenario.affectedZipCodes,
   // Area detail is reported subject to the same privacy rule as the UI.
-  areaDisclosure: getDisclosureSummary(scenario.day),
+  areaDisclosure: profile?.areaDisclosure ?? getDisclosureSummary(scenario.day),
   testVolume: scenario.totalTests,
-  baselineTestVolume: BASELINE_TEST_VOLUME,
+  baselineTestVolume: profile?.baselineTests ?? BASELINE_TEST_VOLUME,
   positivityRate: scenario.positivityRate,
-  baselinePositivityRate: BASELINE_POSITIVITY_RATE,
+  baselinePositivityRate: profile?.baselinePositivityRate ?? BASELINE_POSITIVITY_RATE,
   positiveResults: scenario.totalPositives,
   compositeScore: score.composite,
   severity: score.severity,

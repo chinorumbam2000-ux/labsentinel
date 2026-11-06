@@ -81,7 +81,10 @@ export default function CurrentSituationCard({
         {/* Data confidence */}
         <div className="bg-white p-6">
           <div className="flex items-center justify-between gap-3">
-            <p className="ls-label">Data Confidence Score</p>
+            <div>
+              <p className="ls-label">Data Confidence Score</p>
+              <p className="text-[11px] text-muted">Overall participating-source quality</p>
+            </div>
             <span
               className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.06em] ${conf.badge}`}
             >

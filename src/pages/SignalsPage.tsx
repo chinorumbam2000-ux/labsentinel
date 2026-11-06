@@ -19,6 +19,7 @@ import ProfileSelector from '../components/profiles/ProfileSelector';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/profiles/portfolio';
 import { isScope } from '../lib/profiles/selection';
+import ProfileInvestigationShell from '../components/profiles/ProfileInvestigationShell';
 
 /**
  * Investigation context lives in the URL:
@@ -69,7 +70,9 @@ export default function SignalsPage() {
 
   const openInvestigation = (alertId: string) => {
     // Detection-time is the default: the user clicked a specific historical alert.
-    setSearchParams({ [ALERT_PARAM]: alertId, [VIEW_PARAM]: 'detection' });
+    // The selected profile stays in the URL, so Back returns to the same list.
+    const profile = searchParams.get('profile');
+    setSearchParams({ ...(profile ? { profile } : {}), [ALERT_PARAM]: alertId, [VIEW_PARAM]: 'detection' });
   };
 
   const setMode = (mode: InvestigationMode) => {
@@ -98,28 +101,55 @@ export default function SignalsPage() {
 
     // An alert reference we cannot honour: either it does not exist at all, or
     // it exists but has not been detected by the currently selected day.
-    // An alert of another profile: acknowledged from the list; the full
-    // investigation view covers Respiratory Viral Syndrome in this release.
+    // An alert of another profile opens that profile's investigation shell —
+    // never the Respiratory Viral Syndrome view. Its review workflow works as
+    // for any alert; its detailed evidence view does not exist yet, and says so.
     const profileDetection = alertParam ? findProfileDetection(alertParam) : undefined;
     if (alertParam && !selectedAlert && profileDetection && profileDetection.profileId !== RVS_PROFILE_ID) {
       const profileName = PROFILE_BY_ID[profileDetection.profileId].displayName;
+      const profileAlert = portfolio.alerts.find((alert) => alert.id === alertParam);
+      if (!profileAlert) {
+        return (
+          <div className="space-y-5">
+            <header>
+              <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
+            </header>
+            <Card>
+              <EmptyState
+                icon="!"
+                title="That alert has not been detected yet"
+                message={`"${profileDetection.title}" (${profileName}) is first detected on replay Day ${profileDetection.detectedDay}. The replay is currently on Day ${currentDay}.`}
+                action={
+                  <button type="button" onClick={openList} className="ls-btn-primary">
+                    Back to all signals
+                  </button>
+                }
+              />
+            </Card>
+          </div>
+        );
+      }
       return (
         <div className="space-y-5">
-          <header>
-            <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
+          <header className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
+              <p className="mt-1 max-w-3xl text-sm text-muted">{profileName} · review of a detected signal.</p>
+            </div>
+            <PageMeta />
           </header>
-          <Card>
-            <EmptyState
-              icon="!"
-              title="Detailed investigation is not available for this profile yet"
-              message={`"${profileDetection.title}" is a ${profileName} alert. In this release the full investigation view covers Respiratory Viral Syndrome; ${profileName} alerts are reviewed and acknowledged from the alert list.`}
-              action={
-                <button type="button" onClick={openList} className="ls-btn-primary">
-                  Back to all signals
-                </button>
-              }
-            />
-          </Card>
+          <ProfileInvestigationShell
+            alert={profileAlert}
+            investigation={getInvestigation(profileAlert.id)}
+            onAction={(action, note) => runInvestigationAction(profileAlert.id, action, note)}
+            onPrepareReport={() => {
+              const failure = prepareReport(profileAlert.id);
+              if (!failure) navigate(`/reports?profile=${encodeURIComponent(profileAlert.profileId)}`);
+              return failure;
+            }}
+            hasReport={reports.some((report) => report.alertId === profileAlert.id)}
+            onBack={openList}
+          />
         </div>
       );
     }
@@ -319,6 +349,7 @@ export default function SignalsPage() {
             onInvestigate={(alert) => openInvestigation(alert.id)}
             onAcknowledge={acknowledgeAlert}
             profileNames={profileNames}
+            canReview={(alert) => 'profileId' in alert && alert.profileId !== RVS_PROFILE_ID}
             emptyMessage={
               selection === RVS_PROFILE_ID
                 ? undefined
@@ -354,13 +385,13 @@ export default function SignalsPage() {
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Positives</dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {focusScenario.totalPositives}
+              {view.display.positives}
             </dd>
           </div>
           <div className="rounded-lg bg-canvas p-3">
             <dt className="ls-label">Positivity</dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {formatPercent(focusScenario.positivityRate)}
+              {view.display.regional.suppressed ? view.display.positivity : formatPercent(focusScenario.positivityRate)}
             </dd>
           </div>
           <div className="rounded-lg bg-canvas p-3">

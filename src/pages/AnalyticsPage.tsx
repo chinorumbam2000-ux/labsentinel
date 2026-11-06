@@ -58,7 +58,9 @@ export default function AnalyticsPage() {
   // Every series follows the selected surveillance profile (?profile=).
   const portfolio = usePortfolio();
   const { view } = portfolio;
-  const { trendSeries, baseline } = view;
+  const { trendSeries } = view;
+  // Positivity as it may be displayed: a day whose positive count is withheld has none.
+  const positivitySeries = view.display.trendSeries;
   // A day with no data or no usable baseline has no score — never plotted as 0.
   const unscoredDays = new Set(
     view.isNarrated ? [] : PROFILE_DAYS[view.profile.id].filter((d) => !d.score).map((d) => d.day as number),
@@ -82,17 +84,17 @@ export default function AnalyticsPage() {
   > = {
     volume: {
       title: 'Test Volume',
-      subtitle: `${view.isNarrated ? 'Respiratory' : view.profile.displayName} tests per day · baseline ${baseline.tests}`,
+      subtitle: `${view.isNarrated ? 'Respiratory' : view.profile.displayName} tests per day · baseline ${view.baseline.tests}`,
       unit: 'tests',
       rows: trendSeries.map((point) => ({ day: point.day, value: String(point.tests) })),
     },
     positivity: {
       title: 'Positivity',
-      subtitle: `Share of tests returning positive · baseline ${baseline.positivityRate.toFixed(1)}%`,
+      subtitle: `Share of tests returning positive · baseline ${view.display.baselinePositivity}`,
       unit: '%',
-      rows: trendSeries.map((point) => ({
+      rows: positivitySeries.map((point) => ({
         day: point.day,
-        value: `${point.positivity.toFixed(1)}%`,
+        value: point.positivity === null ? '<5 (withheld)' : `${point.positivity.toFixed(1)}%`,
       })),
     },
     score: {
@@ -147,7 +149,7 @@ export default function AnalyticsPage() {
 
     if (tab === 'positivity') {
       return (
-        <LineChart {...common}>
+        <LineChart {...common} data={positivitySeries}>
           <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="dayLabel" {...axisProps} />
           <YAxis
@@ -158,7 +160,10 @@ export default function AnalyticsPage() {
           />
           <Tooltip
             {...tooltipStyles}
-            formatter={(value: number) => [`${value.toFixed(1)}%`, 'Positivity']}
+            formatter={(value: unknown) => [
+              typeof value === 'number' ? `${value.toFixed(1)}%` : '<5 (withheld)',
+              'Positivity',
+            ]}
           />
           <Line
             type="monotone"

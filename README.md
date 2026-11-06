@@ -486,10 +486,16 @@ Cholera and Gastrointestinal Syndrome — each scored against its own baseline;
 scores are never combined. Tests belong to profiles many-to-many (an Influenza A
 result counts towards Influenza A and Respiratory Viral Syndrome). The Dashboard
 opens with **Active Surveillance**; `?profile=<id>` selects the profile the
-Dashboard, Map, Signals, Facilities, Laboratory Data and Analytics show. The
-registry is `backend/app/profiles/registry.json`, stored by migration 0008 and
-served read-only at `/api/profiles`. All profile data is synthetic and every
-setting is an illustrative default. Details: [docs/surveillance-profiles.md](docs/surveillance-profiles.md).
+Dashboard, Map, Signals, Facilities, Laboratory Data and Analytics show, and the
+top bar reads that profile's score (or its status in words); the notification
+bell and Signals badge count alerts across all profiles. Positive counts under 5
+— and the rates that would reveal them — are withheld at facility, area and
+county level for every profile, on screen, in reports and in Roella's answers.
+The registry is `backend/app/profiles/registry.json`, stored by migrations 0008
+and 0009 and served read-only at `/api/profiles`; the dynamic, EWMA and CUSUM
+endpoints accept `?profile=<id>` and run the one engine per profile. All
+profile data is synthetic and every setting is an illustrative default.
+Details: [docs/surveillance-profiles.md](docs/surveillance-profiles.md).
 
 ### Accessibility and resilience notes
 

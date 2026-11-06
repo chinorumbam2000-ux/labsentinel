@@ -112,6 +112,7 @@ export default function HospitalsPage() {
             metrics={hospitalMetrics}
             selectedId={activeHospital.id}
             onSelect={setActiveId}
+            positivityText={portfolio.view.display.facilityPositivity}
           />
 
           <h2 className="pt-1 text-lg font-semibold tracking-tight text-ink">{activeHospital.name}</h2>
@@ -119,6 +120,7 @@ export default function HospitalsPage() {
           <HospitalDashboard
             metrics={metrics}
             currentDay={currentDay}
+            privacy={{ on: (day) => portfolio.view.display.facilityOn(activeHospital.id, day) }}
           />
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
@@ -149,6 +151,10 @@ export default function HospitalsPage() {
               <p className="mt-1 max-w-3xl text-sm text-muted">
                 The simulated EHR shell changes for every vendor. The Signal sidecar inside it does
                 not — it is the same component rendered in all three.
+              </p>
+              <p className="mt-1 max-w-3xl text-sm text-ink" data-testid="sidecar-scope">
+                This sidecar is a Respiratory Viral Syndrome example: it shows the narrated replay's figures
+                whichever surveillance profile is selected above.
               </p>
             </div>
 

@@ -91,9 +91,11 @@ describe('profile registry', () => {
       expect(p.baselineConfigRef).toBe('illustrative-defaults-v1');
       expect(p.signalConfigRef).toBe('illustrative-defaults-v1');
     }
-    // Only the narrated scenario has the replay narrative and the live engine.
+    // Only the narrated scenario has the replay narrative.
     expect(PROFILES.filter((p) => p.replayAvailable).map((p) => p.id)).toEqual([RVS_PROFILE_ID]);
-    expect(PROFILES.filter((p) => p.liveAvailable).map((p) => p.id)).toEqual([RVS_PROFILE_ID]);
+    // LOINC-mapped profiles can be calculated by the backend engine; demonstration codes never are.
+    expect(PROFILES.filter((p) => p.liveAvailable).map((p) => p.id)).toEqual([RVS_PROFILE_ID, 'influenza-a', 'covid-19', 'rsv']);
+    expect(PROFILES.map((p) => p.engineKey)).toEqual(['Respiratory Viral Syndrome', 'influenza-a', 'covid-19', 'rsv', 'cholera', 'gastrointestinal-syndrome']);
     expect(isProfileId('covid-19')).toBe(true);
     expect(isProfileId('plague')).toBe(false);
   });
@@ -379,9 +381,11 @@ describe('selected profile (?profile=)', () => {
     expect(focusProfileFor('cholera', summarizeProfiles(1))).toBe('cholera');
   });
 
-  it('carries the selection between profile-aware pages only', () => {
+  it('carries the selection between analyst pages only', () => {
     expect(withProfileParam('/map', '?profile=rsv')).toBe('/map?profile=rsv');
-    expect(withProfileParam('/reports', '?profile=rsv')).toBe('/reports');
+    expect(withProfileParam('/reports', '?profile=rsv')).toBe('/reports?profile=rsv');
+    expect(withProfileParam('/replay', '?profile=rsv')).toBe('/replay?profile=rsv');
+    expect(withProfileParam('/architecture', '?profile=rsv')).toBe('/architecture');
     expect(withProfileParam('/map', '')).toBe('/map');
     expect(withProfileParam('/map', '?profile=plague')).toBe('/map');
   });
