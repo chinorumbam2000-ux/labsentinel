@@ -8,7 +8,15 @@ import type { ProfileView } from '../../lib/profiles/usePortfolio';
  * dashboard keeps its full current-alert section). Same alert rules for every
  * profile; acknowledgement happens on the Signals page.
  */
-export default function ProfileAlertList({ view, day }: { view: ProfileView; day: number }) {
+export default function ProfileAlertList({
+  view,
+  dayLabel,
+  label = (d) => `Day ${d}`,
+}: {
+  view: ProfileView;
+  dayLabel: string;
+  label?: (day: number) => string;
+}) {
   const { profile, alerts, score, statusReason } = view;
   const signalsPath = `/signals?profile=${encodeURIComponent(profile.id)}`;
 
@@ -16,7 +24,7 @@ export default function ProfileAlertList({ view, day }: { view: ProfileView; day
     return (
       <div className="ls-card px-4 py-3 text-sm text-muted">
         <p>
-          No {profile.displayName} alert has been raised through Day {day}.{' '}
+          No {profile.displayName} alert has been raised through {dayLabel}.{' '}
           {score ? '' : statusReason}
         </p>
       </div>
@@ -35,7 +43,7 @@ export default function ProfileAlertList({ view, day }: { view: ProfileView; day
               <span className="text-xs text-muted">{alert.detection.detail}</span>
             </div>
             <span className="text-xs text-muted">
-              Detected Day {alert.detectedDay} · {alert.status}
+              Detected {label(alert.detectedDay)} · {alert.status}
             </span>
           </li>
         ))}

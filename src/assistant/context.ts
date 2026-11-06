@@ -137,6 +137,7 @@ const ROUTES: AssistantRoute[] = [
   'investigations',
   'analytics',
   'simulation',
+  'live',
   'reports',
   'architecture',
   'overview',

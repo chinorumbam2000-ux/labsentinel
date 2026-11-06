@@ -12,7 +12,10 @@ import { usePortfolio } from '../lib/profiles/usePortfolio';
 import { TEST_BY_CODE } from '../lib/profiles/registry';
 import { profileObservationsThrough } from '../lib/profiles/derive';
 import ProfileSelector from '../components/profiles/ProfileSelector';
+import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
+import { dayAndMinuteOf } from '../lib/live/simulator';
 import type {
+  SimulationDay,
   HospitalId,
   LabObservation,
   ObservationQuery,
@@ -41,7 +44,11 @@ const COLUMNS: Array<{ key: SortKey | null; label: string; className?: string }>
 ];
 
 export default function LaboratoryDataPage() {
-  const { currentDay, facilities, isLoading, error, clearError } = useSimulation();
+  const { currentDay: replayDay, facilities, isLoading, error, clearError } = useSimulation();
+  const live = useLiveSurveillance();
+  const isLive = live.mode === 'live';
+  // Live Surveillance: results arrive all day, so "today" is the open simulated day.
+  const currentDay = (isLive ? dayAndMinuteOf(live.simulator.op).dayIndex : replayDay) as SimulationDay;
   const source = useDataSource();
   // Vendor options follow the participating facilities, in facility order.
   const vendors = useMemo(
@@ -69,6 +76,7 @@ export default function LaboratoryDataPage() {
   const portfolio = usePortfolio();
   const focus = portfolio.view.profile;
   const isPortfolioData = focus.dataOrigin === 'portfolio-fixture';
+  const dayName = portfolio.period.label;
   const profileTests = focus.id === 'respiratory-viral-syndrome'
     ? LAB_TESTS.map((test) => ({ name: test.name, code: test.loincCode }))
     : focus.testCodes.map((code) => ({ name: TEST_BY_CODE[code].name, code }));
@@ -126,8 +134,16 @@ export default function LaboratoryDataPage() {
   );
   const sourcePage = useObservationPage(query);
   const localPage = useMemo(
-    () => (isPortfolioData ? queryObservations(profileObservationsThrough(focus.id, currentDay), query) : null),
-    [isPortfolioData, focus.id, currentDay, query],
+    () =>
+      // Live Surveillance: every result received from the simulated feeds so far (filtered to the profile).
+      isLive
+        ? queryObservations(portfolio.view.observations, query)
+        : isPortfolioData
+          ? queryObservations(profileObservationsThrough(focus.id, currentDay), query)
+          : null,
+    // portfolio.view changes whenever the live simulation does.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isLive, isPortfolioData, focus.id, currentDay, query, portfolio.view],
   );
   const observations: typeof sourcePage = localPage
     ? { status: 'ready', page: localPage, refreshing: false }
@@ -200,7 +216,11 @@ export default function LaboratoryDataPage() {
       <div className="flex flex-col gap-1">
         <ProfileSelector portfolio={portfolio} />
         <p className="text-xs text-muted" data-testid="lab-profile-note">
-          {focus.id === 'respiratory-viral-syndrome'
+          {isLive
+            ? focus.dataOrigin === 'portfolio-fixture'
+              ? `${focus.displayName} is not part of the simulated live feeds.`
+              : `Live Surveillance: ${focus.displayName} results received from the simulated feeds so far, history included.`
+            : focus.id === 'respiratory-viral-syndrome'
             ? 'All respiratory results in the replay feed.'
             : isPortfolioData
               ? `${focus.displayName}: synthetic portfolio results with demonstration test codes (not LOINC).`
@@ -238,8 +258,8 @@ export default function LaboratoryDataPage() {
                 setPage(1);
               }}
             >
-              <option value="cumulative">Cumulative through Day {currentDay}</option>
-              <option value="today">Day {currentDay} only</option>
+              <option value="cumulative">Cumulative through {dayName(currentDay)}</option>
+              <option value="today">{dayName(currentDay)} only</option>
             </select>
           </div>
 
@@ -337,7 +357,7 @@ export default function LaboratoryDataPage() {
               <option value="all">All days to date</option>
               {Array.from({ length: currentDay }, (_, index) => index + 1).map((day) => (
                 <option key={day} value={day}>
-                  Day {day}
+                  {dayName(day)}
                 </option>
               ))}
             </select>
@@ -366,9 +386,9 @@ export default function LaboratoryDataPage() {
           pageData
             ? `${dayCount.toLocaleString(
                 'en-US',
-              )} received on Day ${currentDay} · ${cumulativeCount.toLocaleString(
+              )} received on ${dayName(currentDay)} · ${cumulativeCount.toLocaleString(
                 'en-US',
-              )} cumulative through Day ${currentDay}. Synthetic FHIR Observation resources — scroll the table horizontally to see every column.`
+              )} cumulative through ${dayName(currentDay)}. Synthetic FHIR Observation resources — scroll the table horizontally to see every column.`
             : 'Synthetic FHIR Observation resources.'
         }
         bodyClassName="p-0"

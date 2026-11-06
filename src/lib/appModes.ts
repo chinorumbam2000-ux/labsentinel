@@ -52,7 +52,7 @@ export const MODES: Record<AppMode, ModeDefinition> = {
 
 // 'hospitals' and 'simulation' are former addresses of Facilities and Scenario Replay (they redirect).
 const CLASSROOM_ROUTES = [
-  'dashboard', 'map', 'laboratory-data', 'signals', 'facilities', 'hospitals', 'investigations', 'analytics', 'replay', 'simulation', 'reports',
+  'dashboard', 'live', 'map', 'laboratory-data', 'signals', 'facilities', 'hospitals', 'investigations', 'analytics', 'replay', 'simulation', 'reports',
 ];
 
 /** The mode a path (relative to the router basename) belongs to. */

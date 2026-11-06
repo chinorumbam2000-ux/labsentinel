@@ -17,6 +17,10 @@ import type {
   ZipMetrics,
 } from '../../types';
 import { useSimulation } from '../../context/SimulationContext';
+import { useOptionalLiveSurveillance, type SurveillanceMode } from '../../context/LiveSurveillanceContext';
+import { calculateDataConfidence } from '../dataConfidence';
+import { liveDayLabel, liveProfileView, liveSummaries } from '../live/view';
+import type { DataConfidenceResult, FacilityFeedHealth } from '../../types';
 import type { TrendPoint } from '../analytics';
 import { compareDays } from '../dayOverDay';
 import { PROFILE_BY_ID, RVS_PROFILE_ID, type ProfileId, type SurveillanceProfile } from './registry';
@@ -70,6 +74,26 @@ export interface ProfileView {
   privacy: AreaPrivacy;
   /** Every count and rate as it may be displayed (small-count rule applied). */
   display: ProfileDisplay;
+  /** Days in the trend series that have no score (never plotted as 0). */
+  unscoredDays?: number[];
+}
+
+/**
+ * The surveillance period every page is showing, and the source-wide
+ * readings that go with it. Scenario Replay: the replay day. Live
+ * Surveillance: the latest closed day of the live simulation.
+ */
+export interface SurveillancePeriod {
+  mode: SurveillanceMode;
+  /** The day index the views show. */
+  day: number;
+  /** "Day 5" in Scenario Replay, "Feb 12" in Live Surveillance. */
+  label: (day: number) => string;
+  currentLabel: string;
+  /** ISO date of the day shown. */
+  date: string;
+  dataConfidence: DataConfidenceResult;
+  feedHealth: FacilityFeedHealth[];
 }
 
 export interface Portfolio {
@@ -82,6 +106,7 @@ export interface Portfolio {
   alerts: ProfileAlert[];
   focusId: ProfileId;
   view: ProfileView;
+  period: SurveillancePeriod;
 }
 
 export function useProfileSelection() {
@@ -105,6 +130,9 @@ export function useProfileSelection() {
 
 export function usePortfolio(): Portfolio {
   const sim = useSimulation();
+  const live = useOptionalLiveSurveillance();
+  const isLive = live?.mode === 'live';
+  const liveVersion = live?.version ?? 0;
   const { selection, invalid, setSelection } = useProfileSelection();
   const {
     currentDay,
@@ -121,7 +149,7 @@ export function usePortfolio(): Portfolio {
     dayOverDay,
   } = sim;
 
-  const summaries = useMemo(() => {
+  const replaySummaries = useMemo(() => {
     const previousDay = surveillanceDays.find((d) => d.scenario.day === currentDay - 1);
     return summarizeProfiles(currentDay, {
       current: { scenario: currentScenario, score: signalScore },
@@ -129,9 +157,25 @@ export function usePortfolio(): Portfolio {
     });
   }, [currentDay, currentScenario, signalScore, surveillanceDays, scoreForDay]);
 
+  // Live Surveillance: the same shapes, from the simulator's latest closed day.
+  const liveAcks = live?.acknowledgements;
+  const liveSim = live?.simulator;
+  const liveState = useMemo(() => {
+    if (!isLive || !liveSim) return null;
+    return {
+      summaries: liveSummaries(liveSim),
+      alerts: liveSim.alerts(liveAcks) as ProfileAlert[],
+      feedHealth: liveSim.feedHealth(),
+    };
+    // liveVersion changes whenever the simulator does.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLive, liveSim, liveVersion, liveAcks]);
+
+  const summaries = liveState ? liveState.summaries : replaySummaries;
   const ranked = useMemo(() => rankProfiles(summaries), [summaries]);
   const counts = useMemo(() => countStatuses(summaries), [summaries]);
-  const alerts = useMemo(() => getProfileAlerts(currentDay, acknowledgements), [currentDay, acknowledgements]);
+  const replayAlerts = useMemo(() => getProfileAlerts(currentDay, acknowledgements), [currentDay, acknowledgements]);
+  const alerts = liveState ? liveState.alerts : replayAlerts;
   const focusId = focusProfileFor(selection, summaries);
 
   const baseView = useMemo<Omit<ProfileView, 'display'>>(() => {
@@ -208,13 +252,59 @@ export function usePortfolio(): Portfolio {
     visibleObservations,
     dayOverDay,
   ]);
-  const view = useMemo<ProfileView>(
+  const replayView = useMemo<ProfileView>(
     () => ({
       ...baseView,
       display: buildProfileDisplay(focusId, currentDay, baseView.trendSeries, baseView.dayOverDay, baseView.status),
     }),
     [baseView, focusId, currentDay],
   );
+
+  const liveView = useMemo<ProfileView | null>(() => {
+    if (!liveState || !liveSim) return null;
+    const summary = liveState.summaries.find((s) => s.profile.id === focusId) ?? liveState.summaries[0];
+    const built = liveProfileView(
+      liveSim,
+      focusId,
+      summary,
+      liveState.alerts.filter((a) => a.profileId === focusId),
+    );
+    return {
+      profile: PROFILE_BY_ID[focusId],
+      isNarrated: false,
+      summary,
+      status: summary.status,
+      statusReason: summary.current.statusReason,
+      ...built,
+    };
+  }, [liveState, liveSim, focusId]);
+
+  const view = liveView ?? replayView;
+
+  const period = useMemo<SurveillancePeriod>(() => {
+    if (liveState && liveSim) {
+      const day = liveSim.currentDay;
+      return {
+        mode: 'live',
+        day,
+        label: liveDayLabel,
+        currentLabel: liveDayLabel(day),
+        date: summaries[0].current.scenario.simulationDate,
+        // The existing Data Confidence model, fed from the live source telemetry.
+        dataConfidence: calculateDataConfidence(liveState.feedHealth),
+        feedHealth: liveState.feedHealth,
+      };
+    }
+    return {
+      mode: 'replay',
+      day: currentDay,
+      label: (day: number) => `Day ${day}`,
+      currentLabel: `Day ${currentDay}`,
+      date: sim.simulationDate,
+      dataConfidence: sim.dataConfidence,
+      feedHealth: sim.feedHealth,
+    };
+  }, [liveState, liveSim, summaries, currentDay, sim.simulationDate, sim.dataConfidence, sim.feedHealth]);
 
   return {
     selection,
@@ -226,5 +316,6 @@ export function usePortfolio(): Portfolio {
     alerts,
     focusId,
     view,
+    period,
   };
 }

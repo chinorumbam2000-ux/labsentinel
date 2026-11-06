@@ -100,6 +100,13 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     shows: 'the five-day simulated respiratory outbreak scenario, its day-by-day progression and the replay controls.',
     use: 'Step, play or reset the replay days here or with the controls in the top bar; every analyst page follows the same replay day.',
   },
+  live: {
+    nav: 'Live Surveillance',
+    title: 'Live Surveillance',
+    shows:
+      'synthetic observations arriving through three simulated source feeds (FHIR R4, HL7 v2 and LIS/API), the sources’ status, the open day’s scores so far, the live activity stream, and a form to send a synthetic test observation.',
+    use: 'Start, pause, resume or reset the simulation and choose its speed. Each day closes at 19:30 and becomes the current signal on every page.',
+  },
   reports: {
     nav: 'Reports',
     title: 'Public Health Reports',
@@ -258,6 +265,7 @@ export const PAGE_QUESTIONS: Record<AssistantRoute, string[]> = {
   investigations: ['What should I investigate next?', 'Which alerts are active?', 'What does this page show?'],
   analytics: ['What trend do you see?', 'Is positivity increasing?', 'When did the signal become High?'],
   simulation: ['What changed since the previous day?', 'What happens on Day 1?', 'Summarize the current outbreak situation.'],
+  live: ['What just changed?', 'Are all sources active?', 'Is this real-time?'],
   reports: ['What does the Reports page show?', 'What should I investigate next?', 'Summarize the current outbreak situation.'],
   architecture: ['How does Signal by ProbeSyQ work?', 'What is FHIR?', 'What is SMART on FHIR?'],
   overview: ['What is Signal by ProbeSyQ?', 'Summarize the current outbreak situation.', 'What does this page show?'],

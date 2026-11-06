@@ -1,3 +1,4 @@
+import LiveModeNote from '../components/live/LiveModeNote';
 import { Link } from 'react-router-dom';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
@@ -47,6 +48,8 @@ export default function InvestigationsPage() {
         </div>
         <PageMeta />
       </header>
+
+      <LiveModeNote what="Investigations" />
 
       <ol aria-label="Investigation workflow" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {STEPS.map((step, index) => (

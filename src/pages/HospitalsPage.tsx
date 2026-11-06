@@ -49,7 +49,6 @@ const ENVIRONMENT_THEMES: Record<
  */
 export default function HospitalsPage() {
   const {
-    currentDay,
     currentScenario,
     signalScore,
     facilities,
@@ -62,6 +61,7 @@ export default function HospitalsPage() {
   // Facility figures follow the selected surveillance profile (?profile=).
   const portfolio = usePortfolio();
   const { hospitalMetrics } = portfolio.view;
+  const { period } = portfolio;
 
   const [activeId, setActiveId] = useState<HospitalId>('HOSP-A');
   // Facility identity comes from the active data source. The per-day metrics
@@ -73,7 +73,7 @@ export default function HospitalsPage() {
   const metrics = { ...siteMetrics, hospital: activeHospital };
   const theme = ENVIRONMENT_THEMES[activeHospital.id];
   const activeFeed =
-    feedHealth.find((feed) => feed.hospitalId === activeHospital.id) ?? feedHealth[0];
+    period.feedHealth.find((feed) => feed.hospitalId === activeHospital.id) ?? period.feedHealth[0];
 
   if (error) {
     return (
@@ -108,7 +108,7 @@ export default function HospitalsPage() {
 
           <FacilityStatusOverview
             facilities={facilities}
-            feeds={feedHealth}
+            feeds={period.feedHealth}
             metrics={hospitalMetrics}
             selectedId={activeHospital.id}
             onSelect={setActiveId}
@@ -119,12 +119,14 @@ export default function HospitalsPage() {
 
           <HospitalDashboard
             metrics={metrics}
-            currentDay={currentDay}
+            currentDay={period.day}
+            label={period.label}
+            surveillanceDate={period.mode === 'live' ? period.date : undefined}
             privacy={{ on: (day) => portfolio.view.display.facilityOn(activeHospital.id, day) }}
           />
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <DataConfidenceCard confidence={dataConfidence} />
+            <DataConfidenceCard confidence={period.dataConfidence} />
             <FeedHealthCard
               feeds={activeFeed ? [activeFeed] : []}
               title={`${activeHospital.name} — Feed Health`}

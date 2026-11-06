@@ -20,6 +20,7 @@ export type AssistantRoute =
   | 'investigations'
   | 'analytics'
   | 'simulation'
+  | 'live'
   | 'reports'
   | 'architecture'
   | 'overview'
@@ -58,6 +59,48 @@ export interface AssistantContext {
   profileId?: ProfileId;
   /** The selector's value, when it is a portfolio view rather than one profile. */
   profileSelection?: ProfileSelection;
+  /** Present only in Live Surveillance: the live state the screens show. */
+  live?: LiveAssistantContext;
+}
+
+/** What Roella knows about Live Surveillance (synthetic, simulated in the browser). */
+export interface LiveAssistantContext {
+  clock: string;
+  started: boolean;
+  playing: boolean;
+  finished: boolean;
+  closedDayLabel: string;
+  dayLabel: (day: number) => string;
+  sources: Array<{
+    hospitalId: string;
+    name: string;
+    sourceType: string;
+    status: string;
+    minutesSinceResult: number | null;
+    minutesSinceContact: number;
+  }>;
+  /** The activity stream, oldest first (no patient references, no result values). */
+  activity: Array<{
+    kind: string;
+    op: number;
+    when: string;
+    text: string;
+    profileId?: ProfileId;
+    hospitalId?: string;
+    sourceType?: string;
+    before?: number | null;
+    after?: number | null;
+    drivers?: Array<{ label: string; before: number; after: number }>;
+    facilityChanges?: string[];
+  }>;
+  /** The current simulated time, in operating minutes. */
+  now: number;
+  /** Per live profile, its facilities on the latest closed day. */
+  facilities: Partial<Record<ProfileId, Array<{ hospitalId: string; name: string; status: string; reasons: string[] }>>>;
+  /** Per profile, the display rules the screens apply (withheld rates, caution). */
+  display: Partial<
+    Record<ProfileId, { positivity: string; baselinePositivity: string; ratesWithheld: boolean; lowVolume: { title: string; text: string } | null }>
+  >;
 }
 
 export type IntentId =
@@ -105,6 +148,14 @@ export type IntentId =
   | 'profile_facilities'
   | 'profile_unknown'
   | 'profile_change'
+  | 'live_changes'
+  | 'live_why'
+  | 'live_latest_source'
+  | 'live_latest_profile'
+  | 'live_sources'
+  | 'live_driver'
+  | 'live_facility'
+  | 'realtime'
   | 'unsupported'
   | 'medical_advice'
   | 'out_of_scope';

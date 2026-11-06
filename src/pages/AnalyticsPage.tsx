@@ -62,8 +62,10 @@ export default function AnalyticsPage() {
   // Positivity as it may be displayed: a day whose positive count is withheld has none.
   const positivitySeries = view.display.trendSeries;
   // A day with no data or no usable baseline has no score — never plotted as 0.
+  const { period } = portfolio;
   const unscoredDays = new Set(
-    view.isNarrated ? [] : PROFILE_DAYS[view.profile.id].filter((d) => !d.score).map((d) => d.day as number),
+    view.unscoredDays ??
+      (view.isNarrated ? [] : PROFILE_DAYS[view.profile.id].filter((d) => !d.score).map((d) => d.day as number)),
   );
   const scoreSeries = trendSeries.map((point) =>
     unscoredDays.has(point.day) ? { ...point, score: null as unknown as number } : point,
@@ -231,7 +233,9 @@ export default function AnalyticsPage() {
             Trends &amp; Analytics
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Progression from Day 1 through Day {currentDay} · synthetic aggregate data
+            {period.mode === 'live'
+              ? `Closed days through ${period.currentLabel} · Live Surveillance · synthetic aggregate data`
+              : `Progression from Day 1 through Day ${currentDay} · synthetic aggregate data`}
           </p>
         </div>
         <PageMeta />
@@ -282,7 +286,11 @@ export default function AnalyticsPage() {
             </div>
           </Card>
 
-          <Card title="Values" subtitle={`Day 1 → Day ${currentDay}`} bodyClassName="p-0">
+          <Card
+            title="Values"
+            subtitle={period.mode === 'live' ? `Through ${period.currentLabel}` : `Day 1 → Day ${currentDay}`}
+            bodyClassName="p-0"
+          >
             <div className="w-full overflow-x-auto">
               <table className="w-full min-w-[280px] border-collapse">
                 <thead className="border-b border-hairline bg-canvas">
@@ -297,7 +305,7 @@ export default function AnalyticsPage() {
                 <tbody className="divide-y divide-hairline">
                   {active.rows.map((row, index) => (
                     <tr key={row.day} className="hover:bg-canvas">
-                      <td className="ls-td font-medium">Day {row.day}</td>
+                      <td className="ls-td font-medium">{period.label(row.day)}</td>
                       <td className="ls-td text-xs text-muted">
                         {trendSeries[index]?.stage}
                       </td>

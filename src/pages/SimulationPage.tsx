@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useSimulation } from '../context/SimulationContext';
+import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import DayOverDayChange from '../components/common/DayOverDayChange';
@@ -9,6 +11,9 @@ import { SCORE_DISCLAIMER_TEXT, withProductName } from '../lib/brand';
 import MethodNote from '../components/common/MethodNote';
 
 export default function SimulationPage() {
+  // This page is the Scenario Replay: visiting it switches the app to replay mode.
+  const { setMode } = useLiveSurveillance();
+  useEffect(() => setMode('replay'), [setMode]);
   const {
     currentDay,
     currentScenario,

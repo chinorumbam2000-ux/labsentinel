@@ -478,6 +478,19 @@ FHIR and LOINC).
   baseline, the profile on screen) from the same portfolio as the Dashboard,
   and names no profile outside the registry.
 
+### Live Surveillance
+
+Beside Scenario Replay, **Live Surveillance** streams synthetic laboratory
+observations through three simulated source feeds — a FHIR R4 source, an HL7
+v2 source and a LIS/API-style source for the three fictional facilities — and
+recalculates every profile's score from them as they arrive, in the browser.
+No backend, database or API key is needed, so the static GitHub Pages build
+runs it. The browser engine follows the backend engine's rules; a parity test
+runs the backend on the same observations and checks the results match. Start,
+pause, resume, reset and speed controls are on the Live Surveillance page; an
+activity stream explains every score change from the engine's own components.
+Details: [docs/live-surveillance.md](docs/live-surveillance.md).
+
 ### Surveillance profiles
 
 Signal by ProbeSyQ watches six surveillance profiles — Respiratory Viral

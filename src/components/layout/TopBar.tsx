@@ -11,6 +11,8 @@ import ModeChip from './ModeChip';
 import { usePortfolio } from '../../lib/profiles/usePortfolio';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 import { STATUS_LABEL } from '../../lib/profiles/derive';
+import { useLiveSurveillance } from '../../context/LiveSurveillanceContext';
+import { PlayPauseButton, useLiveClock } from '../live/LiveParts';
 
 /**
  * The top bar. On analyst pages it carries the replay day controls (the
@@ -34,17 +36,22 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
     resetSimulation,
     refresh,
     lastUpdated,
-    profileAlerts: alerts,
-    attentionCount: unacknowledgedCount,
-    acknowledgeAlert,
+    acknowledgeAlert: acknowledgeReplayAlert,
     isFirstDay,
     isLastDay,
   } = useSimulation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const portfolio = usePortfolio();
+  const live = useLiveSurveillance();
+  const isLive = live.mode === 'live';
+  const liveClock = useLiveClock();
+  // The bell is global: every profile's alerts, in the active mode.
+  const alerts = portfolio.alerts;
+  const unacknowledgedCount = alerts.filter((a) => a.status !== 'Acknowledged').length;
+  const acknowledgeAlert = isLive ? live.acknowledge : acknowledgeReplayAlert;
   // Scenario Replay narrates Respiratory Viral Syndrome; elsewhere the reading follows ?profile=.
-  const onReplay = pathname === '/replay' || pathname === '/simulation';
+  const onReplay = !isLive && (pathname === '/replay' || pathname === '/simulation');
   const readingId = onReplay ? RVS_PROFILE_ID : portfolio.focusId;
   const reading = portfolio.summaries.find((s) => s.profile.id === readingId);
   const readingProfile = PROFILE_BY_ID[readingId];
@@ -79,7 +86,28 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         ☰
       </button>
 
-      {classroom ? (
+      {classroom && isLive ? (
+        <>
+          <div className="min-w-0">
+            {/* The one statement that the live feeds are simulated; the link leads to the full limitations. */}
+            <p className="text-[11px] font-semibold text-muted">
+              Live Surveillance ·{' '}
+              <Link
+                to="/overview#about-the-data"
+                title="About the live simulation"
+                className="underline decoration-dotted underline-offset-2 hover:text-brand"
+              >
+                Simulated source feeds<span className="sr-only"> — about the live simulation</span>
+              </Link>
+            </p>
+            <p className="truncate text-sm font-semibold text-ink" data-testid="live-clock">
+              {liveClock}
+              <span className="ml-2 font-normal text-muted">simulated clock</span>
+            </p>
+          </div>
+          <PlayPauseButton />
+        </>
+      ) : classroom ? (
         <>
           <div className="flex min-w-0 items-center gap-3">
             <div className="min-w-0">
@@ -222,11 +250,11 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               />
               <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-hairline bg-white p-2 shadow-panel">
                 <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                  {unacknowledgedCount} awaiting acknowledgement · all profiles · Day {currentDay}
+                  {unacknowledgedCount} awaiting acknowledgement · all profiles · {portfolio.period.currentLabel}
                 </p>
                 {alerts.length === 0 ? (
                   <p className="px-2 py-3 text-sm text-muted">
-                    No alerts detected yet. Regional activity is at baseline.
+                    No alerts detected yet.
                   </p>
                 ) : (
                   <ul className="max-h-80 space-y-1 overflow-y-auto">
@@ -248,7 +276,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                               {PROFILE_BY_ID[alert.profileId].displayName} — {alert.title}
                             </span>
                             <span className="block truncate text-xs text-muted">
-                              {alert.detection.detail} · detected Day {alert.detectedDay}
+                              {alert.detection.detail} · detected {portfolio.period.label(alert.detectedDay)}
                             </span>
                           </span>
                         </button>

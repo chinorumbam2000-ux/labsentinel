@@ -137,6 +137,28 @@ export default function OverviewPage() {
               <li key={text}>{text}</li>
             ))}
           </ul>
+          <h3 className="mt-4 text-sm font-semibold text-ink">Live Surveillance</h3>
+          <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm text-ink" data-testid="live-data-sources">
+            <li>
+              Live Surveillance runs entirely in your browser on synthetic data: three simulated source feeds (a
+              FHIR R4 source, an HL7 v2 source and a LIS/API-style source) stand in for the three fictional
+              facilities. No real hospital, EHR vendor or patient is connected, and no backend is needed.
+            </li>
+            <li>
+              The feeds are deterministic: the same results arrive in the same order every time. Seven days of
+              synthetic history are loaded at the start to establish the 7-day rolling baseline; ten live days then
+              stream in, one day in about 12 seconds at 1×, overnight hours skipped.
+            </li>
+            <li>
+              Scores are calculated from the observations by the same rules as the backend engine; a test runs the
+              backend on the same observations and checks it gets the same results. EWMA and CUSUM are not shown in
+              Live Surveillance: they need a 28-day reference period.
+            </li>
+            <li>
+              Live Surveillance covers Respiratory Viral Syndrome, Influenza A, COVID-19 and RSV. A refresh starts the
+              simulation again from the beginning; nothing from it is stored.
+            </li>
+          </ul>
           <h3 className="mt-4 text-sm font-semibold text-ink">Surveillance profiles</h3>
           <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm text-ink" data-testid="profile-data-sources">
             <li>

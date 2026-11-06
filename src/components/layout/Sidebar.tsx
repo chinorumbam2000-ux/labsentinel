@@ -1,6 +1,9 @@
 import { useEffect, useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { withProfileParam } from '../../lib/profiles/selection';
+import { usePortfolio } from '../../lib/profiles/usePortfolio';
+import { useLiveSurveillance } from '../../context/LiveSurveillanceContext';
+import { ModeSwitch, useLiveClock } from '../live/LiveParts';
 import BrandMark from '../common/BrandMark';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
@@ -78,8 +81,13 @@ function NavItems({
  * System is access-controlled.
  */
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  // The badge is global: alerts awaiting acknowledgement across ALL profiles.
-  const { currentDay, attentionCount: unacknowledgedCount } = useSimulation();
+  // The badge is global: alerts awaiting acknowledgement across ALL profiles,
+  // in whichever mode is active (Scenario Replay or Live Surveillance).
+  const { currentDay } = useSimulation();
+  const { alerts } = usePortfolio();
+  const unacknowledgedCount = alerts.filter((alert) => alert.status !== 'Acknowledged').length;
+  const live = useLiveSurveillance();
+  const liveClock = useLiveClock();
   const { source } = useDataSourceContext();
   const { pathname } = useLocation();
   const onSystemPage = isSystemPath(pathname);
@@ -109,14 +117,25 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="mx-5 mb-2 rounded-lg bg-white/5 px-3 py-2.5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">
-          Replay Day
-        </p>
-        {/* The replay calendar is shared by every profile; scores belong to profiles, so none is shown here. */}
-        <div className="mt-1">
-          <span className="text-lg font-semibold leading-none">{currentDay} of 5</span>
-        </div>
+      <div className="mx-5 mb-2 space-y-2 rounded-lg bg-white/5 px-3 py-2.5">
+        <ModeSwitch onDark />
+        {/* The calendar is shared by every profile; scores belong to profiles, so none is shown here. */}
+        {live.mode === 'live' ? (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">Simulated clock</p>
+            <p className="mt-1 text-sm font-semibold leading-none">{liveClock}</p>
+            <p className="mt-1 text-[11px] text-white/60">
+              {live.simulator.finished ? 'Complete' : live.playing ? 'Feeds running' : live.started ? 'Paused' : 'Not started'}
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">Replay Day</p>
+            <div className="mt-1">
+              <span className="text-lg font-semibold leading-none">{currentDay} of 5</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4">

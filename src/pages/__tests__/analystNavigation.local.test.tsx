@@ -61,7 +61,7 @@ describe('navigation model', () => {
     }
     expect(ANALYST_SECTIONS.map((section) => section.heading)).toEqual(['Overview', 'Surveillance', 'Action']);
     expect(analystRoutes).toEqual([
-      '/dashboard', '/replay', '/map', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports',
+      '/dashboard', '/live', '/replay', '/map', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports',
     ]);
   });
 

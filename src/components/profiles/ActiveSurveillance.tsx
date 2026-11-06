@@ -3,6 +3,9 @@ import ProfileStatusTag from './ProfileStatusTag';
 import { DATA_ORIGIN_LABEL } from '../../lib/profiles/registry';
 import { activeSignals, type ProfileSummary } from '../../lib/profiles/portfolio';
 import type { Portfolio } from '../../lib/profiles/usePortfolio';
+import { useOptionalLiveSurveillance } from '../../context/LiveSurveillanceContext';
+import { liveProvisional } from '../../lib/live/view';
+import type { ProfileDay } from '../../lib/profiles/derive';
 
 /**
  * ACTIVE SURVEILLANCE — every surveillance profile's reading for the replay
@@ -11,7 +14,10 @@ import type { Portfolio } from '../../lib/profiles/usePortfolio';
  * usable baseline are counted on their own, never as "within expected range".
  */
 export default function ActiveSurveillance({ portfolio, day }: { portfolio: Portfolio; day: number }) {
-  const { summaries, ranked, counts, selection, setSelection, focusId } = portfolio;
+  const { summaries, ranked, counts, selection, setSelection, focusId, period } = portfolio;
+  const live = useOptionalLiveSurveillance();
+  // Live Surveillance: the open day's calculation so far, beside each closed-day score.
+  const provisional = period.mode === 'live' && live ? liveProvisional(live.simulator) : {};
   const active = activeSignals(summaries);
   const showAll = selection === 'all';
   const cards = showAll ? ranked : active;
@@ -30,7 +36,8 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
             {headline}
           </h2>
           <p className="mt-0.5 text-xs text-muted">
-            Replay Day {day} · each profile scored against its own baseline — scores are never combined.
+            {period.mode === 'live' ? `Live Surveillance · ${period.currentLabel} (latest closed day)` : `Replay Day ${day}`} · each
+            profile scored against its own baseline — scores are never combined.
           </p>
         </div>
         <div className="flex gap-1" role="group" aria-label="Profiles shown">
@@ -62,7 +69,7 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
       </dl>
 
       {cards.length === 0 ? (
-        <p className="ls-card px-4 py-3 text-sm text-muted">No profile has an active signal on Day {day}.</p>
+        <p className="ls-card px-4 py-3 text-sm text-muted">No profile has an active signal on {period.label(day)}.</p>
       ) : (
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3" aria-label={showAll ? 'All profiles' : 'Active signals'}>
           {cards.map((summary) => (
@@ -71,6 +78,7 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
               summary={summary}
               selected={summary.profile.id === focusId}
               onView={() => setSelection(summary.profile.id)}
+              today={provisional[summary.profile.id]}
             />
           ))}
         </ul>
@@ -114,10 +122,13 @@ function ProfileCard({
   summary,
   selected,
   onView,
+  today,
 }: {
   summary: ProfileSummary;
   selected: boolean;
   onView: () => void;
+  /** Live Surveillance only: the open day so far. */
+  today?: ProfileDay;
 }) {
   const { profile, current, score, scoreChange, status } = summary;
   const facilities = current.scenario.affectedHospitals.length;
@@ -163,6 +174,12 @@ function ProfileCard({
       ) : (
         <p className="text-xs text-muted">{current.statusReason}</p>
       )}
+      {today ? (
+        <p className="text-[11px] text-muted" data-testid={`today-${profile.id}`}>
+          Today so far (provisional): {today.score ? `${today.score.composite} · ${today.score.severity}` : 'no score yet'} ·{' '}
+          {today.scenario.totalTests} {today.scenario.totalTests === 1 ? 'result' : 'results'}
+        </p>
+      ) : null}
       <div className="mt-auto pt-1">
         <button type="button" onClick={onView} className="ls-btn px-2.5 py-1 text-xs" aria-pressed={selected}>
           {selected ? 'Viewing' : 'View'}

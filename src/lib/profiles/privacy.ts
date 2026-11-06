@@ -34,26 +34,36 @@ export interface AreaPrivacy {
   summary: string;
 }
 
-const site = (id: ProfileId, day: number, h: HospitalId) => PROFILE_SITE_DAY_COUNTS[id][day as SimulationDay][h];
+/**
+ * Per-day, per-facility counts for one profile. Every function below reads
+ * the replay's counts unless it is given another table (Live Surveillance
+ * passes its own): the rule is the same whatever the counts come from.
+ */
+export type CountTable = Record<number, Record<HospitalId, { tests: number; positives: number }>>;
 
-const regionalPositives = (id: ProfileId, day: number) =>
-  HOSPITAL_IDS.reduce((sum, h) => sum + site(id, day, h).positives, 0);
+const NONE = { tests: 0, positives: 0 };
 
-export const profileAreaPositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId): PrivacyResult => {
+const site = (id: ProfileId, day: number, h: HospitalId, table?: CountTable) =>
+  table ? (table[day]?.[h] ?? NONE) : PROFILE_SITE_DAY_COUNTS[id][day as SimulationDay][h];
+
+const regionalPositives = (id: ProfileId, day: number, table?: CountTable) =>
+  HOSPITAL_IDS.reduce((sum, h) => sum + site(id, day, h, table).positives, 0);
+
+export const profileAreaPositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId, table?: CountTable): PrivacyResult => {
   const hospital = HOSPITAL_BY_ID[hospitalId];
   const area = ZIP_AREA_BY_CODE[hospital.zipCode];
   const areaLevel = ACTIVE_HIERARCHY.levels.find((level) => level.rank === 1);
   const broader = areaLevel ? getBroaderLevel(areaLevel.id) : null;
   const parentUnit = broader ? getAncestorAtLevel(hospital.zipCode, broader.id) : undefined;
   return applyGeographicPrivacy({
-    count: site(id, day, hospitalId).positives,
+    count: site(id, day, hospitalId, table).positives,
     level: areaLevel?.label ?? 'ZIP',
     measure: 'positive results',
     areaLabel: hospital.zipCode,
     rollup: broader
       ? {
           level: broader.label,
-          count: regionalPositives(id, day),
+          count: regionalPositives(id, day, table),
           label: parentUnit?.name ?? area?.county ?? 'Worcester County',
         }
       : undefined,
@@ -64,19 +74,20 @@ export const profileAreaPositivityDisplay = (
   id: ProfileId,
   day: number,
   hospitalId: HospitalId,
+  table?: CountTable,
 ): { value: string; suppressed: boolean } => {
-  if (profileAreaPositivePrivacy(id, day, hospitalId).suppressed) return { value: SUPPRESSED_VALUE, suppressed: true };
-  const counts = site(id, day, hospitalId);
+  if (profileAreaPositivePrivacy(id, day, hospitalId, table).suppressed) return { value: SUPPRESSED_VALUE, suppressed: true };
+  const counts = site(id, day, hospitalId, table);
   const rate = counts.tests === 0 ? 0 : (counts.positives / counts.tests) * 100;
   return { value: `${rate.toFixed(1)}%`, suppressed: false };
 };
 
-export const profileSuppressedAreaCount = (id: ProfileId, day: number): number =>
-  HOSPITAL_IDS.filter((h) => profileAreaPositivePrivacy(id, day, h).suppressed).length;
+export const profileSuppressedAreaCount = (id: ProfileId, day: number, table?: CountTable): number =>
+  HOSPITAL_IDS.filter((h) => profileAreaPositivePrivacy(id, day, h, table).suppressed).length;
 
-export const profileDisclosureSummary = (id: ProfileId, day: number): string => {
-  const suppressed = profileSuppressedAreaCount(id, day);
-  const positives = regionalPositives(id, day);
+export const profileDisclosureSummary = (id: ProfileId, day: number, table?: CountTable): string => {
+  const suppressed = profileSuppressedAreaCount(id, day, table);
+  const positives = regionalPositives(id, day, table);
   const name = PROFILE_BY_ID[id].displayName;
   if (suppressed === 0) {
     return `All 3 surveillance areas meet the prototype display threshold of ${MINIMUM_DISPLAY_COUNT} for ${name}, so area-level counts are shown.`;
@@ -89,8 +100,8 @@ export const profileDisclosureSummary = (id: ProfileId, day: number): string => 
   return `${suppressed} of 3 surveillance areas report fewer than ${MINIMUM_DISPLAY_COUNT} ${name} positive results. Those counts are suppressed and rolled up to county level (Worcester County: ${county}).`;
 };
 
-export const areaPrivacyFor = (id: ProfileId, day: number): AreaPrivacy =>
-  id === RVS_PROFILE_ID
+export const areaPrivacyFor = (id: ProfileId, day: number, table?: CountTable): AreaPrivacy =>
+  id === RVS_PROFILE_ID && !table
     ? {
         positive: (h) => getAreaPositivePrivacy(day, h),
         positivity: (h) => getAreaPositivityDisplay(day, h),
@@ -98,10 +109,10 @@ export const areaPrivacyFor = (id: ProfileId, day: number): AreaPrivacy =>
         summary: getDisclosureSummary(day),
       }
     : {
-        positive: (h) => profileAreaPositivePrivacy(id, day, h),
-        positivity: (h) => profileAreaPositivityDisplay(id, day, h),
-        suppressedCount: profileSuppressedAreaCount(id, day),
-        summary: profileDisclosureSummary(id, day),
+        positive: (h) => profileAreaPositivePrivacy(id, day, h, table),
+        positivity: (h) => profileAreaPositivityDisplay(id, day, h, table),
+        suppressedCount: profileSuppressedAreaCount(id, day, table),
+        summary: profileDisclosureSummary(id, day, table),
       };
 
 /* ------------------------------------------------------------------------ *
@@ -118,21 +129,21 @@ export const areaPrivacyFor = (id: ProfileId, day: number): AreaPrivacy =>
 const COUNTY_LABEL = 'County';
 
 /** Positive results at one facility on one day, for a profile. */
-export const facilityPositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId): PrivacyResult => {
+export const facilityPositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId, table?: CountTable): PrivacyResult => {
   const hospital = HOSPITAL_BY_ID[hospitalId];
   return applyGeographicPrivacy({
-    count: site(id, day, hospitalId).positives,
+    count: site(id, day, hospitalId, table).positives,
     level: 'Facility',
     measure: 'positive results',
     areaLabel: hospital.name,
-    rollup: { level: COUNTY_LABEL, count: regionalPositives(id, day), label: hospital.county },
+    rollup: { level: COUNTY_LABEL, count: regionalPositives(id, day, table), label: hospital.county },
   });
 };
 
 /** A facility's positives from Day 1 through the given day. */
-export const facilityCumulativePositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId): PrivacyResult => {
+export const facilityCumulativePositivePrivacy = (id: ProfileId, day: number, hospitalId: HospitalId, table?: CountTable): PrivacyResult => {
   let positives = 0;
-  for (let d = 1; d <= day; d += 1) positives += site(id, d, hospitalId).positives;
+  for (let d = 1; d <= day; d += 1) positives += site(id, d, hospitalId, table).positives;
   return applyGeographicPrivacy({
     count: positives,
     level: 'Facility',
@@ -142,9 +153,9 @@ export const facilityCumulativePositivePrivacy = (id: ProfileId, day: number, ho
 };
 
 /** A profile's positives across the whole network (the county) on one day. */
-export const regionalPositivePrivacy = (id: ProfileId, day: number): PrivacyResult =>
+export const regionalPositivePrivacy = (id: ProfileId, day: number, table?: CountTable): PrivacyResult =>
   applyGeographicPrivacy({
-    count: regionalPositives(id, day),
+    count: regionalPositives(id, day, table),
     level: COUNTY_LABEL,
     measure: `${PROFILE_BY_ID[id].displayName} positive results`,
     areaLabel: 'Worcester County',

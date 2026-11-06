@@ -18,6 +18,8 @@ export default function MapPage() {
   // Viral Syndrome by default); scores are never combined across profiles.
   const portfolio = usePortfolio();
   const { zipMetrics } = portfolio.view;
+  const { period } = portfolio;
+  const isLive = period.mode === 'live';
   const unscoredReason = portfolio.view.score ? null : portfolio.view.statusReason;
 
   const [selectedZip, setSelectedZip] = useState<string | null>(null);
@@ -67,6 +69,10 @@ export default function MapPage() {
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-hairline bg-white p-3 shadow-card">
         <ProfileSelector portfolio={portfolio} />
 
+        {/* The replay day is chosen here in Scenario Replay; Live Surveillance shows its latest closed day. */}
+        {isLive ? (
+          <p className="text-sm text-muted">Live Surveillance · {period.currentLabel} (latest closed day)</p>
+        ) : (
         <label className="flex items-center gap-2 text-sm">
           <span className="ls-label">Day</span>
           <select
@@ -81,6 +87,7 @@ export default function MapPage() {
             ))}
           </select>
         </label>
+        )}
 
         <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
           <button
@@ -183,7 +190,7 @@ export default function MapPage() {
 
       <Card
         title="Surveillance areas"
-        subtitle={`Synthetic values for Day ${currentDay}. Selecting a ZIP here opens the same detail panel as clicking the map, so the map is not the only way in.`}
+        subtitle={`Synthetic values for ${period.currentLabel}. Selecting a ZIP here opens the same detail panel as clicking the map, so the map is not the only way in.`}
         bodyClassName="p-0"
       >
         <div className="w-full overflow-x-auto">

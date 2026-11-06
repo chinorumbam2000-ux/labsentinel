@@ -9,6 +9,7 @@ import { isSimulationDay } from './context';
 import type { AssistantContext, AssistantRoute, ConversationState, IntentId } from './types';
 import type { ProfileId } from '../lib/profiles/registry';
 import { parseProfileIntent } from './profiles';
+import { parseLiveIntent } from './live';
 
 export interface ParsedQuestion {
   intent: IntentId;
@@ -26,6 +27,8 @@ export interface ParsedQuestion {
   profiles?: ProfileId[];
   /** A condition the question names that is not a surveillance profile. */
   unknownCondition?: string;
+  /** A facility the question names (Live Surveillance). */
+  facility?: string;
   normalized: string;
 }
 
@@ -123,6 +126,10 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   if (!t) return result('greeting');
   if (MEDICAL.test(t)) return result('medical_advice');
   if (OFF_TOPIC.test(t) && !has(t, 'probesyq', 'roella', 'labsentinel', 'outbreak', 'surveillance')) return result('out_of_scope');
+
+  // Live Surveillance (and "is this real-time?" in either mode).
+  const liveIntent = parseLiveIntent(t, context);
+  if (liveIntent) return result(liveIntent.intent, { profiles: liveIntent.profiles, facility: liveIntent.facility });
 
   // Follow-ups that lean on the previous answer.
   if (FOLLOW_UP.test(t) && RANKING.test(t)) {

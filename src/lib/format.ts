@@ -38,10 +38,10 @@ export const SEVERITY_STYLES: Record<
     text: 'text-[#B45309]',
   },
   High: {
-    badge: 'bg-severity-high/10 text-[#C2410C] ring-1 ring-inset ring-severity-high/30',
+    badge: 'bg-severity-high/10 text-[#9A3412] ring-1 ring-inset ring-severity-high/30',
     accent: 'bg-severity-high',
     soft: 'bg-severity-high/5 border-severity-high/30',
-    text: 'text-[#C2410C]',
+    text: 'text-[#9A3412]',
   },
   Critical: {
     badge:

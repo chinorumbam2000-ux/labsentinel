@@ -7,6 +7,8 @@ import type { AssistantContext, ConversationState } from '../../assistant/types'
 import { useSimulation } from '../../context/SimulationContext';
 import { usePortfolio } from '../../lib/profiles/usePortfolio';
 import { RVS_PROFILE_ID } from '../../lib/profiles/registry';
+import { useOptionalLiveSurveillance } from '../../context/LiveSurveillanceContext';
+import { buildLiveAssistantContext } from '../../assistant/liveContext';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
 import AssistantButton from './AssistantButton';
 import AssistantPanel from './AssistantPanel';
@@ -30,6 +32,8 @@ export default function AskRoella() {
   const location = useLocation();
   // The same surveillance portfolio, and the same selected profile, as the page.
   const portfolio = usePortfolio();
+  const live = useOptionalLiveSurveillance();
+  const isLive = live?.mode === 'live';
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversation, setConversation] = useState<ConversationState>({});
@@ -62,7 +66,10 @@ export default function AskRoella() {
   }, [open]);
 
   const ask = (question: string) => {
-    const turn = answerQuestion(question, context, conversation);
+    // Live Surveillance: the live state at the moment of asking.
+    const asked: AssistantContext =
+      isLive && live ? { ...context, live: buildLiveAssistantContext(live.simulator, { started: live.started, playing: live.playing }) } : context;
+    const turn = answerQuestion(question, asked, conversation);
     setConversation(turn.state);
     setMessages((current) => [
       ...current,
@@ -89,7 +96,7 @@ export default function AskRoella() {
           id={PANEL_ID}
           messages={messages}
           suggestions={suggestedQuestions(context)}
-          contextLabel={`Day ${currentDay} of 5${pageName ? ` · ${pageName}` : ''}${profileName ? ` · ${profileName}` : ''}`}
+          contextLabel={`${isLive ? `Live · ${portfolio.period.currentLabel}` : `Day ${currentDay} of 5`}${pageName ? ` · ${pageName}` : ''}${profileName ? ` · ${profileName}` : ''}`}
           onAsk={ask}
           onClear={clear}
           onClose={close}

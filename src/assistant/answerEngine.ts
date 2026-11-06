@@ -31,6 +31,7 @@ import {
 } from './knowledge';
 import type { AnswerBlock, AssistantAnswer, AssistantContext, ConversationState, IntentId } from './types';
 import { answerProfileIntent, profileScoreExplanation } from './profiles';
+import { answerLiveIntent } from './live';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 
 const SEVERITY_ORDER: Severity[] = ['Low', 'Watch', 'Moderate', 'High', 'Critical'];
@@ -560,6 +561,20 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
   const p = parseQuestion(question, ctx, state);
   const viewing = ctx.profileId && ctx.profileId !== RVS_PROFILE_ID ? ctx.profileId : null;
   const result = ((): AssistantAnswer => {
+    const forLive = answerLiveIntent({ intent: p.intent, profiles: p.profiles ?? [], facility: p.facility }, ctx);
+    if (forLive) return forLive;
+    // Live Surveillance: figures come from the live state, never the replay's.
+    if (ctx.live) {
+      const focus = ctx.profileId ?? RVS_PROFILE_ID;
+      if (p.intent === 'score_explanation' || p.intent === 'current_score') return profileScoreExplanation(focus, ctx);
+      if (RVS_ONLY_INTENTS.includes(p.intent)) {
+        const status = answerProfileIntent({ intent: 'profile_status', profiles: [focus] }, ctx)!;
+        status.blocks.unshift(
+          text(`In Live Surveillance, here is ${PROFILE_BY_ID[focus].displayName} on the latest closed day. Ask "What just changed?" for the live feed.`),
+        );
+        return status;
+      }
+    }
     const forProfile = answerProfileIntent(
       { intent: p.intent, profiles: p.profiles ?? [], unknown: p.unknownCondition, day: p.day },
       ctx,
@@ -609,7 +624,7 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
     }
   })();
   // The remaining figures are the narrated profile's: say so when another is on screen.
-  if (viewing && RVS_ONLY_INTENTS.includes(result.intent)) {
+  if (viewing && !ctx.live && RVS_ONLY_INTENTS.includes(result.intent)) {
     result.blocks.unshift(
       text(`This answer is about Respiratory Viral Syndrome, the narrated replay. You are viewing ${PROFILE_BY_ID[viewing].displayName}; ask "What is happening with ${PROFILE_BY_ID[viewing].displayName}?" for its figures.`),
     );

@@ -30,6 +30,8 @@ interface CurrentSituationCardProps {
   simulationDate: string;
   stage: string;
   day: number;
+  /** Replaces "Replay Day N of 5" (Live Surveillance). */
+  periodLabel?: string;
 }
 
 /**
@@ -47,6 +49,7 @@ export default function CurrentSituationCard({
   simulationDate,
   stage,
   day,
+  periodLabel,
 }: CurrentSituationCardProps) {
   const severity = SEVERITY_STYLES[score.severity];
   const conf = CONFIDENCE_STYLES[confidence.level];
@@ -111,7 +114,7 @@ export default function CurrentSituationCard({
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hairline bg-canvas px-6 py-3">
         <p className="text-xs text-muted">
-          <span className="font-medium text-ink">Replay Day {day} of 5</span> · {stage} ·
+          <span className="font-medium text-ink">{periodLabel ?? `Replay Day ${day} of 5`}</span> · {stage} ·
           surveillance date {formatSimulationDate(simulationDate)}
         </p>
       </div>

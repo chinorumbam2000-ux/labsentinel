@@ -53,7 +53,7 @@ export const PROFILE_AWARE_PATHS = ['/dashboard', '/map', '/signals', '/faciliti
  * Reports (which list every profile) and Scenario Replay (which always shows
  * its own profile, and hands the selection back on the way out).
  */
-export const PROFILE_CARRYING_PATHS = [...PROFILE_AWARE_PATHS, '/investigations', '/reports', '/replay'];
+export const PROFILE_CARRYING_PATHS = [...PROFILE_AWARE_PATHS, '/investigations', '/reports', '/replay', '/live'];
 
 /** A link target that keeps the current profile selection, when there is one to keep. */
 export const withProfileParam = (to: string, search: string): string => {

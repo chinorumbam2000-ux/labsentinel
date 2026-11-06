@@ -30,6 +30,10 @@ interface HospitalDashboardProps {
   metrics: HospitalMetrics;
   currentDay: number;
   privacy: FacilityCountPrivacy;
+  /** How a day is named: "Day 5" (Scenario Replay) or "Feb 12" (Live Surveillance). */
+  label?: (day: number) => string;
+  /** The surveillance date shown; Scenario Replay's calendar by default. */
+  surveillanceDate?: string;
 }
 
 const axisProps = {
@@ -52,16 +56,18 @@ export default function HospitalDashboard({
   metrics,
   currentDay,
   privacy,
+  label = (day: number) => `Day ${day}`,
+  surveillanceDate,
 }: HospitalDashboardProps) {
   const today = privacy.on(currentDay);
   const stats = [
     {
-      label: `Tests — Day ${currentDay}`,
+      label: `Tests — ${label(currentDay)}`,
       value: metrics.totalTests.toLocaleString('en-US'),
-      note: `${metrics.cumulativeTests.toLocaleString('en-US')} cumulative through Day ${currentDay}`,
+      note: `${metrics.cumulativeTests.toLocaleString('en-US')} cumulative through ${label(currentDay)}`,
     },
     {
-      label: `Positivity — Day ${currentDay}`,
+      label: `Positivity — ${label(currentDay)}`,
       // A rate beside its test count would reveal a withheld count, so both follow the rule.
       value: today.suppressed ? today.displayValue : `${metrics.positivityRate.toFixed(1)}%`,
       note: today.suppressed
@@ -71,7 +77,7 @@ export default function HospitalDashboard({
     {
       // Never reveals a day the simulation has not reached yet.
       label: 'First Signal',
-      value: metrics.firstSignalDay ? `Day ${metrics.firstSignalDay}` : 'Not yet detected',
+      value: metrics.firstSignalDay ? label(metrics.firstSignalDay) : 'Not yet detected',
       note: metrics.firstSignalDay
         ? metrics.isAffected
           ? 'Currently contributing'
@@ -80,8 +86,8 @@ export default function HospitalDashboard({
     },
     {
       label: 'Surveillance date',
-      value: formatSimulationDate(getScenario(currentDay).simulationDate),
-      note: `Replay Day ${currentDay}`,
+      value: formatSimulationDate(surveillanceDate ?? getScenario(currentDay).simulationDate),
+      note: surveillanceDate ? label(currentDay) : `Replay Day ${currentDay}`,
     },
   ];
 
@@ -181,7 +187,7 @@ export default function HospitalDashboard({
 
       <section className="ls-card">
         <header className="ls-card-header">
-          <h2 className="ls-card-title">Recent Observations — Day {currentDay}</h2>
+          <h2 className="ls-card-title">Recent Observations — {label(currentDay)}</h2>
           <div className="flex items-center gap-2">
             <span className="ls-label">
               {metrics.dayObservations.length} on this day ·{' '}

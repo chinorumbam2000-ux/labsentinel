@@ -14,7 +14,7 @@ export const FEED_STATUS_STYLES: Record<FeedStatus, { badge: string; dot: string
     dot: 'bg-severity-watch',
   },
   DEGRADED: {
-    badge: 'bg-severity-high/10 text-[#C2410C] ring-1 ring-inset ring-severity-high/30',
+    badge: 'bg-severity-high/10 text-[#9A3412] ring-1 ring-inset ring-severity-high/30',
     dot: 'bg-severity-high',
   },
   OFFLINE: {

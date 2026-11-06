@@ -293,7 +293,7 @@ export const INVESTIGATION_STATUS_STYLES: Record<InvestigationStatus, string> = 
   NEW: 'bg-brand-light text-brand ring-1 ring-inset ring-brand/20',
   'UNDER REVIEW': 'bg-[#0369A1]/10 text-[#0369A1] ring-1 ring-inset ring-[#0369A1]/25',
   MONITORING: 'bg-severity-watch/15 text-[#6B5102] ring-1 ring-inset ring-severity-watch/40',
-  ESCALATED: 'bg-severity-high/10 text-[#C2410C] ring-1 ring-inset ring-severity-high/30',
+  ESCALATED: 'bg-severity-high/10 text-[#9A3412] ring-1 ring-inset ring-severity-high/30',
   DISMISSED: 'bg-canvas text-muted ring-1 ring-inset ring-hairline',
   'CONFIRMED CONCERN':
     'bg-severity-critical/10 text-severity-critical ring-1 ring-inset ring-severity-critical/30',

@@ -1,3 +1,4 @@
+import LiveModeNote from '../components/live/LiveModeNote';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
@@ -52,6 +53,8 @@ export default function ReportsPage() {
         </div>
         <PageMeta />
       </header>
+
+      <LiveModeNote what="Public-health reports" />
 
       <div className="ls-card border-l-4 border-l-severity-watch p-5">
         <p className="text-sm font-semibold text-ink">{REPORTING_DISCLAIMER}</p>

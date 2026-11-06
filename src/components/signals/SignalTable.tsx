@@ -20,7 +20,7 @@ interface SignalTableProps {
 
 const STATUS_STYLES: Record<OutbreakAlert['status'], string> = {
   New: 'bg-brand-light text-brand ring-1 ring-inset ring-brand/20',
-  Active: 'bg-severity-high/10 text-[#C2410C] ring-1 ring-inset ring-severity-high/25',
+  Active: 'bg-severity-high/10 text-[#9A3412] ring-1 ring-inset ring-severity-high/25',
   Acknowledged: 'bg-canvas text-muted ring-1 ring-inset ring-hairline',
 };
 

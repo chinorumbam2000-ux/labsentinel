@@ -20,6 +20,7 @@ import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/profiles/portfolio';
 import { isScope } from '../lib/profiles/selection';
 import ProfileInvestigationShell from '../components/profiles/ProfileInvestigationShell';
+import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 
 /**
  * Investigation context lives in the URL:
@@ -58,7 +59,10 @@ export default function SignalsPage() {
   // Respiratory Viral Syndrome by default, exactly as before; "All profiles"
   // lists every profile's alerts together, each labelled with its profile.
   const portfolio = usePortfolio();
-  const { selection, view } = portfolio;
+  const { selection, view, period } = portfolio;
+  const live = useLiveSurveillance();
+  const isLive = live.mode === 'live';
+  const acknowledge = isLive ? live.acknowledge : acknowledgeAlert;
   const alertParam = searchParams.get(ALERT_PARAM);
   const viewParam = searchParams.get(VIEW_PARAM);
 
@@ -93,6 +97,30 @@ export default function SignalsPage() {
 
   const investigatingCurrentOnly = !alertParam && viewParam === 'current';
   const isInvestigating = Boolean(alertParam) || investigatingCurrentOnly;
+
+  // Live Surveillance alerts are reviewed and acknowledged from the list; the
+  // investigation workflow and reports follow Scenario Replay in this release.
+  if (isLive && isInvestigating) {
+    return (
+      <div className="space-y-5">
+        <header>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
+        </header>
+        <Card>
+          <EmptyState
+            icon="!"
+            title="Investigations follow Scenario Replay"
+            message="In Live Surveillance, alerts are reviewed and acknowledged from the alert list. The investigation workflow and public-health reports work on Scenario Replay in this release."
+            action={
+              <button type="button" onClick={openList} className="ls-btn-primary">
+                Back to all signals
+              </button>
+            }
+          />
+        </Card>
+      </div>
+    );
+  }
 
   if (isInvestigating) {
     const selectedAlert = alertParam
@@ -237,7 +265,7 @@ export default function SignalsPage() {
   );
   const multiProfile = isScope(selection);
   const listAlerts: Array<ProfileAlert | (typeof alerts)[number]> =
-    selection === RVS_PROFILE_ID
+    selection === RVS_PROFILE_ID && !isLive
       ? alerts
       : multiProfile
         ? portfolio.alerts
@@ -254,7 +282,7 @@ export default function SignalsPage() {
     : undefined;
   const otherProfileAlerts = multiProfile ? 0 : portfolio.alerts.length - listAlerts.length;
   const unacknowledgedCount = listAlerts.filter((alert) => alert.status !== 'Acknowledged').length;
-  const newTodayCount = listAlerts.filter((alert) => alert.detectedDay === currentDay).length;
+  const newTodayCount = listAlerts.filter((alert) => alert.detectedDay === period.day).length;
   const acknowledged = listAlerts.filter((alert) => alert.status === 'Acknowledged');
   const focusScore = view.score;
   const focusScenario = view.isNarrated ? currentScenario : view.scenario;
@@ -302,7 +330,7 @@ export default function SignalsPage() {
             {unacknowledgedCount}
           </p>
           <p className="mt-1 text-xs text-muted">
-            of {listAlerts.length} detected through Day {currentDay}
+            of {listAlerts.length} detected through {period.currentLabel}
           </p>
         </div>
         <div className="ls-card p-5">
@@ -347,13 +375,13 @@ export default function SignalsPage() {
           <SignalTable
             alerts={listAlerts}
             onInvestigate={(alert) => openInvestigation(alert.id)}
-            onAcknowledge={acknowledgeAlert}
+            onAcknowledge={acknowledge}
             profileNames={profileNames}
-            canReview={(alert) => 'profileId' in alert && alert.profileId !== RVS_PROFILE_ID}
+            canReview={(alert) => !isLive && 'profileId' in alert && alert.profileId !== RVS_PROFILE_ID}
             emptyMessage={
               selection === RVS_PROFILE_ID
                 ? undefined
-                : `No ${multiProfile ? '' : `${view.profile.displayName} `}alert has been raised through Day ${currentDay}.`
+                : `No ${multiProfile ? '' : `${view.profile.displayName} `}alert has been raised through ${period.currentLabel}.`
             }
           />
         )}
@@ -361,7 +389,7 @@ export default function SignalsPage() {
 
       {/* Current values kept explicitly separate from the frozen detection values. */}
       <Card
-        title={`Current regional figures — ${view.isNarrated ? '' : `${view.profile.displayName}, `}Day ${currentDay}`}
+        title={`Current regional figures — ${view.isNarrated ? '' : `${view.profile.displayName}, `}${period.currentLabel}`}
         subtitle="Values for the selected replay day, shown separately from the detection-time values above"
         action={
           view.isNarrated ? (

@@ -28,6 +28,7 @@ export const ANALYST_SECTIONS: NavSection[] = [
     heading: 'Overview',
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: '▦' },
+      { to: '/live', label: 'Live Surveillance', icon: '◉', hint: 'Synthetic observations arriving through simulated source feeds' },
       { to: '/replay', label: 'Scenario Replay', icon: '▶', hint: 'The five-day simulated outbreak scenario' },
     ],
   },

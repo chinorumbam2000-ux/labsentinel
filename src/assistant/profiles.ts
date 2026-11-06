@@ -167,8 +167,8 @@ const profilesAttention = (ctx: AssistantContext): AssistantAnswer => {
   const blocks: AnswerBlock[] = [
     text(
       active.length === 0
-        ? `On Replay Day ${ctx.day} no surveillance profile has an active signal.`
-        : `On Replay Day ${ctx.day}, ${active.length} of ${all.length} surveillance profiles ${active.length === 1 ? 'has an active signal' : 'have active signals'}, highest first:`,
+        ? `On ${onDay(ctx.day)} no surveillance profile has an active signal.`
+        : `On ${onDay(ctx.day)}, ${active.length} of ${all.length} surveillance profiles ${active.length === 1 ? 'has an active signal' : 'have active signals'}, highest first:`,
     ),
   ];
   if (active.length) blocks.push(list(active.map(line)));
@@ -191,11 +191,11 @@ const profilesAttention = (ctx: AssistantContext): AssistantAnswer => {
 const profilesHighest = (ctx: AssistantContext): AssistantAnswer => {
   const top = rankProfiles(portfolioFor(ctx)).find((s) => s.score);
   if (!top || !top.score) {
-    return answer('profiles_highest', [text(`No surveillance profile has a score on Replay Day ${ctx.day}.`)]);
+    return answer('profiles_highest', [text(`No surveillance profile has a score on ${onDay(ctx.day)}.`)]);
   }
   const blocks = [
     text(
-      `The highest signal on Replay Day ${ctx.day} is ${top.profile.displayName}: ${top.score.composite} of 100 (${top.score.severity}), ${STATUS_LABEL[top.status].toLowerCase()}.`,
+      `The highest signal on ${onDay(ctx.day)} is ${top.profile.displayName}: ${top.score.composite} of 100 (${top.score.severity}), ${STATUS_LABEL[top.status].toLowerCase()}.`,
     ),
     profileMetrics(top),
     text(SEPARATE),
@@ -211,31 +211,48 @@ const profilesCritical = (ctx: AssistantContext): AssistantAnswer => {
   const critical = rankProfiles(portfolioFor(ctx)).filter((s) => s.score?.severity === 'Critical');
   if (critical.length === 0) {
     return answer('profiles_critical', [
-      text(`No surveillance profile is Critical on Replay Day ${ctx.day}.`),
+      text(`No surveillance profile is Critical on ${onDay(ctx.day)}.`),
       text(SEPARATE),
     ], ['Which profiles need attention?', 'What is the highest signal?']);
   }
   return answer('profiles_critical', [
-    text(`${critical.length === 1 ? 'One profile is' : `${critical.length} profiles are`} Critical (85 or above) on Replay Day ${ctx.day}:`),
+    text(`${critical.length === 1 ? 'One profile is' : `${critical.length} profiles are`} Critical (85 or above) on ${onDay(ctx.day)}:`),
     list(critical.map(line)),
     text(`A Critical score is an early-warning signal for epidemiological review, not a confirmed outbreak. ${SEPARATE}`),
   ], ['Which profiles need attention?', `What is happening with ${critical[0].profile.displayName}?`]);
 };
 
 /** A regional positivity as the screens show it: withheld when its count is under 5. */
-const shownRate = (id: ProfileId, day: number, rate: number) => rateDisplay(regionalPositivePrivacy(id, day), rate);
+/**
+ * Live Surveillance, while answering: its day names and its display rules
+ * (withheld rates, the low-volume caution) replace the replay's. Set at each
+ * entry point from the question's context, so answers never mix the modes.
+ */
+let live: AssistantContext['live'];
+const useContext = (ctx: AssistantContext) => {
+  live = ctx.live;
+};
+const onDay = (day: number) => (live ? `${live.dayLabel(day)} (latest closed day)` : `Replay Day ${day}`);
+const betweenDays = (day: number) =>
+  live ? `${live.dayLabel(day - 1)} and ${live.dayLabel(day)}` : `Replay Day ${day - 1} and Day ${day}`;
+const baselineWord = () => (live ? 'rolling 7-day baseline' : 'Day 1 baseline');
+
+const shownRate = (id: ProfileId, day: number, rate: number) =>
+  live ? (live.display[id]?.positivity ?? '—') : rateDisplay(regionalPositivePrivacy(id, day), rate);
 
 /** The baseline day's positivity as the screens show it. */
 const shownBaseline = (s: ProfileSummary) =>
+  live ? (live.display[s.profile.id]?.baselinePositivity ?? '—') :
   rateDisplay(regionalPositivePrivacy(s.profile.id, s.current.baseline.day), s.current.baseline.positivityRate);
 
 /** Whether a day's positivity evidence is withheld (the day's or the baseline's count is under 5). */
 const ratesWithheld = (s: ProfileSummary) =>
+  live ? Boolean(live.display[s.profile.id]?.ratesWithheld) :
   regionalPositivePrivacy(s.profile.id, s.current.day).suppressed ||
   regionalPositivePrivacy(s.profile.id, s.current.baseline.day).suppressed;
 
 const lowVolume = (s: ProfileSummary): AnswerBlock[] => {
-  const note = lowVolumeNote(s.profile.id, s.status);
+  const note = live ? (live.display[s.profile.id]?.lowVolume ?? null) : lowVolumeNote(s.profile.id, s.status);
   return note ? [text(`${note.title}: ${note.text}`)] : [];
 };
 
@@ -260,7 +277,7 @@ const profileStatus = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
       : portfolioFor(ctx).find((item) => item.profile.id === id) ?? summaryForDay(id, ctx.day);
   const tests = profile.testCodes.map((code) => TEST_BY_CODE[code]?.name ?? code);
   const blocks: AnswerBlock[] = [
-    text(`${profile.displayName} on Replay Day ${s.current.day}: ${s.current.statusReason}`),
+    text(`${profile.displayName} on ${onDay(s.current.day)}: ${s.current.statusReason}`),
     profileMetrics(s),
     text(
       `${profile.displayName} counts ${joinAnd(tests)} results (${DATA_ORIGIN_LABEL[profile.dataOrigin].toLowerCase()}). ${SEPARATE}`,
@@ -276,6 +293,7 @@ const profileStatus = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
 };
 
 const summaryForDay = (id: ProfileId, day: SimulationDay): ProfileSummary => {
+  if (live) throw new Error('summaryForDay is replay-only');
   const all = summarizeProfiles(day);
   return all.find((s) => s.profile.id === id) ?? all[0];
 };
@@ -284,7 +302,7 @@ const profileCompare = (ids: ProfileId[], ctx: AssistantContext): AssistantAnswe
   const all = portfolioFor(ctx);
   const [a, b] = ids.map((id) => all.find((s) => s.profile.id === id)!);
   const blocks: AnswerBlock[] = [
-    text(`${a.profile.displayName} and ${b.profile.displayName} on Replay Day ${ctx.day}:`),
+    text(`${a.profile.displayName} and ${b.profile.displayName} on ${onDay(ctx.day)}:`),
     list([line(a), line(b)]),
   ];
   if (a.score && b.score) {
@@ -309,18 +327,18 @@ const profileFacilities = (id: ProfileId, ctx: AssistantContext): AssistantAnswe
   const name = s.profile.displayName;
   if (!s.score) {
     return answer('profile_facilities', [
-      text(`${name} has no score on Replay Day ${ctx.day}, so no facility is assessed as contributing. ${s.current.statusReason}`),
+      text(`${name} has no score on ${onDay(ctx.day)}, so no facility is assessed as contributing. ${s.current.statusReason}`),
     ], ['Which profiles need a baseline?']);
   }
   const affected = s.current.scenario.affectedHospitals.map((h) => `${HOSPITAL_BY_ID[h].name} (${HOSPITAL_BY_ID[h].zipCode})`);
   return answer('profile_facilities', [
     text(
       affected.length === 0
-        ? `No facility is above the detection margin for ${name} on Replay Day ${ctx.day}.`
-        : `${affected.length} of 3 facilities ${affected.length === 1 ? 'is' : 'are'} above ${name}'s detection margin on Replay Day ${ctx.day}: ${joinAnd(affected)}.`,
+        ? `No facility is above the detection margin for ${name} on ${onDay(ctx.day)}.`
+        : `${affected.length} of 3 facilities ${affected.length === 1 ? 'is' : 'are'} above ${name}'s detection margin on ${onDay(ctx.day)}: ${joinAnd(affected)}.`,
     ),
     text(
-      `A facility contributes when its own ${name} positivity is at least 3 percentage points above ${name}'s Day 1 baseline (${shownBaseline(s)}), with at least 10 tests that day. Counts under 5 are withheld on the Map and the Facilities page.`,
+      `A facility contributes when its own ${name} positivity is at least 3 percentage points above ${name}'s ${baselineWord()} (${shownBaseline(s)}), with at least 10 tests that day. Counts under 5 are withheld on the Map and the Facilities page.`,
     ),
   ], [`What is happening with ${name}?`, 'Which profiles need attention?']);
 };
@@ -332,8 +350,8 @@ const profilesExpected = (ctx: AssistantContext): AssistantAnswer => {
   const blocks: AnswerBlock[] = [
     text(
       within.length
-        ? `${within.length} ${within.length === 1 ? 'profile is' : 'profiles are'} within the expected range (Low) on Replay Day ${ctx.day}:`
-        : `No profile is within the expected range on Replay Day ${ctx.day}.`,
+        ? `${within.length} ${within.length === 1 ? 'profile is' : 'profiles are'} within the expected range (Low) on ${onDay(ctx.day)}:`
+        : `No profile is within the expected range on ${onDay(ctx.day)}.`,
     ),
   ];
   if (within.length) blocks.push(list(within.map(line)));
@@ -353,8 +371,8 @@ const profilesBaseline = (ctx: AssistantContext): AssistantAnswer => {
   blocks.push(
     text(
       insufficient.length
-        ? `${insufficient.length === 1 ? 'One profile needs' : `${insufficient.length} profiles need`} a baseline on Replay Day ${ctx.day}:`
-        : `Every profile with data has a usable baseline on Replay Day ${ctx.day}.`,
+        ? `${insufficient.length === 1 ? 'One profile needs' : `${insufficient.length} profiles need`} a baseline on ${onDay(ctx.day)}:`
+        : `Every profile with data has a usable baseline on ${onDay(ctx.day)}.`,
     ),
   );
   if (insufficient.length) blocks.push(list(insufficient.map((s) => `${s.profile.displayName}: ${s.current.statusReason}`)));
@@ -373,7 +391,7 @@ const profileCurrent = (ctx: AssistantContext): AssistantAnswer => {
         ? ' (All profiles view: the highest-ranked profile is shown)'
         : '';
   return answer('profile_current', [
-    text(`You are viewing ${s.profile.displayName}${scope}: ${reading(s)} on Replay Day ${ctx.day}.`),
+    text(`You are viewing ${s.profile.displayName}${scope}: ${reading(s)} on ${onDay(ctx.day)}.`),
     text('Change it with the Surveillance profile selector on the Dashboard, Map, Signals, Facilities, Laboratory Data and Analytics pages.'),
   ], [`What is happening with ${s.profile.displayName}?`, 'Which profiles need attention?']);
 };
@@ -385,20 +403,22 @@ const profileUnknown = (name: string): AssistantAnswer =>
   ], ['Which profiles need attention?']);
 
 /** Why the selected (non-narrated) profile's score is what it is. */
-export const profileScoreExplanation = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay): AssistantAnswer => {
+export const profileScoreExplanation = (id: ProfileId, ctx: AssistantContext, requestedDay?: SimulationDay): AssistantAnswer => {
+  useContext(ctx);
+  const day = live ? undefined : requestedDay;
   const s =
     day && day !== ctx.day ? summaryForDay(id, day) : portfolioFor(ctx).find((item) => item.profile.id === id)!;
   const name = s.profile.displayName;
   if (!s.score) {
     return answer('score_explanation', [
-      text(`You are viewing ${name}. It has no score on Replay Day ${s.current.day}: ${s.current.statusReason}`),
+      text(`You are viewing ${name}. It has no score on ${onDay(s.current.day)}: ${s.current.statusReason}`),
     ], ['Which profiles need attention?']);
   }
   const parts = [...s.score.components].sort((a, b) => b.points - a.points);
   const top = parts.filter((c) => c.points > 0).slice(0, 2).map((c) => c.label);
   return answer('score_explanation', [
     text(
-      `You are viewing ${name}. On Replay Day ${s.current.day} its score is ${s.score.composite} (${s.score.severity}), measured against ${name}'s own Day 1 baseline (${s.current.baseline.tests} tests, ${shownBaseline(s)} positive). It is the sum of five weighted components:`,
+      `You are viewing ${name}. On ${onDay(s.current.day)} its score is ${s.score.composite} (${s.score.severity}), measured against ${name}'s own ${baselineWord()} (${s.current.baseline.tests} tests, ${shownBaseline(s)} positive). It is the sum of five weighted components:`,
     ),
     // The same components, and the same withheld rates, as the Score components list on screen.
     list(parts.map((c) => `${c.label}: ${c.points} of ${c.maxPoints} points — ${componentEvidence(c, ratesWithheld(s))}`)),
@@ -413,11 +433,11 @@ const profileChange = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
   const s = day && day !== ctx.day ? summaryForDay(id, day) : portfolioFor(ctx).find((item) => item.profile.id === id)!;
   const name = s.profile.displayName;
   if (!s.score) {
-    return answer('profile_change', [text(`${name} has no score on Replay Day ${s.current.day}: ${s.current.statusReason}`)]);
+    return answer('profile_change', [text(`${name} has no score on ${onDay(s.current.day)}: ${s.current.statusReason}`)]);
   }
   if (!s.previous?.score) {
     return answer('profile_change', [
-      text(`${name} scores ${s.score.composite} (${s.score.severity}) on Replay Day ${s.current.day}; there is no scored previous day to compare with.`),
+      text(`${name} scores ${s.score.composite} (${s.score.severity}) on ${onDay(s.current.day)}; there is no scored previous day to compare with.`),
       ...lowVolume(s),
     ]);
   }
@@ -431,7 +451,7 @@ const profileChange = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
   const biggest = [...moves].filter((m) => m.d !== 0).sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, 2);
   return answer('profile_change', [
     text(
-      `${name} moved from ${before.composite} to ${s.score.composite} (${delta > 0 ? '+' : ''}${delta}) between Replay Day ${s.current.day - 1} and Day ${s.current.day}.${
+      `${name} moved from ${before.composite} to ${s.score.composite} (${delta > 0 ? '+' : ''}${delta}) between ${betweenDays(s.current.day)}.${
         biggest.length ? ` The largest changes are in ${joinAnd(biggest.map((m) => m.label))}.` : ''
       }`,
     ),
@@ -442,9 +462,11 @@ const profileChange = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
 };
 
 export const answerProfileIntent = (
-  parsed: { intent: IntentId; profiles: ProfileId[]; unknown?: string; day?: SimulationDay },
+  question: { intent: IntentId; profiles: ProfileId[]; unknown?: string; day?: SimulationDay },
   ctx: AssistantContext,
 ): AssistantAnswer | null => {
+  useContext(ctx);
+  const parsed = live ? { ...question, day: undefined } : question;
   switch (parsed.intent) {
     case 'profiles_attention': return profilesAttention(ctx);
     case 'profiles_highest': return profilesHighest(ctx);

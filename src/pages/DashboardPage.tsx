@@ -23,6 +23,8 @@ import ProfileSelector from '../components/profiles/ProfileSelector';
 import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
 import ProfileHeading from '../components/profiles/ProfileHeading';
 import ProfileAlertList from '../components/profiles/ProfileAlertList';
+import { Link, useLocation } from 'react-router-dom';
+import { LiveControls, SourceStatusPanel } from '../components/live/LiveParts';
 
 /**
  * The Public Health Dashboard, organised as six numbered sections that read in
@@ -41,10 +43,6 @@ import ProfileAlertList from '../components/profiles/ProfileAlertList';
  */
 export default function DashboardPage() {
   const {
-    currentDay,
-    simulationDate,
-    dataConfidence,
-    feedHealth,
     regionalAlert,
     investigations,
     isLoading,
@@ -53,7 +51,14 @@ export default function DashboardPage() {
   } = useSimulation();
 
   const portfolio = usePortfolio();
-  const { view } = portfolio;
+  const location = useLocation();
+  const { view, period } = portfolio;
+  // The period on screen: the replay day, or Live Surveillance's latest closed day.
+  const isLive = period.mode === 'live';
+  const currentDay = period.day;
+  const simulationDate = period.date;
+  const dataConfidence = period.dataConfidence;
+  const feedHealth = period.feedHealth;
   const {
     scenario: currentScenario,
     score: signalScore,
@@ -99,6 +104,18 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <>
+          {isLive ? (
+            <section aria-label="Live feeds" className="space-y-2" data-testid="dashboard-live">
+              <div className="ls-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <LiveControls compact />
+                <Link to={`/live${location.search}`} className="ls-btn px-3 py-1.5 text-xs">
+                  Live activity →
+                </Link>
+              </div>
+              <SourceStatusPanel compact />
+            </section>
+          ) : null}
+
           <ActiveSurveillance portfolio={portfolio} day={currentDay} />
 
           <ProfileHeading view={view} />
@@ -119,6 +136,7 @@ export default function DashboardPage() {
               simulationDate={simulationDate}
               stage={currentScenario.stage}
               day={currentDay}
+              periodLabel={isLive ? `Live Surveillance · ${period.currentLabel} (latest closed day)` : undefined}
             />
           </section>
 
@@ -128,12 +146,16 @@ export default function DashboardPage() {
               id="section-indicators"
               index={2}
               title="Epidemiological indicators"
-              subtitle={`Day ${currentDay} figures against the Day 1 baseline`}
+              subtitle={
+                isLive
+                  ? `${period.currentLabel} figures against the rolling 7-day baseline`
+                  : `Day ${currentDay} figures against the Day 1 baseline`
+              }
             />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard
-                label={`Test Volume — Day ${currentDay}`}
+                label={`Test Volume — ${period.currentLabel}`}
                 value={currentScenario.totalTests.toLocaleString('en-US')}
                 delta={`${formatSignedPercent(signalScore.volumeIncreasePercent, 0)} vs baseline`}
                 deltaTone={signalScore.volumeIncreasePercent > 0 ? 'up' : 'neutral'}
@@ -142,7 +164,7 @@ export default function DashboardPage() {
                 )} cumulative`}
               />
               <KpiCard
-                label={`Positivity — Day ${currentDay}`}
+                label={`Positivity — ${period.currentLabel}`}
                 value={view.display.regional.suppressed ? view.display.positivity : formatPercent(currentScenario.positivityRate)}
                 delta={
                   view.display.ratesWithheld
@@ -185,7 +207,11 @@ export default function DashboardPage() {
 
             <Card
               title="Test Volume &amp; Positivity Trend"
-              subtitle={`Day 1 through Day ${currentDay} — synthetic aggregate data`}
+              subtitle={
+                isLive
+                  ? `Closed days through ${period.currentLabel} — synthetic aggregate data`
+                  : `Day 1 through Day ${currentDay} — synthetic aggregate data`
+              }
               bodyClassName="p-4"
             >
               <TrendChart data={view.display.trendSeries} />
@@ -298,7 +324,7 @@ export default function DashboardPage() {
                 investigation={investigation}
               />
             ) : (
-              <ProfileAlertList view={view} day={currentDay} />
+              <ProfileAlertList view={view} dayLabel={period.currentLabel} label={period.label} />
             )}
           </section>
 
@@ -310,7 +336,7 @@ export default function DashboardPage() {
               index={6}
               title={
                 view.dayOverDay.available
-                  ? `What changed since Day ${view.dayOverDay.previousDay}?`
+                  ? `What changed since ${period.label(view.dayOverDay.previousDay ?? 0)}?`
                   : 'What changed since the previous day?'
               }
               subtitle="Movement in each component input, and why the score responded"
