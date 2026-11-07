@@ -66,7 +66,7 @@ locally.
 
 Before pushing:
 
-- [ ] Owner legal name supplied (`OWNER_LEGAL_NAME` in `src/lib/brand.ts`, README *Ownership*)
+- [x] Owner legal name supplied (`OWNER_LEGAL_NAME` in `src/lib/brand.ts`, README *Ownership*)
 - [ ] `npm ci && npm test`, `npx tsc -b --force`, `npm run build` pass
 - [ ] Static build served under `/signal-by-probesyq/` with the 404 fallback:
       sign-in → dashboard; deep links (`/signal-by-probesyq/map?profile=covid-19`,

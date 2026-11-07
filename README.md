@@ -170,7 +170,7 @@ epidemiological validation. [docs/evaluation-summary.md](docs/evaluation-summary
 
 ProbeSyQ™ and Signal by ProbeSyQ™ are trademarks claimed by their owner
 (unregistered; ™ only).
-© 2026 [OWNER LEGAL NAME]. All rights reserved.
+© 2026 Munyaradzi Chinorumba. All rights reserved.
 
 This repository is a public portfolio project. Viewing the code and the live
 demonstration does not grant a licence to reuse the ProbeSyQ or Signal by

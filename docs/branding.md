@@ -14,9 +14,8 @@ would break compatibility, stored data or history. Seeing it in code or in
 storage is expected; it is no longer in any public URL.
 
 Ownership: ProbeSyQ™ and Signal by ProbeSyQ™ are claimed, unregistered
-trademarks (™, never ®). The copyright line names the owner's legal name,
-which is a placeholder (`[OWNER LEGAL NAME]`, `OWNER_LEGAL_NAME` in
-`src/lib/brand.ts`) until the owner supplies it.
+trademarks (™, never ®). The copyright line names the owner, Munyaradzi Chinorumba
+(`OWNER_LEGAL_NAME` in `src/lib/brand.ts`); no company entity is implied.
 
 ## Visible names (renamed)
 

@@ -24,10 +24,10 @@ export const LEGACY_PRODUCT_NAME = 'LabSentinel';
 
 /*
  * Ownership notice. ™ marks claimed, unregistered trademarks: never use ®.
- * OWNER INPUT REQUIRED before deployment: replace the placeholder with the
- * owner's legal name. No company entity (LLC, Inc., Corporation) is implied.
+ * The owner is an individual, by legal name as supplied by the owner; no
+ * company entity (LLC, Inc., Corporation) is implied.
  */
-export const OWNER_LEGAL_NAME = '[OWNER LEGAL NAME]';
+export const OWNER_LEGAL_NAME = 'Munyaradzi Chinorumba';
 export const COPYRIGHT_YEAR = 2026;
 export const TRADEMARK_NOTICE = 'ProbeSyQ™ and Signal by ProbeSyQ™ are trademarks claimed by their owner.';
 export const COPYRIGHT_NOTICE = `© ${COPYRIGHT_YEAR} ${OWNER_LEGAL_NAME}. All rights reserved.`;

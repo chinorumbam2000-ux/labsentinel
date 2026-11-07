@@ -59,7 +59,9 @@ describe('ownership notice', () => {
   it('claims ™ only — never ® — and names no invented company', () => {
     expect(TRADEMARK_NOTICE).toContain('ProbeSyQ™');
     expect(TRADEMARK_NOTICE).toContain('Signal by ProbeSyQ™');
-    expect(COPYRIGHT_NOTICE).toBe(`© 2026 ${OWNER_LEGAL_NAME}. All rights reserved.`);
+    expect(OWNER_LEGAL_NAME).toBe('Munyaradzi Chinorumba');
+    expect(COPYRIGHT_NOTICE).toBe('© 2026 Munyaradzi Chinorumba. All rights reserved.');
+    expect(`${TRADEMARK_NOTICE} ${COPYRIGHT_NOTICE}`).not.toMatch(/\[|OWNER LEGAL NAME/);
     for (const text of [TRADEMARK_NOTICE, COPYRIGHT_NOTICE]) {
       expect(text).not.toContain('®');
       expect(text).not.toMatch(/\b(LLC|Inc\.?|Corporation|Corp\.)\b/);
