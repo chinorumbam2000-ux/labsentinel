@@ -8,7 +8,7 @@ import {
 } from '../config';
 import { ehrScope, parseEhrLaunch, standaloneScope } from '../launch';
 
-const LOCATION = { origin: 'http://localhost:5173', baseUrl: '/labsentinel/' };
+const LOCATION = { origin: 'http://localhost:5173', baseUrl: '/signal-by-probesyq/' };
 
 describe('SMART configuration', () => {
   it('is disabled by default, so nothing SMART runs', () => {
@@ -24,8 +24,8 @@ describe('SMART configuration', () => {
         enabled: true,
         clientId: DEFAULT_CLIENT_ID,
         scopes: DEFAULT_SCOPES,
-        redirectUri: 'http://localhost:5173/labsentinel/smart/callback',
-        launchUri: 'http://localhost:5173/labsentinel/smart/launch',
+        redirectUri: 'http://localhost:5173/signal-by-probesyq/smart/callback',
+        launchUri: 'http://localhost:5173/signal-by-probesyq/smart/launch',
         standaloneIss: SMART_HEALTH_IT_STANDALONE,
       },
     });
@@ -66,7 +66,7 @@ describe('SMART configuration', () => {
     expect(parseSmartConfig({ VITE_SMART_ENABLED: 'true', VITE_SMART_REDIRECT_URI: 'http://evil.example/cb' }, LOCATION).ok).toBe(false);
     expect(parseSmartConfig({ VITE_SMART_ENABLED: 'true', VITE_SMART_STANDALONE_ISS: 'ftp://x' }, LOCATION).ok).toBe(false);
     expect(
-      parseSmartConfig({ VITE_SMART_ENABLED: 'true', VITE_SMART_REDIRECT_URI: 'http://127.0.0.1:5173/labsentinel/smart/callback' }, LOCATION).ok,
+      parseSmartConfig({ VITE_SMART_ENABLED: 'true', VITE_SMART_REDIRECT_URI: 'http://127.0.0.1:5173/signal-by-probesyq/smart/callback' }, LOCATION).ok,
     ).toBe(true);
   });
 

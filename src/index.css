@@ -309,6 +309,40 @@ html.ls-presentation .ls-roella-panel {
   }
 }
 
+/*
+ * The sidebar's scrollbar belongs to the sidebar: its track IS the sidebar
+ * colour (the Tailwind `sidebar` token, never a copy of it), and its thumb is a
+ * quiet light tint that stays discoverable (about 3:1 against the track) and
+ * brightens on hover.
+ */
+.ls-sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.35) theme('colors.sidebar');
+}
+
+.ls-sidebar-scroll:hover {
+  scrollbar-color: rgb(255 255 255 / 0.5) theme('colors.sidebar');
+}
+
+.ls-sidebar-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.ls-sidebar-scroll::-webkit-scrollbar-track,
+.ls-sidebar-scroll::-webkit-scrollbar-corner {
+  background: theme('colors.sidebar');
+}
+
+.ls-sidebar-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid theme('colors.sidebar');
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.35);
+}
+
+.ls-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.5);
+}
+
 /* A quiet scrollbar for the Ask Roella conversation: visible, but thin. */
 .ls-scroll {
   scrollbar-width: thin;

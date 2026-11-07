@@ -23,7 +23,7 @@ $env:VITE_DATA_SOURCE="api"; $env:VITE_SMART_ENABLED="true"; npm run dev
 
 Then:
 
-1. Open `http://localhost:5173/labsentinel/overview` in a fresh browser window
+1. Open `http://localhost:5173/signal-by-probesyq/overview` in a fresh browser window
    (fresh session = clean investigation and reporting state).
 2. Check **Presentation readiness** at the bottom of the overview: backend
    checklist READY, backend connection PASS, SMART configuration enabled.

@@ -7,13 +7,14 @@
     <script>
       /*
        * GitHub Pages has no server-side rewrites, so a direct request to
-       * /labsentinel/dashboard returns this 404 page instead of the app.
+       * /signal-by-probesyq/dashboard returns this 404 page instead of the app.
        *
        * This turns the requested path into a query string and bounces to the
        * app root; index.html then puts the real path back with replaceState,
        * so React Router sees the route the visitor actually asked for.
        *
-       * Keep the first path segment (/labsentinel) as the app's base.
+       * Keep the first path segment (/signal-by-probesyq, the repository
+       * name) as the app's base.
        */
       (function redirectToApp() {
         var pathSegmentsToKeep = 1;

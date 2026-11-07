@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Card from '../components/common/Card';
+import OwnershipNotice from '../components/common/OwnershipNotice';
 import StatusBadge from '../components/architecture/StatusBadge';
 import ModeChip from '../components/layout/ModeChip';
 import { useDataSourceContext } from '../data-access/DataSourceProvider';
@@ -198,6 +199,7 @@ export default function OverviewPage() {
               </ul>
             </div>
           ))}
+          <OwnershipNotice className="mt-5 border-t border-hairline pt-3" />
         </Card>
         <Card title="Presentation mode" subtitle="The ten-step final demonstration, through the real application">
           <p className="text-sm text-ink">

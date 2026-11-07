@@ -1,96 +1,85 @@
-# Public portfolio release — plan
-
-Status: **prepared, not released.** Nothing in this document has been
-performed: no push, no merge, no tag, no deployment.
+# Public portfolio release
 
 | | |
 |---|---|
-| Release branch | `signal-convergence` |
-| Public URL | https://chinorumbam2000-ux.github.io/labsentinel/ (unchanged base path `/labsentinel/`) |
+| Repository | https://github.com/chinorumbam2000-ux/signal-by-probesyq (formerly `labsentinel`) |
+| Public URL | https://chinorumbam2000-ux.github.io/signal-by-probesyq/ |
+| Base path | `/signal-by-probesyq/` (`PAGES_BASE_PATH` in `vite.config.ts`) |
 | Build | `npm run build` with `VITE_DATA_SOURCE=local` (static; no backend, database, API key or external AI) |
-| Workflow | `.github/workflows/deploy.yml` — runs `npm ci`, `npm test`, `npm run build`, publishes `dist/` on every push to `main` (and by hand) |
-| Recommended tag | `signal-v1.0`, annotated, on the release commit |
+| Workflow | `.github/workflows/deploy.yml` — `npm ci`, `npm test`, `npm run build`, publishes `dist/` on every push to `main` (and by hand) |
+| Pages source | GitHub Actions (`build_type: workflow`) |
 | Unchanged | `submission-v1.0` … `submission-v1.4`, `capstone-development` |
 
-## 1. Moving `main`
+## Releases
 
-`main` (e1474c9) is **not** an ancestor of `signal-convergence`: it holds four
-later demo commits ("Add authentication entry…", "Add Ask LabSentinel
-assistant…", two panel fixes) that `signal-convergence` superseded. A plain
-fast-forward is therefore impossible.
+| Tag | Commit | What |
+|---|---|---|
+| `signal-v1.0` | `3f061da` | First public portfolio release, served at the old path `/labsentinel/`. `main` took `signal-convergence` through a `git merge -s ours main` (history kept, tree unchanged) and a fast-forward. |
+| *(next)* | — | Public identity and Pages path: `Sign in` button, sidebar scrollbar, ownership notice, base path `/signal-by-probesyq/`. |
 
-Recommended — **record main's history, then fast-forward** (no force push,
-nothing lost):
+## Renaming the repository and the Pages path
 
-```bash
-git switch signal-convergence
-git merge -s ours main -m "Signal by ProbeSyQ: supersede the prototype demo on main"
-#   creates a merge commit whose tree is exactly signal-convergence,
-#   with e1474c9 as a parent (its history stays reachable from main)
-npm ci && npm test && npm run build           # same tree, re-verify anyway
-git switch main
-git merge --ff-only signal-convergence        # now a fast-forward
-git tag -a signal-v1.0 -m "Signal by ProbeSyQ v1.0 — public portfolio release"
-git push origin main signal-v1.0              # triggers the Pages workflow
-```
+GitHub serves a project site at `/<repository name>/`, so the repository
+name *is* the public path. The code is built for `/signal-by-probesyq/`.
 
-Alternative — a normal merge of `signal-convergence` into `main`: produces
-conflicts in the files both lines touched (the demo's sign-in and assistant
-panel), which must all be resolved in favour of `signal-convergence`; the
-outcome is the same tree with more work and more risk.
+What happens at the rename (`labsentinel` → `signal-by-probesyq`):
 
-Not recommended — resetting `main` and force-pushing: it rewrites the public
-default branch.
+- **Git** redirects the old repository URL (clone, fetch, push, web), so
+  nothing breaks for Git. The local remote is still updated to the new URL.
+- **Pages** does **not** redirect a project site: the old
+  `https://chinorumbam2000-ux.github.io/labsentinel/` stops working.
+- The **currently deployed build** (`signal-v1.0`) was built for
+  `/labsentinel/`. Served at `/signal-by-probesyq/`, its asset URLs point to
+  the old path, so the site does not load until a build for the new path is
+  deployed. **Rename and deploy together**, or accept a gap.
 
-## 2. Deployment
+Order:
 
-1. Complete the release checklist below on the release commit.
-2. Push `main` (step 1). The workflow tests, builds and deploys; watch it
-   under *Actions → Build and deploy to GitHub Pages*.
-3. Smoke-test the live URL (checklist, "after deploy").
-4. Push the tag.
+1. Prepare and validate the new base path locally; commit on `signal-convergence`.
+2. Rename the repository in *Settings → General → Repository name*.
+3. `git remote set-url origin https://github.com/chinorumbam2000-ux/signal-by-probesyq.git`; `git remote -v`.
+4. Fast-forward `main` to `signal-convergence` and push (no force): the
+   workflow builds and deploys for the new path.
+5. Validate the live site at the new URL; then tag.
 
-Settings → Pages must use **GitHub Actions** as the source — the workflow
-publishes with `actions/deploy-pages`. Check this once before the push.
+### SMART on FHIR
 
-## 3. Rollback
+The launch and redirect URLs are derived from the build's base path
+(`<origin><base>smart/launch`, `<origin><base>smart/callback`), so the code
+needs no change. The public SMART Health IT sandbox has no app registration
+(it accepts any client id and redirect). The Pages build does not enable
+SMART. The only external change: anyone who launches from the sandbox
+launcher with a saved launch URL must use the new one —
+`https://chinorumbam2000-ux.github.io/signal-by-probesyq/smart/launch` for a
+SMART-enabled Pages build, or `http://localhost:5173/signal-by-probesyq/smart/launch`
+locally.
 
-The previous site is the build of e1474c9.
+## Rollback
 
-- **Fastest:** in *Actions*, open the last successful deployment from before
-  the release and choose *Re-run all jobs*. It rebuilds from that run's commit
-  (e1474c9) and republishes the prototype within minutes; `main` is untouched.
-- **Durable:** on `main`, `git revert -m 2 <release merge>` and push. With
-  the `-s ours` merge, parent 2 is e1474c9, so this restores the prototype's
-  exact tree; the workflow redeploys it. No history is rewritten.
-- The `submission-v1.4` tag and the e1474c9 commit are never modified, so the
-  prototype can always be rebuilt.
+- **Code:** on `main`, `git revert` the release commit (or the range) and
+  push; the workflow redeploys. No history is rewritten.
+- **Name:** renaming the repository back to `labsentinel` restores the old
+  path, but the deployed build must then match it (redeploy `signal-v1.0`).
+- Submission tags and `capstone-development` are never modified.
 
-## 4. Release checklist
+## Release checklist
 
 Before pushing:
 
-- [ ] `npm ci && npm test` — all frontend tests pass
-- [ ] `npx tsc -b --force` — no type errors
-- [ ] `npm run build` (static) — succeeds (the API-mode default URL constant is in the bundle but never requested)
-- [ ] API build (`VITE_DATA_SOURCE=api VITE_API_BASE_URL=…`) — succeeds
-- [ ] `pytest` in `backend/` with `LABSENTINEL_TEST_DATABASE_URL` — all pass, none skipped
-- [ ] Static build served under `/labsentinel/` with the 404 fallback:
-      sign-in → dashboard; deep links (`/labsentinel/map?profile=covid-19`,
-      `/labsentinel/live`, `/labsentinel/replay`) survive a reload and return
-      after sign-in; unknown paths show the branded 404 route
-- [ ] Zero network requests for data in the static build (only map tiles)
-- [ ] Console: no errors, no unhandled rejections, no missing assets
-- [ ] axe: no violations in Scenario Replay and Live Surveillance
-- [ ] 375 / 768 / 1024 / 1280 / 1440 px: no horizontal overflow; top bar one row at 1280 and 1440
-- [ ] Live Surveillance: Start / Pause / Resume / Reset / 1× / 2× / 4×; runs to completion; one timer
-- [ ] No visible "LabSentinel", "Demo Environment", "Classroom Demo", "API Capstone"
+- [ ] Owner legal name supplied (`OWNER_LEGAL_NAME` in `src/lib/brand.ts`, README *Ownership*)
+- [ ] `npm ci && npm test`, `npx tsc -b --force`, `npm run build` pass
+- [ ] Static build served under `/signal-by-probesyq/` with the 404 fallback:
+      sign-in → dashboard; deep links (`/signal-by-probesyq/map?profile=covid-19`,
+      `/signal-by-probesyq/live`, `/signal-by-probesyq/replay`) survive a reload
+      and return after sign-in
+- [ ] Zero network requests for data (map tiles excepted); no console errors
+- [ ] axe clean in both modes; 375 / 768 / 1024 / 1280 / 1440 px without overflow
+- [ ] Repository renamed; local remote updated
 - [ ] Submission tags unchanged (`git rev-parse submission-v1.4^{commit}` = 4a61c67)
 
 After deploy:
 
-- [ ] https://chinorumbam2000-ux.github.io/labsentinel/ loads the sign-in screen with the PSQ mark and favicon
+- [ ] https://chinorumbam2000-ux.github.io/signal-by-probesyq/ loads the sign-in screen with the PSQ mark and favicon
 - [ ] Sign in → Dashboard; "Start here" → Live Surveillance runs
-- [ ] Reload on `/labsentinel/live` and `/labsentinel/map?profile=covid-19` works
-- [ ] Ask Roella "What is Signal by ProbeSyQ?" and "Is this real patient data?"
+- [ ] Reload on `/signal-by-probesyq/live` and `/signal-by-probesyq/map?profile=covid-19` works
 - [ ] Browser devtools: no failed requests, no console errors

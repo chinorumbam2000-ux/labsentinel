@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import BrandMark from '../components/common/BrandMark';
+import OwnershipNotice from '../components/common/OwnershipNotice';
 import { useDemoSession } from '../context/DemoSessionContext';
 import { DEMO_ROLE, NAME_MAX_LENGTH, safeReturnPath, validateSignIn, type SignInErrors } from '../lib/demoSession';
 
@@ -145,13 +146,14 @@ export default function LandingPage() {
         </div>
 
         <button type="submit" className="ls-btn-primary mt-6 w-full py-2.5 text-base">
-          Sign in to Signal by ProbeSyQ
+          Sign in
         </button>
       </form>
 
       <p className="mt-6 text-xs font-medium text-muted">
         <span className="font-semibold text-ink">ProbeSyQ</span> · Healthcare Technology Systems
       </p>
+      <OwnershipNotice className="mt-2 max-w-sm text-center" />
     </main>
   );
 }

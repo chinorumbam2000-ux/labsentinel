@@ -15,8 +15,8 @@ vi.mock('../../../smart/config', async (original) => ({
       enabled: true,
       clientId: 'test-client',
       scopes: 'openid fhirUser patient/Observation.rs',
-      redirectUri: 'http://localhost/labsentinel/smart/callback',
-      launchUri: 'http://localhost/labsentinel/smart/launch',
+      redirectUri: 'http://localhost/signal-by-probesyq/smart/callback',
+      launchUri: 'http://localhost/signal-by-probesyq/smart/launch',
       standaloneIss: 'https://sandbox.test/fhir',
     },
   },
@@ -225,7 +225,7 @@ describe('SMART on FHIR Sandbox page', () => {
     expect(screen.getByText('launch openid fhirUser patient/Observation.rs')).toBeTruthy();
     const launcher = screen.getByRole('link', { name: 'SMART Health IT launcher (prefilled)' });
     expect(launcher.getAttribute('href')).toBe(
-      'https://launch.smarthealthit.org/?launch_url=http%3A%2F%2Flocalhost%2Flabsentinel%2Fsmart%2Flaunch&fhir_version=r4',
+      'https://launch.smarthealthit.org/?launch_url=http%3A%2F%2Flocalhost%2Fsignal-by-probesyq%2Fsmart%2Flaunch&fhir_version=r4',
     );
     fireEvent.click(screen.getByRole('button', { name: 'Launch SMART Sandbox (Standalone)' }));
     expect(adapter.beginStandaloneLaunch).toHaveBeenCalled();

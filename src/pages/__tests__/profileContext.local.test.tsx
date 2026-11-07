@@ -267,7 +267,7 @@ describe('public branding', () => {
   it('the 404 redirect page carries no former product name', () => {
     expect(notFoundHtml).toContain('<title>Signal by ProbeSyQ — Outbreak Intelligence</title>');
     expect(notFoundHtml).not.toContain('LabSentinel');
-    // The repository path stays: it is the app's base, not branding.
-    expect(notFoundHtml).toContain('/labsentinel/');
+    // The Pages path is the repository name, signal-by-probesyq.
+    expect(notFoundHtml).toContain('/signal-by-probesyq/');
   });
 });

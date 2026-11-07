@@ -93,7 +93,7 @@ public sandbox); the only server-side SMART piece is the optional
 | Variable | Value | How it is set |
 |---|---|---|
 | `NODE_VERSION` | `20` | Blueprint |
-| `LABSENTINEL_BASE_PATH` | `/` | Blueprint (GitHub Pages keeps its default `/labsentinel/`) |
+| `LABSENTINEL_BASE_PATH` | `/` | Blueprint (GitHub Pages keeps its default `/signal-by-probesyq/`) |
 | `VITE_DATA_SOURCE` | `api` | Blueprint |
 | `VITE_API_BASE_URL` | the API's https URL, e.g. `https://labsentinel-api.onrender.com` (no trailing slash, no path) | **Dashboard, once** (`sync: false`) |
 | `VITE_SMART_ENABLED` | `true` | Blueprint |

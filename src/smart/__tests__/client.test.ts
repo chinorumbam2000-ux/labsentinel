@@ -24,8 +24,8 @@ const config: SmartEnabledConfig = {
   enabled: true,
   clientId: 'test-client',
   scopes: 'openid fhirUser patient/Observation.rs',
-  redirectUri: 'http://localhost/labsentinel/smart/callback',
-  launchUri: 'http://localhost/labsentinel/smart/launch',
+  redirectUri: 'http://localhost/signal-by-probesyq/smart/callback',
+  launchUri: 'http://localhost/signal-by-probesyq/smart/launch',
   standaloneIss: 'https://sandbox.test/fhir',
 };
 
@@ -64,7 +64,7 @@ describe('SMART client adapter', () => {
     expect(params).toEqual({
       clientId: 'test-client',
       scope: 'launch openid fhirUser patient/Observation.rs',
-      redirectUri: 'http://localhost/labsentinel/smart/callback',
+      redirectUri: 'http://localhost/signal-by-probesyq/smart/callback',
       iss: 'https://ehr.test/fhir',
       launch: 'launch-token',
       pkceMode: 'ifSupported',

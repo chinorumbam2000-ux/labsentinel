@@ -1,6 +1,6 @@
-# Signal by ProbeSyQ
+# Signal by ProbeSyQ™
 
-**Outbreak Intelligence** · by **ProbeSyQ** (Healthcare Technology Systems)
+**Outbreak Intelligence** · by **ProbeSyQ™** (Healthcare Technology Systems)
 
 Signal turns laboratory results from several hospitals into an explainable,
 privacy-protected early-warning signal for each surveillance profile — and
@@ -8,8 +8,8 @@ shows the analyst why the signal moved, how far the data behind it can be
 trusted, and what to do next. Roella, the ProbeSyQ AI Assistant, answers
 questions about what is on screen.
 
-🔗 **Live portfolio:** https://chinorumbam2000-ux.github.io/labsentinel/
-📦 **Repository:** https://github.com/chinorumbam2000-ux/labsentinel
+🔗 **Live portfolio:** https://chinorumbam2000-ux.github.io/signal-by-probesyq/
+📦 **Repository:** https://github.com/chinorumbam2000-ux/signal-by-probesyq
 
 > **Synthetic data only. No real patient data.** No real hospital, laboratory
 > or EHR vendor is connected: the source feeds and vendor environments are
@@ -18,9 +18,11 @@ questions about what is on screen.
 > confirmation of an outbreak. The sign-in screen is presentation only, not
 > authentication.
 
-*Internal name: LabSentinel.* It remains in the repository name, the
-`/labsentinel/` base path, storage keys, the FHIR identifier system and the
-database — see [docs/branding.md](docs/branding.md).
+*Project history:* the product began as **LabSentinel**. That name survives
+only in internal identifiers — storage keys, the FHIR identifier system, the
+database, the npm package and the `LABSENTINEL_*` build variables — never in
+the product's public name, URL or repository. See
+[docs/branding.md](docs/branding.md).
 
 ## Two ways to run it
 
@@ -31,7 +33,7 @@ database — see [docs/branding.md](docs/branding.md).
 | Backend, database, keys | None — zero network calls for data | FastAPI, PostgreSQL 16, Alembic |
 | Data | Scenario Replay + in-browser Live Surveillance | The same, plus FHIR R4 ingestion into PostgreSQL |
 | Extras | — | Detection Methods (backend composite, EWMA, CUSUM), Validation, Data Ingestion, SMART on FHIR sandbox launch |
-| Build | `npm run build` (`VITE_DATA_SOURCE=local`, the default) | `VITE_DATA_SOURCE=api VITE_API_BASE_URL=…` |
+| Build | `npm run build` (`VITE_DATA_SOURCE=local`, the default; base path `/signal-by-probesyq/`) | `VITE_DATA_SOURCE=api VITE_API_BASE_URL=…` |
 
 The public portfolio never depends on a server, an API key, an external AI
 service or a free tier that can expire. The full stack is the engineering
@@ -89,7 +91,7 @@ FastAPI, Pydantic 2, SQLAlchemy 2, Alembic, PostgreSQL 16, `fhir.resources`
 
 ```bash
 npm install
-npm run dev                  # http://localhost:5173/labsentinel/
+npm run dev                  # http://localhost:5173/signal-by-probesyq/
 npm test && npm run build    # what the GitHub Pages workflow runs
 ```
 
@@ -108,7 +110,7 @@ copy ..\deploy\env\backend.development.env.example .env
 $env:VITE_DATA_SOURCE="api"; $env:VITE_SMART_ENABLED="true"; npm run dev
 ```
 
-Open http://localhost:5173/labsentinel/overview. Backend tests: `pytest` in
+Open http://localhost:5173/signal-by-probesyq/overview. Backend tests: `pytest` in
 `backend/` (set `LABSENTINEL_TEST_DATABASE_URL` for the PostgreSQL suite).
 Full instructions: [backend/README.md](backend/README.md).
 
@@ -163,6 +165,16 @@ epidemiological validation. [docs/evaluation-summary.md](docs/evaluation-summary
 [Technical debt](docs/technical-debt.md) ·
 [Backend](backend/README.md) ·
 [Optional full-stack hosting](docs/deployment.md)
+
+## Ownership
+
+ProbeSyQ™ and Signal by ProbeSyQ™ are trademarks claimed by their owner
+(unregistered; ™ only).
+© 2026 [OWNER LEGAL NAME]. All rights reserved.
+
+This repository is a public portfolio project. Viewing the code and the live
+demonstration does not grant a licence to reuse the ProbeSyQ or Signal by
+ProbeSyQ names or the PSQ mark.
 
 ---
 
@@ -302,8 +314,9 @@ banner.
 `/index.html` redirects to `/dashboard`. Any unknown path renders an in-app 404
 with a link back to the dashboard.
 
-Routes are served from the GitHub Pages sub-path `/labsentinel/`, so the live
-URLs are `https://chinorumbam2000-ux.github.io/labsentinel/dashboard` and so on.
+Routes are served from the GitHub Pages sub-path `/signal-by-probesyq/`, so the
+live URLs are `https://chinorumbam2000-ux.github.io/signal-by-probesyq/dashboard`
+and so on.
 
 ### Navigation
 
@@ -1122,15 +1135,15 @@ Requires **Node.js 18 or newer** (developed against Node 24) and npm.
 ### Installation
 
 ```bash
-git clone https://github.com/chinorumbam2000-ux/labsentinel.git
-cd labsentinel
+git clone https://github.com/chinorumbam2000-ux/signal-by-probesyq.git
+cd signal-by-probesyq
 npm install
 ```
 
 ### Development server
 
 ```bash
-npm run dev       # http://localhost:5173/labsentinel/
+npm run dev       # http://localhost:5173/signal-by-probesyq/
 ```
 
 ### Build, test and verify
@@ -1165,11 +1178,12 @@ the previous version stays live.
 a sub-path and has no server-side rewrites, so the project is configured for
 both:
 
-1. **Sub-path base.** `vite.config.ts` sets `base: '/labsentinel/'`, and
-   `main.tsx` passes Vite's `BASE_URL` to React Router as its `basename`. This is
-   why built asset URLs are `/labsentinel/assets/...`. If you fork this under a
-   different repository name, change `BASE_PATH` in `vite.config.ts` to match.
-2. **SPA fallback.** A direct request to `/labsentinel/dashboard` is not a file,
+1. **Sub-path base.** `vite.config.ts` sets `base: '/signal-by-probesyq/'`
+   (`PAGES_BASE_PATH`), and `main.tsx` passes Vite's `BASE_URL` to React Router
+   as its `basename`. This is why built asset URLs are
+   `/signal-by-probesyq/assets/...`. If you fork this under a different
+   repository name, change `PAGES_BASE_PATH` in `vite.config.ts` to match.
+2. **SPA fallback.** A direct request to `/signal-by-probesyq/dashboard` is not a file,
    so Pages serves [`public/404.html`](public/404.html). That page stashes the
    requested route in a query string and bounces to the app root; a small script
    in `index.html` restores the real URL with `history.replaceState` before React

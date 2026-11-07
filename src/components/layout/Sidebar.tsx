@@ -138,7 +138,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+      <div className="ls-sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" data-testid="sidebar-scroll">
         {ANALYST_SECTIONS.map((section) => (
           <div key={section.heading} role="group" aria-label={section.heading} className="mt-3">
             <p aria-hidden="true" className={headingClasses}>

@@ -8,9 +8,15 @@
 | Former product names | LabSentinel (internal name), then briefly ProbeSyQ Signal |
 
 Everything a user sees says **Signal by ProbeSyQ**, **ProbeSyQ** or **Roella**.
-"LabSentinel" remains the product's **internal** name wherever changing it
-would break compatibility, stored data or history. Seeing it in code, in
-storage or in a URL is expected.
+The repository and the GitHub Pages path are `signal-by-probesyq`.
+"LabSentinel" remains only as an **internal** identifier wherever changing it
+would break compatibility, stored data or history. Seeing it in code or in
+storage is expected; it is no longer in any public URL.
+
+Ownership: ProbeSyQ™ and Signal by ProbeSyQ™ are claimed, unregistered
+trademarks (™, never ®). The copyright line names the owner's legal name,
+which is a placeholder (`[OWNER LEGAL NAME]`, `OWNER_LEGAL_NAME` in
+`src/lib/brand.ts`) until the owner supplies it.
 
 ## Visible names (renamed)
 
@@ -43,8 +49,8 @@ there. `withProductName()` (`src/lib/brand.ts`) renames them as they are shown:
 | `urn:labsentinel:facility-code` | FHIR senders identify facilities with it |
 | `labsentinel-development-only-salt` | Changing the pseudonym salt changes every pseudonym |
 | Browser storage keys `labsentinel.*` | Renaming them would reset every session |
-| GitHub Pages path `/labsentinel/` | Set by the repository name; links and SMART redirects use it |
-| SMART registered redirect addresses | Registered with the sandbox |
+| GitHub Pages path `/signal-by-probesyq/` | Set by the repository name (`signal-by-probesyq`, formerly `labsentinel`); links and SMART redirects are derived from it |
+| SMART client id `labsentinel-capstone-sandbox` | The public SMART Health IT sandbox accepts any id and any redirect; nothing is registered. Launch and redirect URLs are derived from the base path at build time |
 | Database, user and Render resource names (`labsentinel`, `labsentinel-api`, `labsentinel-db`) | Existing deployments and connection strings |
 | Alembic migration names, seed file `labsentinel_demo_dataset.json`, package name `labsentinel` | Tooling and history |
 | `LabSentinelDataSource` and other code identifiers | Internal |

@@ -543,7 +543,7 @@ Terminal 3, from the repository root:
 $env:VITE_DATA_SOURCE = "api"
 $env:VITE_API_BASE_URL = "http://127.0.0.1:8000"
 npm run dev
-# open http://localhost:5173/labsentinel/
+# open http://localhost:5173/signal-by-probesyq/
 ```
 
 Use `localhost:5173` or `127.0.0.1:5173`: those are the origins the API's CORS
@@ -942,7 +942,7 @@ in the page's **Recent FHIR ingestions** table or with
    (`APP_ENV` defaults to `development`).
 3. From the repository root, in PowerShell:
    `$env:VITE_DATA_SOURCE = "api"; $env:VITE_API_BASE_URL = "http://127.0.0.1:8000"; npm run dev`
-4. Open <http://localhost:5173/labsentinel/fhir-ingestion>.
+4. Open <http://localhost:5173/signal-by-probesyq/fhir-ingestion>.
 
 To start a presentation from a clean slate, first remove earlier FHIR rows
 (the command above under *Manual demo*). Otherwise the first ingestion is,
@@ -1055,8 +1055,8 @@ compiled into the JavaScript the browser downloads.
 
 **Local URLs** (Vite dev server):
 
-- Launch URL: `http://localhost:5173/labsentinel/smart/launch`
-- Redirect URL: `http://localhost:5173/labsentinel/smart/callback`
+- Launch URL: `http://localhost:5173/signal-by-probesyq/smart/launch`
+- Redirect URL: `http://localhost:5173/signal-by-probesyq/smart/callback`
 
 ### Security model
 
@@ -1178,7 +1178,7 @@ $env:VITE_SMART_ENABLED = "true"
 npm run dev
 ```
 
-Then open <http://localhost:5173/labsentinel/smart-demo>.
+Then open <http://localhost:5173/signal-by-probesyq/smart-demo>.
 
 - **EHR launch:** follow the page's *SMART Health IT launcher (prefilled)*
   link. On the launcher choose *Provider EHR Launch*, pick a patient
@@ -1609,7 +1609,7 @@ uvicorn app.main:app --reload --port 8000
 $env:VITE_DATA_SOURCE = "api"; $env:VITE_API_BASE_URL = "http://127.0.0.1:8000"; npm run dev
 ```
 
-4. Open <http://localhost:5173/labsentinel/dynamic-surveillance>. With
+4. Open <http://localhost:5173/signal-by-probesyq/dynamic-surveillance>. With
    nothing calculated it says so.
 5. `python -m app.seed.dynamic_dataset --phase baseline`, then
    **Recalculate Dynamic Surveillance**. Jan 14 is Low with a baseline of

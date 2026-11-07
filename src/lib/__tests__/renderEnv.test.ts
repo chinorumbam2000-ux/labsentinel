@@ -33,8 +33,8 @@ describe('Render static-site build guard', () => {
 
   it('requires API mode, the root base path and a valid SMART redirect', () => {
     expect(renderEnvProblems({ ...GOOD, VITE_DATA_SOURCE: 'local' }).join(' ')).toContain('VITE_DATA_SOURCE must be "api"');
-    expect(renderEnvProblems({ ...GOOD, LABSENTINEL_BASE_PATH: '/labsentinel/' }).join(' ')).toContain('LABSENTINEL_BASE_PATH must be "/"');
-    expect(renderEnvProblems({ ...GOOD, VITE_SMART_REDIRECT_URI: 'http://localhost:5173/labsentinel/smart/callback' }).join(' ')).toContain('must use https');
+    expect(renderEnvProblems({ ...GOOD, LABSENTINEL_BASE_PATH: '/signal-by-probesyq/' }).join(' ')).toContain('LABSENTINEL_BASE_PATH must be "/"');
+    expect(renderEnvProblems({ ...GOOD, VITE_SMART_REDIRECT_URI: 'http://localhost:5173/signal-by-probesyq/smart/callback' }).join(' ')).toContain('must use https');
     expect(renderEnvProblems({ ...GOOD, VITE_SMART_REDIRECT_URI: 'https://labsentinel.onrender.com/callback' }).join(' ')).toContain('/smart/callback');
     expect(renderEnvProblems({ ...GOOD, VITE_SMART_CLIENT_ID: '' }).join(' ')).toContain('VITE_SMART_CLIENT_ID is required');
   });
