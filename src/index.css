@@ -343,6 +343,47 @@ html.ls-presentation .ls-roella-panel {
   background: rgb(255 255 255 / 0.5);
 }
 
+/*
+ * Sign-in page on short viewports (a laptop browser window is often under
+ * 760px tall): tighter vertical rhythm so the whole page — logo, form, company
+ * line and ownership notice — fits without a scrollbar down to about 600px.
+ * Nothing is hidden; below that the page still scrolls (overflow-y: auto).
+ * Selectors are doubled-up so they win over the Tailwind utilities they adjust.
+ */
+@media (max-height: 760px) {
+  main.ls-auth-backdrop {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .ls-auth-backdrop .ls-auth-logo {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .ls-auth-backdrop .ls-auth-title {
+    margin-top: 0.75rem;
+  }
+
+  .ls-auth-backdrop .ls-auth-form {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .ls-auth-backdrop .ls-auth-field {
+    margin-top: 0.75rem;
+  }
+
+  .ls-auth-backdrop .ls-auth-submit {
+    margin-top: 1.25rem;
+  }
+
+  .ls-auth-backdrop .ls-auth-company {
+    margin-top: 1rem;
+  }
+}
+
 /* A quiet scrollbar for the Ask Roella conversation: visible, but thin. */
 .ls-scroll {
   scrollbar-width: thin;

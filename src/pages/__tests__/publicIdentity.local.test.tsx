@@ -55,6 +55,32 @@ describe('sign-in', () => {
   });
 });
 
+describe('sign-in page fits the viewport', () => {
+  // Layout is measured in a real browser by the release checks (no overflow at
+  // 1440×900, 1280×800 and down to 600px tall; short screens still scroll).
+  // This guards the structure those measurements depend on.
+  it('keeps its own scroll fallback and the short-viewport hooks, on the sign-in page only', async () => {
+    renderAt('/');
+    await screen.findByRole('button', { name: 'Sign in' }, WAIT);
+    const main = document.querySelector('main')!;
+    expect(main.className).toContain('ls-auth-backdrop');
+    expect(main.className).toContain('overflow-y-auto');
+    expect(main.className).not.toMatch(/overflow-y-hidden|overflow-hidden/);
+    for (const hook of ['ls-auth-logo', 'ls-auth-title', 'ls-auth-form', 'ls-auth-field', 'ls-auth-submit', 'ls-auth-company']) {
+      expect(main.querySelector(`.${hook}`), hook).not.toBeNull();
+    }
+  });
+
+  it('analyst pages keep their own scrolling main area', async () => {
+    signInForTest();
+    renderAt('/dashboard');
+    await screen.findByRole('heading', { level: 1 }, WAIT);
+    const scroller = document.getElementById('ls-main')!;
+    expect(scroller.className).toContain('overflow-y-auto');
+    expect(document.querySelector('.ls-auth-backdrop')).toBeNull();
+  });
+});
+
 describe('ownership notice', () => {
   it('claims ™ only — never ® — and names no invented company', () => {
     expect(TRADEMARK_NOTICE).toContain('ProbeSyQ™');

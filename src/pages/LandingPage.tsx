@@ -51,10 +51,10 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="ls-shell ls-auth-backdrop flex flex-col items-center overflow-y-auto overflow-x-hidden overscroll-y-contain bg-canvas px-4 py-10 [&>:first-child]:mt-auto [&>:last-child]:mb-auto">
+    <main className="ls-shell ls-auth-backdrop flex flex-col items-center overflow-y-auto overflow-x-hidden overscroll-y-contain bg-canvas px-4 py-8 [&>:first-child]:mt-auto [&>:last-child]:mb-auto">
       <div className="ls-auth-brand flex flex-col items-center text-center">
-        <BrandMark size={64} className="h-14 w-14 shrink-0 sm:h-16 sm:w-16" />
-        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+        <BrandMark size={64} className="ls-auth-logo h-14 w-14 shrink-0 sm:h-16 sm:w-16" />
+        <h1 className="ls-auth-title mt-5 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
           Signal <span className="text-lg font-medium tracking-normal text-muted sm:text-xl">by ProbeSyQ</span>
         </h1>
         <p className="mt-1.5 text-base font-medium text-muted sm:text-lg">Outbreak Intelligence</p>
@@ -64,7 +64,7 @@ export default function LandingPage() {
         onSubmit={onSubmit}
         noValidate
         aria-label="Sign in to Signal by ProbeSyQ"
-        className="ls-card mt-8 w-full max-w-sm p-6 text-left sm:p-7"
+        className="ls-auth-form ls-card mt-8 w-full max-w-sm p-6 text-left sm:p-7"
       >
         <div>
           <label htmlFor="signin-name" className="block text-sm font-medium text-ink">
@@ -94,7 +94,7 @@ export default function LandingPage() {
           ) : null}
         </div>
 
-        <div className="mt-4">
+        <div className="ls-auth-field mt-4">
           <label htmlFor="signin-role" className="block text-sm font-medium text-ink">
             Role
           </label>
@@ -109,7 +109,7 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="mt-4">
+        <div className="ls-auth-field mt-4">
           <label htmlFor="signin-password" className="block text-sm font-medium text-ink">
             Password
           </label>
@@ -145,12 +145,12 @@ export default function LandingPage() {
           ) : null}
         </div>
 
-        <button type="submit" className="ls-btn-primary mt-6 w-full py-2.5 text-base">
+        <button type="submit" className="ls-auth-submit ls-btn-primary mt-6 w-full py-2.5 text-base">
           Sign in
         </button>
       </form>
 
-      <p className="mt-6 text-xs font-medium text-muted">
+      <p className="ls-auth-company mt-6 text-xs font-medium text-muted">
         <span className="font-semibold text-ink">ProbeSyQ</span> · Healthcare Technology Systems
       </p>
       <OwnershipNotice className="mt-2 max-w-sm text-center" />
