@@ -91,7 +91,7 @@ describe('Live Surveillance', () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
     renderAt('/hospitals');
     expect(await screen.findByTestId('sidecar-live-note', undefined, WAIT)).toBeTruthy();
-    expect(document.body.textContent).not.toContain('Respiratory Viral Syndrome · regional activity');
+    expect(document.body.textContent).not.toContain('Respiratory Viral Activity · regional activity');
   });
 
   it('starts, pauses, resumes and resets — with exactly one timer', async () => {

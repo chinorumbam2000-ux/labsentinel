@@ -14,6 +14,7 @@ import { CONFIDENCE_DISCLAIMER, formatMinutesAgo } from '../../lib/dataConfidenc
 import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../../data/simulation';
 import SeverityBadge from './SeverityBadge';
 import MethodNote from '../common/MethodNote';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 
 interface WhyThisSignalPanelProps {
   scenario: SimulationScenario;
@@ -120,7 +121,7 @@ export default function WhyThisSignalPanel({
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-ink">Why this signal?</h2>
           <p className="mt-0.5 text-xs text-muted">
-            Respiratory Viral Syndrome · Day {scenario.day} ·{' '}
+            {PROFILE_BY_ID[RVS_PROFILE_ID].displayName} · Day {scenario.day} ·{' '}
             {formatSimulationDate(scenario.simulationDate)}
           </p>
         </div>

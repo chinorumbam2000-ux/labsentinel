@@ -165,6 +165,6 @@ describe('Roella — release questions, in both modes', () => {
     expect(ask('Which facility contributed?', live).intent).toBe('live_facility');
     const r = ask('Which facility contributed?', replay);
     expect(r.intent).toBe('profile_facilities');
-    expect(r.text).toContain('above Respiratory Viral Syndrome');
+    expect(r.text).toContain('above Respiratory Viral Activity');
   });
 });

@@ -78,7 +78,7 @@ export default function SimulationPage() {
             signals, facilities and the clinician sidecar.
           </p>
           <p className="mt-1 max-w-3xl text-xs text-muted">
-            The narrated scenario is Respiratory Viral Syndrome. The other surveillance profiles on the
+            The narrated scenario is Respiratory Viral Activity, the aggregate respiratory profile. The other surveillance profiles on the
             Dashboard follow the same replay day, with their own data and their own scores.
           </p>
         </div>

@@ -1,5 +1,6 @@
 import SeverityBadge from '../signals/SeverityBadge';
 import ProfileStatusTag from './ProfileStatusTag';
+import ProfileTypeTag from './ProfileTypeTag';
 import { DATA_ORIGIN_LABEL } from '../../lib/profiles/registry';
 import { activeSignals, type ProfileSummary } from '../../lib/profiles/portfolio';
 import type { Portfolio } from '../../lib/profiles/usePortfolio';
@@ -37,7 +38,8 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
           </h2>
           <p className="mt-0.5 text-xs text-muted">
             {period.mode === 'live' ? `Live Surveillance · ${period.currentLabel} (latest closed day)` : `Replay Day ${day}`} · each
-            profile scored against its own baseline — scores are never combined.
+            profile scored against its own baseline and observations — scores are never combined. Aggregate
+            profiles include their pathogens’ results; they are not separate diseases.
           </p>
         </div>
         <div className="flex gap-1" role="group" aria-label="Profiles shown">
@@ -98,6 +100,7 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
                 >
                   {s.profile.displayName}
                 </button>
+                <ProfileTypeTag profile={s.profile} />
                 <ProfileStatusTag status={s.status} />
                 <span className="text-xs text-muted">{s.current.statusReason}</span>
               </li>
@@ -141,11 +144,13 @@ function ProfileCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold text-ink" title={profile.displayName}>
+          {/* Wraps rather than truncates, so a longer name is always readable in full. */}
+          <h3 className="break-words text-sm font-semibold leading-snug text-ink" title={profile.displayName}>
             {profile.displayName}
           </h3>
-          <p className="text-[11px] text-muted">
-            {profile.category} · {DATA_ORIGIN_LABEL[profile.dataOrigin]}
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted">
+            <ProfileTypeTag profile={profile} />
+            <span>{DATA_ORIGIN_LABEL[profile.dataOrigin]}</span>
           </p>
         </div>
         {score ? (

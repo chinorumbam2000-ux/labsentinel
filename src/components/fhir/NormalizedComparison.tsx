@@ -1,5 +1,6 @@
 import type { IngestionOutcome, NormalizedObservation } from '../../data-access/fhirIngestion';
 import type { SourceSummary } from '../../lib/fhirDemo';
+import { currentProfileName } from '../../lib/profiles/registry';
 
 export interface FacilityInfo {
   name: string;
@@ -72,7 +73,7 @@ export default function NormalizedComparison({
             <Row label="Facility" value={facility ? `${facility.name} (${outcome.facility_code})` : outcome.facility_code} />
             <Row label="Source system" value={record.source_system} mono />
             <Row label="Synthetic patient ref." value={record.patient_reference} mono />
-            <Row label="Syndrome" value={record.syndrome ?? 'None — LOINC not mapped'} />
+            <Row label="Surveillance profile" value={record.syndrome ? currentProfileName(record.syndrome) : 'None — LOINC not mapped'} />
             <Row label="Test name" value={record.test_name} />
             <Row label="LOINC code" value={record.loinc_code} mono />
             <Row label="Result" value={resultText(record)} />
@@ -98,7 +99,7 @@ export default function NormalizedComparison({
           {mapped ? (
             <>
               <p className="text-xs text-ink">Normalized test: <strong>{record.test_name}</strong></p>
-              <p className="text-xs text-ink">Surveillance syndrome: <strong>{record.syndrome}</strong></p>
+              <p className="text-xs text-ink">Surveillance profile: <strong>{currentProfileName(record.syndrome)}</strong></p>
             </>
           ) : (
             <p className="text-xs text-ink">

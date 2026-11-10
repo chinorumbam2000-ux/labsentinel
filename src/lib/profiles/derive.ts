@@ -3,14 +3,14 @@
  *
  * One pass routes every observation to EVERY profile its test belongs to
  * (many-to-many), so a single Influenza A result updates both Influenza A and
- * Respiratory Viral Syndrome. Each profile then gets its own daily counts and
+ * Respiratory Viral Activity. Each profile then gets its own daily counts and
  * its own Composite Outbreak Signal Score from the unchanged scoring function
  * (signalScore.ts) — scores are never merged across profiles.
  *
  * The replay rules apply to every profile exactly as they apply to the
  * narrated scenario: Day 1 is the baseline day, a facility is affected at
  * +3 percentage points over the baseline, persistence counts consecutive days
- * above baseline. For Respiratory Viral Syndrome this reproduces the frozen
+ * above baseline. For Respiratory Viral Activity this reproduces the frozen
  * scenario exactly (0 / 24 / 50 / 74 / 87); a test pins it.
  *
  * DEMO ENVIRONMENT — Synthetic data only.

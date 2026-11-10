@@ -64,7 +64,7 @@ const mainMode = (ctx: AssistantContext): AssistantAnswer =>
 const replayMode = (ctx: AssistantContext, replayDate: string): AssistantAnswer =>
   answer('mode_replay', [
     text(
-      'Scenario Replay is a controlled historical training scenario. It replays a known Respiratory Viral Syndrome outbreak progression over five fixed days, so you can review how the signal developed, one day at a time, from the baseline onward.',
+      'Scenario Replay is a controlled historical training scenario. It replays a known Respiratory Viral Activity outbreak progression over five fixed days, so you can review how the signal developed, one day at a time, from the baseline onward.',
     ),
     text('It is used for training, walkthroughs and controlled review. It is not the current operational state: Live Surveillance is the primary mode.'),
     text(

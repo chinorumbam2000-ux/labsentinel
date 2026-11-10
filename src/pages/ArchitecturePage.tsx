@@ -30,7 +30,7 @@ const FULL_STACK_FLOW: FlowStep[] = [
   },
   {
     nodes: [
-      { label: 'FastAPI: validation and normalization', detail: 'FHIR R4B models, LOINC → syndrome, SNOMED CT → result, facility resolution, salted patient pseudonyms, duplicate detection.', status: 'IMPLEMENTED' },
+      { label: 'FastAPI: validation and normalization', detail: 'FHIR R4B models, LOINC → surveillance profile, SNOMED CT → result, facility resolution, salted patient pseudonyms, duplicate detection.', status: 'IMPLEMENTED' },
     ],
   },
   {
@@ -101,7 +101,7 @@ const CURRENT_FLOW: FlowStep[] = [
     nodes: [
       {
         label: 'FHIR / LOINC Normalization',
-        detail: 'Three respiratory LOINC concepts grouped into one surveillance syndrome. Mapping quality is tracked per feed.',
+        detail: 'Three respiratory LOINC concepts, each routed to its pathogen profile and to the Respiratory Viral Activity aggregate. Mapping quality is tracked per feed.',
         status: 'IMPLEMENTED',
       },
     ],

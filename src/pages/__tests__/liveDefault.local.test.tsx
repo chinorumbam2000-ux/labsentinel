@@ -222,7 +222,7 @@ describe('Roella on the two modes', () => {
       const a = ask('What is Scenario Replay?', ctx);
       expect(a.intent).toBe('mode_replay');
       expect(a.text).toContain('controlled historical training scenario');
-      expect(a.text).toContain('known Respiratory Viral Syndrome outbreak progression');
+      expect(a.text).toContain('known Respiratory Viral Activity outbreak progression');
       expect(a.text).toContain('not the current operational state');
     }
     expect(ask('What is Scenario Replay?', replay).text).toContain('Replay Day 3 of 5');

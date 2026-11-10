@@ -9,6 +9,7 @@ import {
 } from '../../lib/dynamicSurveillance';
 import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
 import SeverityBadge from '../signals/SeverityBadge';
+import { currentProfileName } from '../../lib/profiles/registry';
 
 /**
  * "Why this dynamic signal?" — the same five questions and weighted table as
@@ -28,7 +29,7 @@ export default function DynamicWhyThisSignal({ signal }: { signal: DynamicSignal
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-ink">Why this dynamic signal?</h2>
           <p className="mt-0.5 text-xs text-muted">
-            {signal.syndrome} · {formatSurveillanceDate(signal.signal_date)} · {DYNAMIC_LABEL}
+            {currentProfileName(signal.syndrome)} · {formatSurveillanceDate(signal.signal_date)} · {DYNAMIC_LABEL}
           </p>
         </div>
         <div className="flex items-center gap-2">

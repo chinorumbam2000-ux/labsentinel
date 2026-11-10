@@ -15,6 +15,7 @@ import IntegrationDetails from '../components/hospitals/IntegrationDetails';
 import FacilityStatusOverview from '../components/hospitals/FacilityStatusOverview';
 import HospitalDashboard from '../components/hospitals/HospitalDashboard';
 import type { HospitalId } from '../types';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 
 /**
  * Each simulated environment gets a visually distinct but entirely generic
@@ -155,7 +156,7 @@ export default function HospitalsPage() {
                 not — it is the same component rendered in all three.
               </p>
               <p className="mt-1 max-w-3xl text-sm text-ink" data-testid="sidecar-scope">
-                This sidecar is a Respiratory Viral Syndrome example: it shows the narrated replay's figures
+                This sidecar is a {PROFILE_BY_ID[RVS_PROFILE_ID].displayName} example: it shows the narrated replay's figures
                 whichever surveillance profile is selected above.
               </p>
             </div>

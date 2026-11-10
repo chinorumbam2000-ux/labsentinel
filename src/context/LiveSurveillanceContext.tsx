@@ -6,7 +6,7 @@
  *    observations arriving through three simulated source feeds, processed
  *    and scored in the browser;
  *  - Scenario Replay — the secondary training mode: the controlled five-day
- *    Respiratory Viral Syndrome scenario (SimulationContext), unchanged.
+ *    Respiratory Viral Activity scenario (SimulationContext), unchanged.
  *
  * A fresh session opens in Live Surveillance. An explicit choice of Scenario
  * Replay is kept for the browser session (sessionStorage) until the analyst

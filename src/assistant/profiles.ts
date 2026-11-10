@@ -48,7 +48,8 @@ const joinAnd = (items: string[]) =>
  * ------------------------------------------------------------------------ */
 
 const PROFILE_PATTERNS: Array<[RegExp, ProfileId]> = [
-  [/\brespiratory viral syndrome\b|\brespiratory syndrome\b|\brvs\b/, RVS_PROFILE_ID],
+  // Respiratory Viral Activity, the aggregate; its former name is still understood.
+  [/\brespiratory viral activity\b|\brespiratory activity\b|\baggregate respiratory\b|\brva\b|\brespiratory viral syndrome\b|\brespiratory syndrome\b|\brvs\b/, RVS_PROFILE_ID],
   [/\binfluenza\b|\bflu\b/, 'influenza-a'],
   [/\bcovid\b|\bcovid-19\b|\bcovid19\b|\bsars-cov-2\b|\bsars cov 2\b|\bsars\b|\bcoronavirus\b/, 'covid-19'],
   [/\brsv\b|\brespiratory syncytial\b/, 'rsv'],

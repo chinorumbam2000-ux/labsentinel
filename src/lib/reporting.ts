@@ -131,7 +131,7 @@ export interface BuildReportInput {
   investigator?: string;
   /**
    * The surveillance profile the alert belongs to. Without it the report is
-   * the narrated Respiratory Viral Syndrome report, exactly as before.
+   * the narrated Respiratory Viral Activity report, exactly as before.
    */
   profile?: {
     id: string;

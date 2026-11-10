@@ -1,13 +1,13 @@
 # Surveillance profiles (multi-profile surveillance)
 
 Signal by ProbeSyQ watches several **surveillance profiles** at once. A profile
-is one surveillance target: a syndrome (Respiratory Viral Syndrome) or a single
-pathogen (Influenza A). Each profile has its own daily counts, its own baseline
+is one surveillance target: an aggregate of several tests (Respiratory Viral
+Activity) or a single pathogen (Influenza A). Each profile has its own daily counts, its own baseline
 and its own Composite Outbreak Signal Score. **Scores are never combined across
 profiles.**
 
 All profile data is synthetic. Every setting is an *illustrative default*
-inherited unchanged from the existing Respiratory Viral Syndrome configuration;
+inherited unchanged from the existing Respiratory Viral Activity configuration;
 none is clinically or epidemiologically validated for any profile.
 
 ## One registry
@@ -26,12 +26,61 @@ signal configuration references, replay availability and live availability.
 
 | Profile | Category | Tests | Data | Replay | Live engine | Engine key |
 |---|---|---|---|---|---|---|
-| Respiratory Viral Syndrome (default) | Syndrome | Influenza A, SARS-CoV-2, RSV RNA | The narrated Scenario Replay | Yes | Yes | `Respiratory Viral Syndrome` (legacy) |
+| Respiratory Viral Activity (default; id `respiratory-viral-syndrome`) | Syndrome → Aggregate | Influenza A, SARS-CoV-2, RSV RNA | The narrated Scenario Replay | Yes | Yes | `Respiratory Viral Syndrome` (legacy) |
 | Influenza A | Pathogen | Influenza A RNA | Derived from the replay results | No | Yes | `influenza-a` |
 | COVID-19 | Pathogen | SARS-CoV-2 RNA | Derived from the replay results | No | Yes | `covid-19` |
 | RSV | Pathogen | RSV RNA | Derived from the replay results | No | Yes | `rsv` |
 | Cholera | Pathogen | V. cholerae (demo code) | Synthetic portfolio data | No | No | `cholera` |
-| Gastrointestinal Syndrome | Syndrome | GI panel, V. cholerae (demo codes) | Synthetic portfolio data | No | No | `gastrointestinal-syndrome` |
+| Gastrointestinal Syndrome | Syndrome → Aggregate | GI panel, V. cholerae (demo codes) | Synthetic portfolio data | No | No | `gastrointestinal-syndrome` |
+
+## Aggregate and pathogen-specific profiles
+
+Signal by ProbeSyQ supports two kinds of surveillance profile, on purpose:
+
+1. **Aggregate profiles** combine several tests into one view.
+   - **Respiratory Viral Activity** — *aggregate respiratory surveillance*:
+     Influenza A, SARS-CoV-2 and RSV RNA results together, showing overall
+     respiratory viral activity across participating facilities and areas.
+   - **Gastrointestinal Syndrome** — *aggregate, syndrome-level*: the
+     gastrointestinal pathogen panel and Vibrio cholerae results.
+2. **Pathogen-specific profiles** cover one pathogen's own tests:
+   **Influenza A**, **COVID-19**, **RSV** and **Cholera**.
+
+This is not duplicate monitoring, and an aggregate is not a separate disease:
+Respiratory Viral Activity does not diagnose a "respiratory viral syndrome".
+A SARS-CoV-2 result counts once towards COVID-19 and once towards Respiratory
+Viral Activity (likewise Influenza A and RSV). Each profile is scored from its
+own observations against its own baseline; the aggregate's score is calculated
+from the combined results, never by averaging the pathogen scores.
+
+The type comes from the registry's `category` (`Syndrome` → Aggregate,
+`Pathogen` → Pathogen) in `src/lib/profiles/registry.ts`, the one place the
+interface reads it. Every screen says the type in words: an *Aggregate* /
+*Pathogen* tag on Active Surveillance cards, the profile header, the Signals
+and Investigations tables, and the profile selector's *Aggregate profiles* /
+*Pathogen-specific profiles* groups. The profile header also says what the
+figures cover — "This aggregate profile combines Influenza A, COVID-19 and RSV
+laboratory activity." or "COVID-19 results only (SARS-CoV-2 RNA); they also
+count towards Respiratory Viral Activity." — and the Map, Facilities,
+Laboratory Data and Analytics follow the selected profile only.
+
+### Names and compatibility identifiers
+
+The aggregate respiratory profile was called *Respiratory Viral Syndrome*.
+Only the visible name changed. These keep the former name, because stored data,
+the database and the API depend on them:
+
+| Kept as is | Why |
+|---|---|
+| Profile id `respiratory-viral-syndrome` (`?profile=` links) | Bookmarks, stored session state, API parameters |
+| `displayName` in `backend/app/profiles/registry.json` and the `surveillance_profile` row from migration 0008 | The migration stores the registry exactly; a test checks it |
+| Engine key / legacy syndrome `Respiratory Viral Syndrome` | Every dynamic, EWMA and CUSUM row stored before profiles existed |
+| `syndrome` on replay observations, API signals and saved reports | Frozen replay data and stored records |
+
+The interface maps the former name to the current one wherever such a value is
+shown (`currentProfileName` in `src/lib/profiles/registry.ts`), so the old name
+does not appear on any analyst page in either build. Roella still understands
+the former name in questions.
 
 "Replay" means the narrated five-day Scenario Replay. "Live engine" means the
 backend's dynamic engine (and EWMA / CUSUM) can calculate the profile from
@@ -45,9 +94,9 @@ One result counts towards every profile its test belongs to:
 
 | Test code | Profiles |
 |---|---|
-| 92142-9 Influenza A RNA | Respiratory Viral Syndrome, Influenza A |
-| 94500-6 SARS-CoV-2 RNA | Respiratory Viral Syndrome, COVID-19 |
-| 85479-4 RSV RNA | Respiratory Viral Syndrome, RSV |
+| 92142-9 Influenza A RNA | Respiratory Viral Activity, Influenza A |
+| 94500-6 SARS-CoV-2 RNA | Respiratory Viral Activity, COVID-19 |
+| 85479-4 RSV RNA | Respiratory Viral Activity, RSV |
 | DEMO-VCH V. cholerae (synthetic) | Cholera, Gastrointestinal Syndrome |
 | DEMO-GIP GI pathogen panel (synthetic) | Gastrointestinal Syndrome |
 
@@ -110,7 +159,7 @@ shown as "within expected range".
 
 | Profile | Day 1 | Day 2 | Day 3 | Day 4 | Day 5 |
 |---|---|---|---|---|---|
-| Respiratory Viral Syndrome | 0 | 24 | 50 | 74 | 87 |
+| Respiratory Viral Activity | 0 | 24 | 50 | 74 | 87 |
 | Influenza A | 12 | 46 | 70 | 86 | 67 |
 | COVID-19 | 0 | 20 | 48 | 51 | 93 |
 | RSV | 12 | 17 | 28 | 59 | 66 |
@@ -136,7 +185,7 @@ Every analyst-facing element is one or the other, never a mix.
 
 Scenario Replay is the exception that proves the rule: it narrates Respiratory
 Viral Syndrome, so on that page the top bar names it as the *replay profile*
-and shows the replay stage; on every other page the stage (an RVS narrative)
+and shows the replay stage; on every other page the stage (the Respiratory Viral Activity narrative)
 is not shown and the reading is the selected profile's. A profile with no data
 or no baseline shows its status in words ("Insufficient baseline", "No current
 data"); another profile's score is never shown in its place.
@@ -182,15 +231,15 @@ statistical threshold and changes no score.
   Monitoring, Escalate, Dismiss, Confirmed Concern, Close) and reported.
 - Investigation records store their `profileId`; the Investigations list names
   each alert's profile.
-- A non-RVS alert opens **its own** investigation shell: the alert's frozen
+- An alert of any other profile opens **its own** investigation shell: the alert's frozen
   detection-time values, the review workflow, and a clear statement that the
   detailed evidence view (step-by-step score breakdown and facility, area and
-  data-quality trace) covers Respiratory Viral Syndrome only. Nothing stands
-  in for it, and the page never switches to Respiratory Viral Syndrome.
+  data-quality trace) covers Respiratory Viral Activity only. Nothing stands
+  in for it, and the page never switches to Respiratory Viral Activity.
 - A report drafted from a COVID-19 alert describes COVID-19: its own figures,
   baseline, area disclosure and profile name. A profile without a score on the
   day cannot be reported, and the analyst is told why.
-- The clinician sidecar is a Respiratory Viral Syndrome example and is labelled
+- The clinician sidecar is a Respiratory Viral Activity example and is labelled
   as such.
 
 ## Backend: one engine, once per profile
@@ -211,7 +260,7 @@ eligibility rule is otherwise unchanged. Migration 0009 adds
 `surveillance_profile.engine_key`.
 
 Endpoints: the dynamic, EWMA and CUSUM endpoints accept `?profile=<id>`
-beside the older `?syndrome=`; neither means Respiratory Viral Syndrome. An
+beside the older `?syndrome=`; neither means the aggregate respiratory profile. An
 unknown profile is 404; a profile and a different syndrome together are 422.
 The recalculation requests accept `"profile"` in their body.
 
@@ -225,7 +274,7 @@ no statistical result, and none is fabricated.
 - **Dashboard** — *Active Surveillance*: "N signals require attention", the
   status counts kept apart, active-signal cards ranked by severity, then score,
   then name; "All profiles" shows all six. Below it, the selected profile's
-  detail (for Respiratory Viral Syndrome, exactly the previous dashboard).
+  detail (for Respiratory Viral Activity, exactly the previous dashboard).
 - **Selected profile** — `?profile=<id>` (default Respiratory Viral
   Syndrome); `active` and `all` are portfolio views that focus single-profile
   pages on the highest active signal. An unknown value falls back to the
@@ -238,7 +287,7 @@ no statistical result, and none is fabricated.
 - **Signals** lists every profile's alerts ("All profiles"), with profile and
   detection-time score, using the same alert rules. Every alert can be
   acknowledged and reviewed (see Investigations and reports).
-- **Scenario Replay** is unchanged and narrates Respiratory Viral Syndrome.
+- **Scenario Replay** is unchanged and narrates Respiratory Viral Activity.
 - **Roella** answers which profiles need attention, the highest or any Critical
   signal, what is happening with a profile, a comparison of two profiles, the
   facilities contributing to a profile, profiles within range or needing a
@@ -257,7 +306,7 @@ profile's observations; the screens do not use those.)
 
 | Profile | Local mode | API mode |
 |---|---|---|
-| Respiratory Viral Syndrome | Browser | Scores and days from the API |
+| Respiratory Viral Activity | Browser | Scores and days from the API |
 | Influenza A, COVID-19, RSV | Browser | Laboratory records from the API; scores derived in the browser from the replay feed |
 | Cholera, Gastrointestinal Syndrome | Browser | Browser only — not in the API database, not ingestible through FHIR |
 
@@ -266,5 +315,5 @@ profile's observations; the screens do not use those.)
 - No timer-driven or live ingestion. The routing rule (`routeObservations`,
   `profiles_for_test`) already sends each observation to every applicable
   profile, and the backend can calculate each profile under its engine key.
-- The Detection Methods page still shows Respiratory Viral Syndrome; the API
+- The Detection Methods page still shows Respiratory Viral Activity; the API
   behind it already accepts `?profile=`.

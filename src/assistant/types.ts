@@ -55,7 +55,7 @@ export interface AssistantContext {
    * functions when absent.
    */
   profiles?: ProfileSummary[];
-  /** The profile the pages are showing (?profile=); Respiratory Viral Syndrome by default. */
+  /** The profile the pages are showing (?profile=); Respiratory Viral Activity (id respiratory-viral-syndrome) by default. */
   profileId?: ProfileId;
   /** The selector's value, when it is a portfolio view rather than one profile. */
   profileSelection?: ProfileSelection;
@@ -165,6 +165,9 @@ export type IntentId =
   | 'mode_main'
   | 'mode_replay'
   | 'mode_dates'
+  | 'profile_type_about'
+  | 'profile_membership'
+  | 'profile_difference'
   | 'unsupported'
   | 'medical_advice'
   | 'out_of_scope';

@@ -86,7 +86,11 @@ export default function AnalyticsPage() {
   > = {
     volume: {
       title: 'Test Volume',
-      subtitle: `${view.isNarrated ? 'Respiratory' : view.profile.displayName} tests per day · baseline ${view.baseline.tests}`,
+      subtitle: `${
+        view.profile.type === 'Aggregate'
+          ? `${view.profile.displayName}: combined ${view.profile.testCodes.length > 1 ? 'tests' : 'test'}`
+          : `${view.profile.displayName} tests only`
+      } per day · baseline ${view.baseline.tests}`,
       unit: 'tests',
       rows: trendSeries.map((point) => ({ day: point.day, value: String(point.tests) })),
     },

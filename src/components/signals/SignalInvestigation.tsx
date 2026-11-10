@@ -19,6 +19,7 @@ import FeedHealthCard from '../common/FeedHealthCard';
 import DayOverDayChange from '../common/DayOverDayChange';
 import InvestigationWorkflowPanel from './InvestigationWorkflowPanel';
 import MethodNote from '../common/MethodNote';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 
 export type InvestigationMode = 'detection' | 'current';
 
@@ -192,7 +193,7 @@ export default function SignalInvestigation({
           <div className="min-w-0">
             <p className="ls-label">Signal</p>
             <h2 className="mt-1 text-xl font-semibold text-ink">
-              {alert ? alert.title : 'Respiratory Viral Syndrome'}
+              {alert ? alert.title : PROFILE_BY_ID[RVS_PROFILE_ID].displayName}
             </h2>
             <p className="mt-1 text-sm text-muted">
               Worcester County, MA · Replay Day {scenario.day} · {scenario.stage}

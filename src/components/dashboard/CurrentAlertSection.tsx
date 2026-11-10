@@ -15,6 +15,7 @@ import { BASELINE_POSITIVITY_RATE, BASELINE_TEST_VOLUME } from '../../data/simul
 import SeverityBadge from '../signals/SeverityBadge';
 import WhyThisSignalPanel from '../signals/WhyThisSignalPanel';
 import { EmptyState } from '../common/States';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 
 interface CurrentAlertSectionProps {
   scenario: SimulationScenario;
@@ -84,7 +85,7 @@ export default function CurrentAlertSection({
                 <h2 className="text-base font-semibold text-ink">{alert.title}</h2>
               </div>
               <p className="mt-1 text-sm text-muted">
-                Respiratory Viral Syndrome · Worcester County, MA · {scenario.stage}
+                {PROFILE_BY_ID[RVS_PROFILE_ID].displayName} · Worcester County, MA · {scenario.stage}
               </p>
             </div>
             <div className="text-right">

@@ -9,7 +9,7 @@ import { useDataSource } from '../data-access/DataSourceProvider';
 import { useDebouncedValue, useObservationPage } from '../data-access/hooks';
 import { queryObservations } from '../data-access/observationQuery';
 import { usePortfolio } from '../lib/profiles/usePortfolio';
-import { TEST_BY_CODE } from '../lib/profiles/registry';
+import { PROFILE_BY_ID, RVS_PROFILE_ID, TEST_BY_CODE } from '../lib/profiles/registry';
 import { profileObservationsThrough } from '../lib/profiles/derive';
 import ProfileSelector from '../components/profiles/ProfileSelector';
 import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
@@ -68,7 +68,7 @@ export default function LaboratoryDataPage() {
   const [page, setPage] = useState(1);
 
   // The table follows the selected surveillance profile (?profile=):
-  //  - Respiratory Viral Syndrome: every result, exactly as before;
+  //  - Respiratory Viral Activity: every result, exactly as before;
   //  - a pathogen from the replay: only its test's results, from the active
   //    data source (so the API serves them in API mode);
   //  - a portfolio profile: its synthetic results, which exist only in the
@@ -221,10 +221,10 @@ export default function LaboratoryDataPage() {
               ? `${focus.displayName} is not part of the simulated live feeds.`
               : `Live Surveillance: ${focus.displayName} results received from the simulated feeds so far, history included.`
             : focus.id === 'respiratory-viral-syndrome'
-            ? 'All respiratory results in the replay feed.'
+            ? `${focus.displayName} (aggregate): every Influenza A, SARS-CoV-2 and RSV result in the replay feed.`
             : isPortfolioData
               ? `${focus.displayName}: synthetic portfolio results with demonstration test codes (not LOINC).`
-              : `${focus.displayName}: the replay feed's ${profileTests.map((test) => test.name).join(', ')} results only. Each also counts towards Respiratory Viral Syndrome.`}
+              : `${focus.displayName}: the replay feed's ${profileTests.map((test) => test.name).join(', ')} results only. Each also counts towards ${PROFILE_BY_ID[RVS_PROFILE_ID].displayName}, the aggregate.`}
         </p>
       </div>
 

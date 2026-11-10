@@ -95,11 +95,11 @@ describe('top bar follows the selected profile', () => {
     expect(reading().getAttribute('aria-label')).toContain('no current data');
   });
 
-  it('names Respiratory Viral Syndrome as the replay profile on Scenario Replay', async () => {
+  it('names Respiratory Viral Activity as the replay profile on Scenario Replay', async () => {
     atDay(5);
     renderAt('/replay?profile=covid-19');
     await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
-    expect(reading().getAttribute('aria-label')).toMatch(/^Replay profile: Respiratory Viral Syndrome, Critical, score 87/);
+    expect(reading().getAttribute('aria-label')).toMatch(/^Replay profile: Respiratory Viral Activity, Critical, score 87/);
     expect(topBar().textContent).toContain('Regional Early-Warning Signal');
     // The selection is kept for the way back.
     expect(lastSearch).toBe('?profile=covid-19');
@@ -117,11 +117,11 @@ describe('top bar follows the selected profile', () => {
     expect(screen.getByText('Replay Day 5 of 5 · Regional Early-Warning Signal')).toBeTruthy();
   });
 
-  it('keeps the default (no ?profile) exactly on Respiratory Viral Syndrome', async () => {
+  it('keeps the default (no ?profile) exactly on Respiratory Viral Activity', async () => {
     atDay(5);
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', {}, WAIT);
-    expect(reading().getAttribute('aria-label')).toMatch(/^Selected profile: Respiratory Viral Syndrome, Critical, score 87/);
+    expect(reading().getAttribute('aria-label')).toMatch(/^Selected profile: Respiratory Viral Activity, Critical, score 87/);
   });
 });
 
@@ -165,7 +165,7 @@ describe('investigations and reports name their profile', () => {
     const body = document.body.textContent ?? '';
     expect(body).toContain('COVID-19');
     expect(body).toContain('Regional outbreak signal detected');
-    expect(body).not.toContain('Respiratory Viral Syndrome · ');
+    expect(body).not.toContain('Respiratory Viral Activity · ');
     // The investigation record carries its profile.
     const stored = JSON.parse(window.sessionStorage.getItem('labsentinel.simulation.v1') ?? '{}');
     expect(stored.investigations['ALERT-COVID-19-REGIONAL-D5'].profileId).toBe('covid-19');

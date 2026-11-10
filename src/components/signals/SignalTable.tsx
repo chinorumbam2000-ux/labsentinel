@@ -2,6 +2,8 @@ import type { OutbreakAlert } from '../../types';
 import { formatSimulationDateTime } from '../../lib/format';
 import SeverityBadge from './SeverityBadge';
 import { EmptyState } from '../common/States';
+import ProfileTypeTag from '../profiles/ProfileTypeTag';
+import { PROFILE_BY_ID, type ProfileId } from '../../lib/profiles/registry';
 
 interface SignalTableProps {
   alerts: OutbreakAlert[];
@@ -12,6 +14,8 @@ interface SignalTableProps {
    * the table gains Profile and Score columns (alerts from several profiles).
    */
   profileNames?: Record<string, string>;
+  /** Each alert's profile, for its Aggregate / Pathogen tag in the Profile column. */
+  profileIds?: Record<string, ProfileId>;
   /** Shown when there are no alerts. */
   emptyMessage?: string;
   /** Alerts that open a profile's investigation shell ("Review"), e.g. another profile's alerts. */
@@ -29,6 +33,7 @@ export default function SignalTable({
   onInvestigate,
   onAcknowledge,
   profileNames,
+  profileIds,
   emptyMessage,
   canReview = () => false,
 }: SignalTableProps) {
@@ -72,7 +77,14 @@ export default function SignalTable({
                 <span className="block">{formatSimulationDateTime(alert.detectedAt)}</span>
                 <span className="block text-[11px]">Day {alert.detectedDay}</span>
               </td>
-              {profileNames ? <td className="ls-td font-medium text-ink">{profileOf(alert)}</td> : null}
+              {profileNames ? (
+                <td className="ls-td font-medium text-ink">
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    {profileOf(alert)}
+                    {profileIds?.[alert.id] ? <ProfileTypeTag profile={PROFILE_BY_ID[profileIds[alert.id]]} /> : null}
+                  </span>
+                </td>
+              ) : null}
               <td className="px-4 py-3">
                 <p className="text-sm font-medium text-ink">{alert.title}</p>
                 <p className="text-xs text-muted">{alert.detection.detail}</p>

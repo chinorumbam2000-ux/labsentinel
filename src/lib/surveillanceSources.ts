@@ -22,6 +22,7 @@ import type {
 } from '../types';
 import { HOSPITAL_BY_ID } from '../data/hospitals';
 import { SYNDROME } from '../data/tests';
+import { currentProfileName } from './profiles/registry';
 import { getSiteCounts, positivityOf, HOSPITAL_IDS } from '../data/dataset';
 import { getAllFeedHealth } from '../data/feedHealth';
 import { simulationTimestamp } from '../data/simulation';
@@ -236,7 +237,8 @@ export const buildExampleAggregatePayload = (
 
   return {
     facilityId: hospital.id,
-    syndrome: SYNDROME,
+    // The surveillance profile's current name (its stored key is the former "Respiratory Viral Syndrome").
+    syndrome: currentProfileName(SYNDROME),
     geography: hospital.zipCode,
     timestamp: simulationTimestamp(day, AGGREGATE_CLOCK),
     testVolume: counts.tests,

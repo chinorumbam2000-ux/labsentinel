@@ -75,10 +75,13 @@ kept for the browser session (`labsentinel.surveillanceMode.v1`).
 
 ## Surveillance profiles
 
-Six profiles share one registry: Respiratory Viral Syndrome, Influenza A,
-COVID-19, RSV, Cholera and Gastrointestinal Syndrome. A test can belong to
-several profiles (an influenza A PCR counts towards Influenza A and
-Respiratory Viral Syndrome). Statuses: Active signal, Within expected range,
+Six profiles share one registry, of two types on purpose: aggregate profiles
+(Respiratory Viral Activity, Gastrointestinal Syndrome) and pathogen-specific
+profiles (Influenza A, COVID-19, RSV, Cholera). A test can belong to several
+profiles (an influenza A PCR counts once towards Influenza A and once towards the
+Respiratory Viral Activity aggregate); each profile is scored from its own
+observations. The profile id `respiratory-viral-syndrome` and the stored
+syndrome key keep the former name for compatibility. Statuses: Active signal, Within expected range,
 Insufficient baseline, No data, Inactive. Ranking: severity, then score, then
 name; profiles without a score come last.
 [surveillance-profiles.md](surveillance-profiles.md)

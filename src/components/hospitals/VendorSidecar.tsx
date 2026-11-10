@@ -11,6 +11,7 @@ import { SEVERITY_STYLES, formatSimulationDate } from '../../lib/format';
 import { CONFIDENCE_DISCLAIMER } from '../../lib/dataConfidence';
 import { getDisclosureSummary } from '../../lib/geographicPrivacy';
 import { BASELINE_POSITIVITY_RATE } from '../../data/simulation';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 
 interface VendorSidecarProps {
   scenario: SimulationScenario;
@@ -97,7 +98,7 @@ export default function VendorSidecar({
             Signal by ProbeSyQ
           </p>
           <p className="truncate text-[11px] leading-tight text-white/55">
-            Respiratory Viral Syndrome · regional activity
+            {PROFILE_BY_ID[RVS_PROFILE_ID].displayName} · regional activity
           </p>
         </div>
       </div>

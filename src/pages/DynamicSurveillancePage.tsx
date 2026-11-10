@@ -50,6 +50,7 @@ import {
 } from '../lib/dynamicSurveillance';
 import { withProductName } from '../lib/brand';
 import { CONFIDENCE_DISCLAIMER } from '../lib/dataConfidence';
+import { PROFILE_BY_ID, RVS_PROFILE_ID, currentProfileName } from '../lib/profiles/registry';
 
 export default function DynamicSurveillancePage() {
   const { source } = useDataSourceContext();
@@ -63,7 +64,8 @@ export default function DynamicSurveillancePage() {
           confirmation methods, EWMA and CUSUM, calculated from the stored laboratory observations.
         </p>
         <p className="mt-1 max-w-3xl text-xs text-muted" data-testid="detection-scope">
-          This page shows Respiratory Viral Syndrome. The Composite Outbreak Signal Score is available for every
+          This page currently demonstrates the detection methods using {PROFILE_BY_ID[RVS_PROFILE_ID].displayName}, the
+          aggregate respiratory profile. The Composite Outbreak Signal Score is available for every
           surveillance profile on the analyst pages; the backend calculates the composite, EWMA and CUSUM per profile
           (<code className="font-mono">?profile=</code>), and EWMA and CUSUM need a 28-day reference period before
           they produce a result.
@@ -482,11 +484,11 @@ function SignalView({ signal }: { signal: DynamicSignal }) {
     <>
       <Card
         title="Dynamic Surveillance"
-        subtitle={`${DYNAMIC_LABEL} ${signal.syndrome}.`}
+        subtitle={`${DYNAMIC_LABEL} ${currentProfileName(signal.syndrome)}.`}
         bodyClassName="p-0"
       >
         <dl className="grid grid-cols-1 gap-px bg-hairline min-[420px]:grid-cols-2 md:grid-cols-4">
-          <Metric label="Syndrome">{signal.syndrome}</Metric>
+          <Metric label="Surveillance profile">{currentProfileName(signal.syndrome)}</Metric>
           <Metric label="Surveillance date">{formatSurveillanceDate(signal.signal_date)}</Metric>
           <Metric label="Current tests">{signal.test_volume}</Metric>
           <Metric label="Baseline tests" hint={`Mean of ${calc.baseline.observed_days} prior days with data`}>

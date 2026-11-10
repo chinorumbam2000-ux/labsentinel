@@ -51,7 +51,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Dashboard',
     title: 'Regional Outbreak Status',
     shows:
-      'Active Surveillance — every surveillance profile (Respiratory Viral Syndrome, Influenza A, COVID-19, RSV, Cholera and Gastrointestinal Syndrome), each scored against its own baseline — then, for the selected profile, the current situation (the Composite Outbreak Signal Score beside Data Confidence), epidemiological indicators, geographic intelligence, data quality, the current alert and the day-to-day change.',
+      'Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the current situation (the Composite Outbreak Signal Score beside Data Confidence), epidemiological indicators, geographic intelligence, data quality, the current alert and the day-to-day change.',
     use: 'Start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, then follow its alert into Signals.',
   },
   map: {
@@ -199,7 +199,7 @@ export const CONCEPTS = {
   smart:
     'SMART on FHIR is the standard way for an app to launch inside, or alongside, an EHR and read FHIR data with OAuth 2.0 authorization, so the same app can run across different EHR vendors.',
   loinc:
-    'LOINC is the standard code system for laboratory tests. Signal by ProbeSyQ groups results by LOINC code into a surveillance syndrome, so the same test counts the same way whichever system sent it.',
+    'LOINC is the standard code system for laboratory tests. Signal by ProbeSyQ routes results by LOINC code to their surveillance profiles — a pathogen-specific profile and the aggregate it belongs to — so the same test counts the same way whichever system sent it.',
   vendorAgnostic:
     'Vendor-agnostic means one Signal by ProbeSyQ view works across EHR vendors. The Facilities page shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
 };

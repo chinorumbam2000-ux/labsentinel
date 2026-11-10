@@ -7,7 +7,7 @@
  * the others withhold. The rule itself (threshold 5, roll-up) lives unchanged
  * in geographicPrivacy.ts.
  *
- * Respiratory Viral Syndrome's regional counts are never below the threshold
+ * Respiratory Viral Activity's regional counts are never below the threshold
  * (a test pins it), so its regional figures display exactly as before; its
  * facility-level counts are now held to the same rule as its area counts.
  */

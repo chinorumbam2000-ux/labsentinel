@@ -28,11 +28,11 @@ is the secondary, training mode.
 
 | | Live Surveillance (primary) | Scenario Replay (training) |
 |---|---|---|
-| What | Synthetic observations arriving through three simulated feeds — "Simulated source feeds" | The controlled five-day Respiratory Viral Syndrome scenario — "Historical training scenario" |
+| What | Synthetic observations arriving through three simulated feeds — "Simulated source feeds" | The controlled five-day Respiratory Viral Activity scenario — "Historical training scenario" |
 | Used for | The normal analyst view | Training, walkthroughs and controlled review of a known progression |
 | Dates | "Live surveillance date": its own simulated feed timeline (seven history days, then ten live days) | "Replay date": the original five-day sequence |
 | Scores | The backend engine's rules: rolling 7-day baseline | Day 1 baseline (frozen: 0 / 24 / 50 / 74 / 87) |
-| Profiles | RVS, Influenza A, COVID-19, RSV (Cholera and Gastrointestinal are inactive here) | All six |
+| Profiles | Respiratory Viral Activity (aggregate), Influenza A, COVID-19, RSV (Cholera and Gastrointestinal are inactive here) | All six |
 | Controls | Start · Pause · Resume · Reset · 1× / 2× / 4× | Replay day |
 
 The two are separate synthetic scenarios, so their dates are intentionally
@@ -87,7 +87,7 @@ What the engine then calculates (closed days, Feb 8–17):
 
 | Profile | Scores |
 |---|---|
-| Respiratory Viral Syndrome | 0, 1, 21, 29, 66, 59, 68, 66, 62, 5 |
+| Respiratory Viral Activity | 0, 1, 21, 29, 66, 59, 68, 66, 62, 5 |
 | Influenza A | 0, 1, 29, 56, 83, 84, 51, 1, 0, 0 |
 | COVID-19 | 1, 1, 1, 1, 41, 70, 81, 87, 88, 75 |
 | RSV | Low throughout |
@@ -180,6 +180,6 @@ unmount. The activity stream keeps the last 300 entries.
 ## Local and API mode
 
 Live Surveillance is the same in both modes: it runs in the browser. In API
-mode Scenario Replay's Respiratory Viral Syndrome figures come from the API as
+mode Scenario Replay's Respiratory Viral Activity figures come from the API as
 before; the backend's own dynamic engine (Detection Methods) is the full-stack
 implementation of the same rules.

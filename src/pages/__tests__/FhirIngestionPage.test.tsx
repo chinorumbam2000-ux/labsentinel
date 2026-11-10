@@ -100,7 +100,7 @@ describe('FHIR ingestion page — API Capstone Mode', () => {
     expect(within(sourceFhir).getByText(/92142-9/)).toBeTruthy();
     expect(within(normalized).getByText('A-FLU-20260112-0001')).toBeTruthy();
     expect(within(normalized).getByText('Influenza A RNA')).toBeTruthy();
-    expect(within(normalized).getByText('Respiratory Viral Syndrome')).toBeTruthy();
+    expect(within(normalized).getByText('Respiratory Viral Activity')).toBeTruthy();
     expect(within(normalized).getByText('Positive')).toBeTruthy();
     expect(within(normalized).getByText('01604')).toBeTruthy();
     expect(within(normalized).getByText(/^FHIR-PT-/)).toBeTruthy();

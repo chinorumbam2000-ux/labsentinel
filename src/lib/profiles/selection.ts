@@ -1,7 +1,7 @@
 /**
  * The selected surveillance profile lives in the URL: `?profile=<id>`.
  *
- * - No parameter means Respiratory Viral Syndrome, so every existing link and
+ * - No parameter means Respiratory Viral Activity, so every existing link and
  *   bookmark behaves exactly as before.
  * - `active` and `all` are portfolio views. Pages that show one profile then
  *   focus on the highest-ranked active signal (falling back to the default).

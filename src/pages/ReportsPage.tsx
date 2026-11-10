@@ -19,6 +19,7 @@ import {
   formatSimulationDate,
   formatSimulationDateTime,
 } from '../lib/format';
+import { currentProfileName } from '../lib/profiles/registry';
 
 /**
  * Simulated public-health reporting.
@@ -89,7 +90,7 @@ export default function ReportsPage() {
                     <span className="font-mono text-xs text-muted">{report.id}</span>
                     {/* Every report names its surveillance profile (older reports were all Respiratory Viral Syndrome). */}
                     <span className="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-ink ring-1 ring-inset ring-hairline">
-                      {snap.syndrome}
+                      {currentProfileName(snap.syndrome)}
                     </span>
                     <span>{snap.signalTitle}</span>
                   </span>
@@ -135,7 +136,7 @@ export default function ReportsPage() {
                 <dl className="grid grid-cols-1 gap-px bg-hairline sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     { label: 'Signal ID', value: snap.signalId, mono: true },
-                    { label: 'Surveillance profile', value: snap.syndrome },
+                    { label: 'Surveillance profile', value: currentProfileName(snap.syndrome) },
                     {
                       label: 'Detection timestamp',
                       value: `${formatSimulationDateTime(snap.detectedAt)} (Day ${snap.detectedDay})`,

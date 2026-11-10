@@ -18,7 +18,7 @@ import { PlayPauseButton, useLiveClock } from '../live/LiveParts';
  * The top bar. On analyst pages it carries the replay day controls (the
  * replay calendar is shared by every profile), the SELECTED profile's reading
  * and the "Simulated surveillance data" indicator. On Scenario Replay itself
- * the reading is the replay's own profile, Respiratory Viral Syndrome, named
+ * the reading is the replay's own profile, Respiratory Viral Activity, named
  * as such. A profile without a score shows its status in words, never
  * another profile's score. The bell counts alerts across all profiles.
  * On System pages it names the page's mode instead, so a replay score is
@@ -50,7 +50,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   const alerts = portfolio.alerts;
   const unacknowledgedCount = alerts.filter((a) => a.status !== 'Acknowledged').length;
   const acknowledgeAlert = isLive ? live.acknowledge : acknowledgeReplayAlert;
-  // Scenario Replay narrates Respiratory Viral Syndrome; elsewhere the reading follows ?profile=.
+  // Scenario Replay narrates Respiratory Viral Activity; elsewhere the reading follows ?profile=.
   const onReplay = !isLive && (pathname === '/replay' || pathname === '/simulation');
   const readingId = onReplay ? RVS_PROFILE_ID : portfolio.focusId;
   const reading = portfolio.summaries.find((s) => s.profile.id === readingId);

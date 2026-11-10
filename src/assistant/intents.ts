@@ -11,6 +11,7 @@ import type { ProfileId } from '../lib/profiles/registry';
 import { parseProfileIntent } from './profiles';
 import { parseLiveIntent } from './live';
 import { parseModeIntent } from './modes';
+import { parseProfileTypeIntent } from './profileTypes';
 
 export interface ParsedQuestion {
   intent: IntentId;
@@ -131,6 +132,10 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   // The two modes: which is the main one, what Scenario Replay is, why their dates differ.
   const modeIntent = parseModeIntent(t);
   if (modeIntent) return result(modeIntent);
+
+  // Aggregate and pathogen-specific profiles: what each is, and how they relate.
+  const typeIntent = parseProfileTypeIntent(t);
+  if (typeIntent) return result(typeIntent.intent, { profiles: typeIntent.profiles });
 
   // Live Surveillance (and "is this real-time?" in either mode).
   const liveIntent = parseLiveIntent(t, context);

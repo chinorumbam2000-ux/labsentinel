@@ -26,7 +26,7 @@ describe('Roella — surveillance profiles', () => {
     const a = ask('Which profiles need attention?', ctx(5));
     expect(a.intent).toBe('profiles_attention');
     expect(a.text).toContain('4 of 6 surveillance profiles have active signals');
-    const order = ['COVID-19: 93', 'Respiratory Viral Syndrome: 87', 'Influenza A: 67', 'RSV: 66'].map((s) => a.text.indexOf(s));
+    const order = ['COVID-19: 93', 'Respiratory Viral Activity: 87', 'Influenza A: 67', 'RSV: 66'].map((s) => a.text.indexOf(s));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
     expect(a.text).toContain('Within expected range: 1');
@@ -42,7 +42,7 @@ describe('Roella — surveillance profiles', () => {
     const critical = ask('Are there any Critical signals?', ctx(5));
     expect(critical.intent).toBe('profiles_critical');
     expect(critical.text).toContain('COVID-19: 93 (Critical)');
-    expect(critical.text).toContain('Respiratory Viral Syndrome: 87 (Critical)');
+    expect(critical.text).toContain('Respiratory Viral Activity: 87 (Critical)');
     expect(critical.text).not.toContain('Influenza A: 67');
     expect(ask('Is anything critical?', ctx(2)).text).toContain('No surveillance profile is Critical');
   });
@@ -87,7 +87,7 @@ describe('Roella — surveillance profiles', () => {
 
   it('says which profile is on screen', () => {
     expect(ask('What profile am I viewing?', ctx(5, 'rsv')).text).toContain('You are viewing RSV: 66 (High)');
-    expect(ask('Which profile am I viewing?', ctx(5)).text).toContain('You are viewing Respiratory Viral Syndrome');
+    expect(ask('Which profile am I viewing?', ctx(5)).text).toContain('You are viewing Respiratory Viral Activity');
     expect(ask('What profile am I viewing?', ctx(5, 'covid-19', { profileSelection: 'active' })).text).toContain(
       'Active signals view',
     );
@@ -109,7 +109,7 @@ describe('Roella — surveillance profiles', () => {
 
   it('flags narrated-only figures while another profile is on screen', () => {
     expect(ask('What is the positivity rate?', ctx(5, 'rsv')).text).toContain(
-      'This answer is about Respiratory Viral Syndrome',
+      'This answer is about Respiratory Viral Activity',
     );
     expect(ask('What is the positivity rate?', ctx(5)).text).not.toContain('This answer is about');
   });

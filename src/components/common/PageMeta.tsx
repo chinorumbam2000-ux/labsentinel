@@ -16,7 +16,7 @@ import { clock } from '../../lib/live/sources';
  * session clock (which only says when this tab last recalculated).
  *
  * The stage ("Regional Early-Warning Signal") is the narrated replay's, so it
- * is shown on Scenario Replay and while Respiratory Viral Syndrome is the
+ * is shown on Scenario Replay and while Respiratory Viral Activity is the
  * selected profile — never beside another profile.
  */
 export default function PageMeta() {

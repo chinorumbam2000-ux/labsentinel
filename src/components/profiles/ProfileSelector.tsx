@@ -7,7 +7,8 @@ import type { Portfolio } from '../../lib/profiles/usePortfolio';
 /**
  * The compact surveillance-profile selector. A native <select>, so it is
  * keyboard- and screen-reader-operable as is. Each option carries the
- * profile's status in words. The choice is kept in the URL (?profile=).
+ * profile's status in words; options are grouped as aggregate or
+ * pathogen-specific profiles. The choice is kept in the URL (?profile=).
  */
 export default function ProfileSelector({
   portfolio,
@@ -41,8 +42,16 @@ export default function ProfileSelector({
           <option value="active">{SCOPE_LABEL.active}</option>
           <option value="all">{SCOPE_LABEL.all}</option>
         </optgroup>
-        <optgroup label="Profiles">
-          {PROFILES.map((profile) => (
+        {/* Grouped by type, so each option says what it represents. */}
+        <optgroup label="Aggregate profiles">
+          {PROFILES.filter((profile) => profile.type === 'Aggregate').map((profile) => (
+            <option key={profile.id} value={profile.id}>
+              {optionText(profile.id)}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="Pathogen-specific profiles">
+          {PROFILES.filter((profile) => profile.type === 'Pathogen').map((profile) => (
             <option key={profile.id} value={profile.id}>
               {optionText(profile.id)}
             </option>

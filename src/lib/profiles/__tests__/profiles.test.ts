@@ -63,7 +63,7 @@ const statuses = (day: number) =>
   Object.fromEntries(summarizeProfiles(day).map((s) => [s.profile.id, s.status]));
 
 describe('profile registry', () => {
-  it('defines the six initial profiles, in order, with Respiratory Viral Syndrome the default', () => {
+  it('defines the six initial profiles, in order, with Respiratory Viral Activity the default', () => {
     expect(PROFILE_IDS).toEqual([
       'respiratory-viral-syndrome',
       'influenza-a',
@@ -73,7 +73,7 @@ describe('profile registry', () => {
       'gastrointestinal-syndrome',
     ]);
     expect(PROFILES.map((p) => p.displayName)).toEqual([
-      'Respiratory Viral Syndrome',
+      'Respiratory Viral Activity',
       'Influenza A',
       'COVID-19',
       'RSV',
@@ -182,7 +182,7 @@ describe('test-to-profile membership (many-to-many)', () => {
 });
 
 describe('the narrated scenario is preserved exactly', () => {
-  it('scores Respiratory Viral Syndrome 0 / 24 / 50 / 74 / 87', () => {
+  it('scores Respiratory Viral Activity 0 / 24 / 50 / 74 / 87', () => {
     expect(scores(RVS_PROFILE_ID)).toEqual([0, 24, 50, 74, 87]);
     for (const day of DAYS) {
       const d = getProfileDay(RVS_PROFILE_ID, day);
@@ -298,10 +298,10 @@ describe('ranking', () => {
       'RSV',
       'COVID-19',
       'Gastrointestinal Syndrome',
-      'Respiratory Viral Syndrome',
+      'Respiratory Viral Activity',
       'Cholera',
     ]);
-    // Day 4: Influenza A (86, Critical) outranks Respiratory Viral Syndrome (74, High).
+    // Day 4: Influenza A (86, Critical) outranks Respiratory Viral Activity (74, High).
     expect(activeSignals(summarizeProfiles(4)).map((s) => s.profile.id)).toEqual([
       'influenza-a',
       'respiratory-viral-syndrome',
@@ -366,7 +366,7 @@ describe('small-count suppression per profile', () => {
 });
 
 describe('selected profile (?profile=)', () => {
-  it('defaults to Respiratory Viral Syndrome and falls back from an unknown value', () => {
+  it('defaults to Respiratory Viral Activity and falls back from an unknown value', () => {
     expect(parseSelection(null)).toEqual({ selection: RVS_PROFILE_ID, invalid: null });
     expect(parseSelection('')).toEqual({ selection: RVS_PROFILE_ID, invalid: null });
     expect(parseSelection('rsv')).toEqual({ selection: 'rsv', invalid: null });

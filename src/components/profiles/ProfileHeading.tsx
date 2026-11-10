@@ -1,13 +1,14 @@
 import SeverityBadge from '../signals/SeverityBadge';
 import MethodNote from '../common/MethodNote';
 import ProfileStatusTag from './ProfileStatusTag';
-import { DATA_ORIGIN_LABEL, TEST_BY_CODE, settingsFor } from '../../lib/profiles/registry';
+import ProfileTypeTag from './ProfileTypeTag';
+import { DATA_ORIGIN_LABEL, PROFILE_BY_ID, RVS_PROFILE_ID, TEST_BY_CODE, profileScopeText, settingsFor } from '../../lib/profiles/registry';
 import type { ProfileView } from '../../lib/profiles/usePortfolio';
 
 const ORIGIN_NOTE = {
   'replay-scenario': 'The narrated five-day Scenario Replay.',
   'replay-derived':
-    'Built from the same replay results as Respiratory Viral Syndrome, filtered to this profile’s tests. Its daily counts are smaller, so its score moves more from day to day.',
+    `Built from the same replay results as ${PROFILE_BY_ID[RVS_PROFILE_ID].displayName}, filtered to this profile’s tests. Its daily counts are smaller, so its score moves more from day to day.`,
   'portfolio-fixture':
     'Synthetic portfolio data with demonstration test codes (not LOINC). Not part of the narrated replay.',
 } as const;
@@ -30,12 +31,17 @@ export default function ProfileHeading({ view, compact = false }: { view: Profil
       <div className="flex flex-wrap items-center gap-2">
         <p className="ls-label">Viewing</p>
         <h2 className="text-base font-semibold text-ink">{profile.displayName}</h2>
+        <ProfileTypeTag profile={profile} />
         {score ? <SeverityBadge severity={score.severity} /> : null}
         <ProfileStatusTag status={status} />
         <span className="text-xs text-muted">
-          {profile.category} · {DATA_ORIGIN_LABEL[profile.dataOrigin]}
+          {profile.typeDescriptor} · {DATA_ORIGIN_LABEL[profile.dataOrigin]}
         </span>
       </div>
+      {/* What this profile's figures cover — the same rule on every page that shows it. */}
+      <p className="text-xs text-ink" data-testid="profile-scope">
+        {profileScopeText(profile.id)}
+      </p>
       <p className="text-sm text-ink">{statusReason}</p>
       {view.display.lowVolume ? (
         <p role="note" className="rounded-md border border-dashed border-muted/60 px-3 py-2 text-xs text-ink" data-testid="low-volume-note">

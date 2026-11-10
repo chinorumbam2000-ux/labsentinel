@@ -65,7 +65,7 @@ export default function LiveSurveillancePage() {
               <li>A simulated source sends a result in its own format: FHIR R4, HL7 v2, or a LIS/API JSON record.</li>
               <li>The source&apos;s adapter parses and validates it (facility, LOINC check digit, result, collection time).</li>
               <li>It is normalized: LOINC test, Positive or Negative.</li>
-              <li>It is routed to every profile its test belongs to — an Influenza A result counts towards Influenza A and Respiratory Viral Syndrome, once each.</li>
+              <li>It is routed to every profile its test belongs to — an Influenza A result counts towards Influenza A and the Respiratory Viral Activity aggregate, once each.</li>
               <li>The profile&apos;s counts for the day change, and the engine recalculates: rolling 7-day baseline, affected facilities, areas, persistence, the five components and the score.</li>
               <li>At the end of the day the result becomes the profile&apos;s current signal on every page.</li>
             </ol>

@@ -39,7 +39,7 @@ const ABOUT_SECTIONS: { heading: string; testId: string; items: string[] }[] = [
     testId: 'about-modes',
     items: [
       'Live Surveillance is the primary experience, and where a new session opens. It runs entirely in your browser: three simulated source feeds — a FHIR R4 source, an HL7 v2 source and a LIS/API-style source — deliver deterministic synthetic results for the three fictional facilities, and every score is recalculated as they arrive. Seven days of synthetic history establish the baseline; ten live days then stream, one day in about 12 seconds at 1×. A refresh starts the feed again from the beginning; nothing is stored.',
-      'Scenario Replay is the secondary, training mode: a controlled, frozen five-day Respiratory Viral Syndrome scenario, stepped one day at a time, for walkthroughs and review of how a known outbreak signal developed. Choosing it keeps it for the browser session.',
+      'Scenario Replay is the secondary, training mode: a controlled, frozen five-day Respiratory Viral Activity scenario, stepped one day at a time, for walkthroughs and review of how a known outbreak signal developed. Choosing it keeps it for the browser session.',
       'The two are separate synthetic scenarios, so their dates are intentionally independent: Live Surveillance has its own simulated feed timeline, and Scenario Replay keeps the original five-day historical sequence.',
       'The simulated feeds demonstrate the intended integration architecture. No real hospital, laboratory, EHR vendor or patient is connected, and no partnership with any vendor is implied.',
     ],
@@ -67,7 +67,8 @@ const ABOUT_SECTIONS: { heading: string; testId: string; items: string[] }[] = [
     heading: 'Surveillance profiles',
     testId: 'profile-data-sources',
     items: [
-      'Respiratory Viral Syndrome is the narrated replay; Influenza A, COVID-19 and RSV are the same results filtered by test. Cholera and Gastrointestinal Syndrome use synthetic portfolio data with demonstration test codes (not LOINC), held in the browser only, and are not part of Live Surveillance.',
+      'Two kinds of profile, on purpose. Aggregate profiles combine several tests: Respiratory Viral Activity combines Influenza A, SARS-CoV-2 and RSV results, and Gastrointestinal Syndrome the gastrointestinal panel and Vibrio cholerae. Pathogen-specific profiles cover one pathogen: Influenza A, COVID-19, RSV and Cholera. A result counts once towards its pathogen and once towards its aggregate; each profile is scored from its own observations, and an aggregate is not a separate disease or an average of pathogen scores.',
+      'Respiratory Viral Activity is the narrated replay; Influenza A, COVID-19 and RSV are the same results filtered by test. Cholera and Gastrointestinal Syndrome use synthetic portfolio data with demonstration test codes (not LOINC), held in the browser only, and are not part of Live Surveillance.',
     ],
   },
   {

@@ -77,7 +77,7 @@ describe('Dashboard — Active Surveillance', () => {
     expect(count('Insufficient baseline')).toBe('1');
     expect(count('No data')).toBe('0');
     const cards = within(within(section).getByRole('list', { name: 'Active signals' })).getAllByRole('heading', { level: 3 });
-    expect(cards.map((h) => h.textContent)).toEqual(['COVID-19', 'Respiratory Viral Syndrome', 'Influenza A', 'RSV']);
+    expect(cards.map((h) => h.textContent)).toEqual(['COVID-19', 'Respiratory Viral Activity', 'Influenza A', 'RSV']);
     // Status in words, not colour alone.
     expect(within(screen.getByTestId('profile-card-covid-19')).getByText('Active signal')).toBeTruthy();
     expect(within(screen.getByTestId('profile-card-covid-19')).getByText('Critical')).toBeTruthy();
@@ -87,11 +87,11 @@ describe('Dashboard — Active Surveillance', () => {
     expect(others.textContent).toContain('Gastrointestinal Syndrome');
   });
 
-  it('keeps the default detail as Respiratory Viral Syndrome, exactly as before', async () => {
+  it('keeps the default detail as Respiratory Viral Activity, exactly as before', async () => {
     atDay(5);
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', {}, WAIT);
-    expect(screen.getByText('Respiratory Viral Syndrome | Worcester County, MA')).toBeTruthy();
+    expect(screen.getByText('Respiratory Viral Activity | Worcester County, MA')).toBeTruthy();
     expect(selector().value).toBe('respiratory-viral-syndrome');
     expect(situationText()).toContain('87');
     expect(screen.getByText('Baseline 100 · 699 cumulative')).toBeTruthy();
@@ -188,7 +188,7 @@ describe('profile-aware pages', () => {
     await screen.findByRole('heading', { level: 1 }, WAIT);
     const flu = OBSERVATIONS_BY_PROFILE['influenza-a'].length;
     await screen.findByText(`${flu} of 699 observations`, {}, WAIT);
-    expect(screen.getByTestId('lab-profile-note').textContent).toContain('Each also counts towards Respiratory Viral Syndrome');
+    expect(screen.getByTestId('lab-profile-note').textContent).toContain('Each also counts towards Respiratory Viral Activity');
     fireEvent.change(selector(), { target: { value: 'cholera' } });
     await screen.findByText('9 of 9 observations', {}, WAIT);
     expect(screen.getByTestId('lab-profile-note').textContent).toContain('synthetic portfolio results');
@@ -215,6 +215,10 @@ describe('profile-aware pages', () => {
     const table = screen.getByRole('table');
     expect(within(table).getByRole('columnheader', { name: 'Profile' })).toBeTruthy();
     expect(within(table).getByRole('columnheader', { name: 'Score' })).toBeTruthy();
+    // Each profile's type, in words, in the Profile column.
+    const types = within(table).getAllByTestId('profile-type').map((tag) => tag.firstChild?.textContent);
+    expect(types).toHaveLength(15);
+    expect(new Set(types)).toEqual(new Set(['Aggregate', 'Pathogen']));
     expect(within(table).getAllByRole('row')).toHaveLength(16);
     const ack = screen.getByRole('button', {
       name: 'Acknowledge alert: COVID-19 — Regional outbreak signal detected, detected on replay day 5',
@@ -234,7 +238,7 @@ describe('profile-aware pages', () => {
     expect(screen.getByTestId('evidence-unavailable').textContent).toContain(
       'Detailed evidence review for COVID-19 is not yet available',
     );
-    // No Respiratory Viral Syndrome evidence stands in for it.
+    // No Respiratory Viral Activity evidence stands in for it.
     expect(document.body.textContent).not.toContain('Why This Signal');
     expect(within(shell).getByText('93 / 100')).toBeTruthy();
   });
@@ -253,6 +257,6 @@ describe('profile-aware pages', () => {
     atDay(5);
     renderAt('/replay');
     await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
-    expect(screen.getByText(/The narrated scenario is Respiratory Viral Syndrome/)).toBeTruthy();
+    expect(screen.getByText(/The narrated scenario is Respiratory Viral Activity/)).toBeTruthy();
   });
 });

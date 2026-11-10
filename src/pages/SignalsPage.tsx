@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import MethodNote from '../components/common/MethodNote';
 import { usePortfolio } from '../lib/profiles/usePortfolio';
 import ProfileSelector from '../components/profiles/ProfileSelector';
-import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
+import { PROFILE_BY_ID, PROFILE_TYPE_LABEL, RVS_PROFILE_ID } from '../lib/profiles/registry';
 import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/profiles/portfolio';
 import { isScope } from '../lib/profiles/selection';
 import ProfileInvestigationShell from '../components/profiles/ProfileInvestigationShell';
@@ -56,7 +56,7 @@ export default function SignalsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // The alert list follows the selected surveillance profile (?profile=):
-  // Respiratory Viral Syndrome by default, exactly as before; "All profiles"
+  // Respiratory Viral Activity by default, exactly as before; "All profiles"
   // lists every profile's alerts together, each labelled with its profile.
   const portfolio = usePortfolio();
   const { selection, view, period } = portfolio;
@@ -130,7 +130,7 @@ export default function SignalsPage() {
     // An alert reference we cannot honour: either it does not exist at all, or
     // it exists but has not been detected by the currently selected day.
     // An alert of another profile opens that profile's investigation shell —
-    // never the Respiratory Viral Syndrome view. Its review workflow works as
+    // never the Respiratory Viral Activity view. Its review workflow works as
     // for any alert; its detailed evidence view does not exist yet, and says so.
     const profileDetection = alertParam ? findProfileDetection(alertParam) : undefined;
     if (alertParam && !selectedAlert && profileDetection && profileDetection.profileId !== RVS_PROFILE_ID) {
@@ -280,6 +280,9 @@ export default function SignalsPage() {
   const profileNames = multiProfile
     ? Object.fromEntries(portfolio.alerts.map((alert) => [alert.id, PROFILE_BY_ID[alert.profileId].displayName]))
     : undefined;
+  const profileIds = multiProfile
+    ? Object.fromEntries(portfolio.alerts.map((alert) => [alert.id, alert.profileId]))
+    : undefined;
   const otherProfileAlerts = multiProfile ? 0 : portfolio.alerts.length - listAlerts.length;
   const unacknowledgedCount = listAlerts.filter((alert) => alert.status !== 'Acknowledged').length;
   const newTodayCount = listAlerts.filter((alert) => alert.detectedDay === period.day).length;
@@ -349,7 +352,7 @@ export default function SignalsPage() {
             {focusScore ? <span className="text-base font-medium text-muted"> / 100</span> : null}
           </p>
           <p className="mt-1 text-xs text-muted">
-            {view.isNarrated ? '' : `${view.profile.displayName} · `}
+            {`${view.profile.displayName} (${PROFILE_TYPE_LABEL[view.profile.type].toLowerCase()}) · `}
             {focusScore ? `Severity: ${focusScore.severity}` : view.statusReason}
           </p>
         </div>
@@ -377,6 +380,7 @@ export default function SignalsPage() {
             onInvestigate={(alert) => openInvestigation(alert.id)}
             onAcknowledge={acknowledge}
             profileNames={profileNames}
+            profileIds={profileIds}
             canReview={(alert) => !isLive && 'profileId' in alert && alert.profileId !== RVS_PROFILE_ID}
             emptyMessage={
               selection === RVS_PROFILE_ID

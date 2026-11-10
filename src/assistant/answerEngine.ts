@@ -33,7 +33,8 @@ import type { AnswerBlock, AssistantAnswer, AssistantContext, ConversationState,
 import { answerProfileIntent, profileScoreExplanation } from './profiles';
 import { answerLiveIntent } from './live';
 import { answerModeIntent } from './modes';
-import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
+import { answerProfileTypeIntent } from './profileTypes';
+import { PROFILE_BY_ID, RVS_PROFILE_ID, currentProfileName } from '../lib/profiles/registry';
 
 const SEVERITY_ORDER: Severity[] = ['Low', 'Watch', 'Moderate', 'High', 'Critical'];
 const TOTAL_SITES = 3;
@@ -442,7 +443,7 @@ const alerts = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
 const observations = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
   const f = factsFor(p.day ?? ctx.day, ctx);
   return answer('observations', [
-    text(`Laboratory Data lists the synthetic FHIR-style Observation records: ${f.observations.day} received on Day ${f.day} and ${f.observations.cumulative} from Day 1 to Day ${f.day}. All are ${SYNDROME} tests:`),
+    text(`Laboratory Data lists the synthetic FHIR-style Observation records: ${f.observations.day} received on Day ${f.day} and ${f.observations.cumulative} from Day 1 to Day ${f.day}. All are ${currentProfileName(SYNDROME)} tests:`),
     list(LAB_TESTS.map((t) => `${t.name} — LOINC ${t.loincCode}`)),
     text('Open Laboratory Data to search, filter and sort them.'),
   ], ['What is the positivity rate?', 'What is LOINC?']);
@@ -547,7 +548,7 @@ const concept = (intent: 'fhir' | 'smart' | 'loinc' | 'interoperability', ctx: A
   if (intent === 'fhir') return answer('fhir', [text(CONCEPTS.fhir), text(fhirInThisBuild(modeOf(ctx)))], ['What is SMART on FHIR?', 'What is LOINC?']);
   if (intent === 'smart') return answer('smart', [text(CONCEPTS.smart), text(smartInThisBuild(Boolean(ctx.smartEnabled)))], ['What is FHIR?', 'What vendor environment does each facility represent?']);
   if (intent === 'loinc') {
-    return answer('loinc', [text(CONCEPTS.loinc), list(LAB_TESTS.map((t) => `${t.name} — LOINC ${t.loincCode}`), `Tests in this scenario (${SYNDROME})`)], ['What is FHIR?']);
+    return answer('loinc', [text(CONCEPTS.loinc), list(LAB_TESTS.map((t) => `${t.name} — LOINC ${t.loincCode}`), `Tests in this scenario (${currentProfileName(SYNDROME)})`)], ['What is FHIR?']);
   }
   return answer('interoperability', [text(CONCEPTS.vendorAgnostic), list([CONCEPTS.fhir, CONCEPTS.smart, CONCEPTS.loinc])], ['What is SMART on FHIR?', 'What vendor environment does each facility represent?']);
 };
@@ -577,6 +578,8 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
   const result = ((): AssistantAnswer => {
     const forMode = answerModeIntent(p.intent, ctx, factsFor(ctx.day, ctx).scenario.simulationDate);
     if (forMode) return forMode;
+    const forType = answerProfileTypeIntent({ intent: p.intent, profiles: p.profiles ?? [] });
+    if (forType) return forType;
     const forLive = answerLiveIntent({ intent: p.intent, profiles: p.profiles ?? [], facility: p.facility }, ctx);
     if (forLive) return forLive;
     // Live Surveillance: figures come from the live state, never the replay's.
@@ -642,7 +645,7 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
   // The remaining figures are the narrated profile's: say so when another is on screen.
   if (viewing && !ctx.live && RVS_ONLY_INTENTS.includes(result.intent)) {
     result.blocks.unshift(
-      text(`This answer is about Respiratory Viral Syndrome, the narrated replay. You are viewing ${PROFILE_BY_ID[viewing].displayName}; ask "What is happening with ${PROFILE_BY_ID[viewing].displayName}?" for its figures.`),
+      text(`This answer is about ${PROFILE_BY_ID[RVS_PROFILE_ID].displayName}, the narrated replay's aggregate profile. You are viewing ${PROFILE_BY_ID[viewing].displayName}; ask "What is happening with ${PROFILE_BY_ID[viewing].displayName}?" for its figures.`),
     );
   }
   // Never suggest the question that was just asked; in Live Surveillance, never a replay day.

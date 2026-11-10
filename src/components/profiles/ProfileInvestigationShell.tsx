@@ -14,7 +14,7 @@ import type { ProfileAlert } from '../../lib/profiles/portfolio';
  * The review workflow (acknowledge, assign, review, escalate or close, notes,
  * report) works the same for every profile. The detailed evidence view —
  * the step-by-step score breakdown and facility, area and data-quality trace
- * at detection — is built for Respiratory Viral Syndrome only, so it is not
+ * at detection — is built for Respiratory Viral Activity only, so it is not
  * shown here and nothing stands in for it. What is shown are the alert's own
  * detection-time values, frozen when it was raised.
  */

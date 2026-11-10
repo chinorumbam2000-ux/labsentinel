@@ -389,11 +389,15 @@ Details: [docs/live-surveillance.md](docs/live-surveillance.md).
 
 ### Surveillance profiles
 
-Signal by ProbeSyQ watches six surveillance profiles — Respiratory Viral
-Syndrome (the default and the narrated replay), Influenza A, COVID-19, RSV,
-Cholera and Gastrointestinal Syndrome — each scored against its own baseline;
-scores are never combined. Tests belong to profiles many-to-many (an Influenza A
-result counts towards Influenza A and Respiratory Viral Syndrome). The Dashboard
+Signal by ProbeSyQ watches six surveillance profiles of two kinds, on purpose:
+**aggregate** profiles — Respiratory Viral Activity (the default and the
+narrated replay: Influenza A, SARS-CoV-2 and RSV results combined) and
+Gastrointestinal Syndrome — and **pathogen-specific** profiles — Influenza A,
+COVID-19, RSV and Cholera. Respiratory Viral Activity is an aggregate view, not
+a separate disease, and this is not duplicate monitoring: each profile is scored
+from its own observations against its own baseline; scores are never combined or
+averaged. Tests belong to profiles many-to-many (an Influenza A result counts
+once towards Influenza A and once towards Respiratory Viral Activity). The Dashboard
 opens with **Active Surveillance**; `?profile=<id>` selects the profile the
 Dashboard, Map, Signals, Facilities, Laboratory Data and Analytics show, and the
 top bar reads that profile's score (or its status in words); the notification
@@ -807,15 +811,19 @@ one that can tip into `DELAYED` to show.
 
 ## 13. Laboratory standards
 
-The prototype models one surveillance syndrome — **Respiratory Viral Syndrome** —
-composed of three laboratory concepts, each normalized to a real LOINC
-identifier:
+The narrated replay models one aggregate surveillance profile — **Respiratory
+Viral Activity** — composed of three laboratory concepts, each normalized to a
+real LOINC identifier and each also the test of a pathogen-specific profile:
 
-| Test | LOINC | Specimen | Syndrome |
+| Test | LOINC | Specimen | Profiles |
 |------|-------|----------|----------|
-| Influenza A RNA | `92142-9` | Nasopharyngeal swab | Respiratory Viral Syndrome |
-| SARS-CoV-2 RNA | `94500-6` | Nasopharyngeal swab | Respiratory Viral Syndrome |
-| RSV RNA | `85479-4` | Nasopharyngeal swab | Respiratory Viral Syndrome |
+| Influenza A RNA | `92142-9` | Nasopharyngeal swab | Influenza A · Respiratory Viral Activity |
+| SARS-CoV-2 RNA | `94500-6` | Nasopharyngeal swab | COVID-19 · Respiratory Viral Activity |
+| RSV RNA | `85479-4` | Nasopharyngeal swab | RSV · Respiratory Viral Activity |
+
+The stored syndrome key and the profile id keep the former name *Respiratory
+Viral Syndrome* (`respiratory-viral-syndrome`) for compatibility; see
+[docs/surveillance-profiles.md](docs/surveillance-profiles.md).
 
 LOINC codes are real terminology identifiers, used here to demonstrate what
 normalization to a shared vocabulary makes possible. **No result in this

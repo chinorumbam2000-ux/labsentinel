@@ -8,6 +8,7 @@ import { useSimulation } from '../context/SimulationContext';
 import { INVESTIGATION_STATUS_STYLES, REVIEW_DISCLAIMER } from '../lib/investigationWorkflow';
 import { REPORT_STATUS_STYLES } from '../lib/reporting';
 import { PROFILE_BY_ID } from '../lib/profiles/registry';
+import ProfileTypeTag from '../components/profiles/ProfileTypeTag';
 
 const STEPS = [
   { label: 'Signal', detail: 'A detected alert', to: '/signals' },
@@ -99,7 +100,12 @@ export default function InvestigationsPage() {
                   const report = reports.find((item) => item.alertId === alert.id);
                   return (
                     <tr key={alert.id}>
-                      <td className="ls-td align-top font-medium text-ink">{PROFILE_BY_ID[alert.profileId].displayName}</td>
+                      <td className="ls-td align-top font-medium text-ink">
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          {PROFILE_BY_ID[alert.profileId].displayName}
+                          <ProfileTypeTag profile={PROFILE_BY_ID[alert.profileId]} />
+                        </span>
+                      </td>
                       <th scope="row" className="px-4 py-3 text-left align-top font-normal">
                         <span className="block font-medium text-ink">{alert.title}</span>
                         <span className="block text-xs text-muted">

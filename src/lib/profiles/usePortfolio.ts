@@ -1,7 +1,7 @@
 /**
  * The portfolio and the selected profile's view, for the current replay day.
  *
- * The narrated profile (Respiratory Viral Syndrome) is shown with exactly the
+ * The narrated profile (Respiratory Viral Activity) is shown with exactly the
  * values the active data source supplied — the same objects every page used
  * before profiles existed — so its screens are unchanged in local and API
  * mode. Other profiles come from the browser's per-profile derivation.
