@@ -6,7 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/common/State
 import { LAB_TESTS } from '../data/tests';
 import { formatDateTime } from '../lib/format';
 import { useDataSource } from '../data-access/DataSourceProvider';
-import { useDebouncedValue, useObservationPage } from '../data-access/hooks';
+import { useDebouncedValue, useObservationPage, type ObservationPageState } from '../data-access/hooks';
 import { queryObservations } from '../data-access/observationQuery';
 import { usePortfolio } from '../lib/profiles/usePortfolio';
 import { PROFILE_BY_ID, RVS_PROFILE_ID, TEST_BY_CODE } from '../lib/profiles/registry';
@@ -132,7 +132,14 @@ export default function LaboratoryDataPage() {
       page,
     ],
   );
-  const sourcePage = useObservationPage(query);
+  // Records come from one place, chosen by mode — never fetched and then discarded:
+  //  - Live Surveillance (both builds): the in-browser live feed. The replay
+  //    data source (and, in API mode, /api/observations) knows Replay Days 1–5
+  //    only, so it is not asked about a live day;
+  //  - a portfolio profile: its browser-only synthetic results;
+  //  - otherwise, Scenario Replay: the active data source.
+  const readsSource = !isLive && !isPortfolioData;
+  const sourcePage = useObservationPage(readsSource ? query : null);
   const localPage = useMemo(
     () =>
       // Live Surveillance: every result received from the simulated feeds so far (filtered to the profile).
@@ -145,9 +152,12 @@ export default function LaboratoryDataPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [isLive, isPortfolioData, focus.id, currentDay, query, portfolio.view],
   );
-  const observations: typeof sourcePage = localPage
+  // The source is idle exactly when the records are local, so "idle" never reaches the table.
+  const observations: Exclude<ObservationPageState, { status: 'idle' }> = localPage
     ? { status: 'ready', page: localPage, refreshing: false }
-    : sourcePage;
+    : sourcePage.status === 'idle'
+      ? { status: 'loading' }
+      : sourcePage;
   const pageData = observations.status === 'ready' ? observations.page : null;
 
   const filteredTotal = pageData?.total ?? 0;

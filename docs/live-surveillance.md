@@ -183,3 +183,12 @@ Live Surveillance is the same in both modes: it runs in the browser. In API
 mode Scenario Replay's Respiratory Viral Activity figures come from the API as
 before; the backend's own dynamic engine (Detection Methods) is the full-stack
 implementation of the same rules.
+
+Laboratory Data follows the same split. In Live Surveillance it lists the
+results the in-browser feed has delivered — in both builds — and asks the API
+for nothing: `GET /api/observations` serves Scenario Replay's records and
+accepts replay days 1–5 only, so a live day is never sent to it. In Scenario
+Replay the API build reads `/api/observations` with the replay day, exactly as
+before — except for the browser-only portfolio profiles (Cholera,
+Gastrointestinal Syndrome), whose records exist only in the browser and for
+which nothing is requested.

@@ -143,16 +143,25 @@ export function useSurveillanceData(currentDay: SimulationDay): SurveillanceData
 export type ObservationPageState =
   | { status: 'ready'; page: ObservationPage; refreshing: boolean }
   | { status: 'loading' }
-  | { status: 'error'; message: string; retry: () => void };
+  | { status: 'error'; message: string; retry: () => void }
+  /** No query: the page is not reading the data source (e.g. Live Surveillance). */
+  | { status: 'idle' };
 
-export function useObservationPage(query: ObservationQuery): ObservationPageState {
+/**
+ * One page of the data source's observations (Scenario Replay's records).
+ * Pass `null` when the page shows records from elsewhere — Live
+ * Surveillance's in-browser feed, or a portfolio profile's browser data — and
+ * nothing is requested: the replay source is never asked about a day it does
+ * not have.
+ */
+export function useObservationPage(query: ObservationQuery | null): ObservationPageState {
   const source = useDataSource();
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
-  const key = JSON.stringify(query);
+  const key = query === null ? null : JSON.stringify(query);
 
   const syncPage = useMemo(
-    () => (source.sync ? source.sync.observations(JSON.parse(key) as ObservationQuery) : null),
+    () => (source.sync && key !== null ? source.sync.observations(JSON.parse(key) as ObservationQuery) : null),
     [source, key],
   );
 
@@ -160,7 +169,7 @@ export function useObservationPage(query: ObservationQuery): ObservationPageStat
     { key: string; page: ObservationPage } | { key: string; error: unknown } | null
   >(null);
   useEffect(() => {
-    if (source.sync) return undefined;
+    if (source.sync || key === null) return undefined;
     const controller = new AbortController();
     source
       .getObservations(JSON.parse(key) as ObservationQuery, controller.signal)
@@ -173,6 +182,7 @@ export function useObservationPage(query: ObservationQuery): ObservationPageStat
     return () => controller.abort();
   }, [source, key, attempt]);
 
+  if (key === null) return { status: 'idle' };
   if (syncPage) return { status: 'ready', page: syncPage, refreshing: false };
   if (state === null) return { status: 'loading' };
   if ('error' in state) {
