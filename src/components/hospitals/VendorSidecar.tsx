@@ -82,7 +82,7 @@ export default function VendorSidecar({
       hint: `(${confidence.level})`,
     },
     { label: 'This feed', value: feed.status, hint: undefined },
-    { label: 'Surveillance date', value: formatSimulationDate(scenario.simulationDate), hint: undefined },
+    { label: 'Replay date', value: formatSimulationDate(scenario.simulationDate), hint: undefined },
   ];
 
   return (

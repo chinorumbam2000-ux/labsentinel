@@ -162,6 +162,9 @@ export type IntentId =
   | 'realtime'
   | 'real_data'
   | 'source_status'
+  | 'mode_main'
+  | 'mode_replay'
+  | 'mode_dates'
   | 'unsupported'
   | 'medical_advice'
   | 'out_of_scope';

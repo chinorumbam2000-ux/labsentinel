@@ -19,10 +19,19 @@ export function useLiveClock(): string {
   return `${liveDayLabel(dayIndex)} · ${clock(minute)}`;
 }
 
+/** What each mode is, said under the switch and as each button's description. */
+export const MODE_DESCRIPTION: Record<SurveillanceMode, string> = {
+  live: 'Simulated source feeds',
+  replay: 'Historical training scenario',
+};
+
 /**
- * Live Surveillance | Scenario Replay. Switching keeps the page, except that
- * Scenario Replay's own page belongs to the replay and the Live
- * Surveillance page to the live simulation.
+ * Live Surveillance | Scenario Replay. Live Surveillance is the primary mode:
+ * listed first, the default, and given the stronger label; Scenario Replay is
+ * the secondary training mode. The selected mode is shown by aria-pressed, by
+ * the filled button and by the caption in words — never by colour alone.
+ * Switching keeps the page, except that Scenario Replay's own page belongs
+ * to the replay and the Live Surveillance page to the live simulation.
  */
 export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
   const { mode, setMode } = useLiveSurveillance();
@@ -34,17 +43,31 @@ export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
     if (next === 'replay' && pathname === '/live') navigate(`/replay${search}`);
   };
   const base = onDark
-    ? 'flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors'
-    : 'rounded-md px-2.5 py-1 text-xs font-semibold transition-colors';
-  const on = onDark ? 'bg-white text-sidebar' : 'bg-brand text-white';
-  const off = onDark ? 'text-white/75 hover:text-white' : 'text-ink hover:bg-canvas';
+    ? 'flex-1 rounded-md px-2 py-1 text-[11px] transition-colors'
+    : 'rounded-md px-2.5 py-1 text-xs transition-colors';
+  const on = onDark ? 'bg-white font-semibold text-sidebar' : 'bg-brand font-semibold text-white';
+  const off = onDark ? 'font-semibold text-white/75 hover:text-white' : 'font-semibold text-ink hover:bg-canvas';
+  // The secondary mode reads a little quieter when it is not selected.
+  const offSecondary = onDark ? 'font-medium text-white/60 hover:text-white' : 'font-medium text-muted hover:bg-canvas hover:text-ink';
   return (
-    <div role="group" aria-label="Surveillance mode" className={`flex gap-1 rounded-lg p-0.5 ${onDark ? 'bg-white/10' : 'border border-hairline bg-white'}`}>
-      {(['live', 'replay'] as SurveillanceMode[]).map((m) => (
-        <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)} className={`${base} ${mode === m ? on : off}`}>
-          {m === 'live' ? 'Live Surveillance' : 'Scenario Replay'}
-        </button>
-      ))}
+    <div>
+      <div role="group" aria-label="Surveillance mode" className={`flex gap-1 rounded-lg p-0.5 ${onDark ? 'bg-white/10' : 'border border-hairline bg-white'}`}>
+        {(['live', 'replay'] as SurveillanceMode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            aria-pressed={mode === m}
+            onClick={() => choose(m)}
+            title={m === 'live' ? `Primary mode — ${MODE_DESCRIPTION.live.toLowerCase()}` : `Secondary mode — ${MODE_DESCRIPTION.replay.toLowerCase()}`}
+            className={`${base} ${mode === m ? on : m === 'replay' ? offSecondary : off}`}
+          >
+            {m === 'live' ? 'Live Surveillance' : 'Scenario Replay'}
+          </button>
+        ))}
+      </div>
+      <p className={`mt-1.5 text-[11px] leading-tight ${onDark ? 'text-white/60' : 'text-muted'}`} data-testid="mode-caption">
+        {mode === 'live' ? 'Live Surveillance' : 'Scenario Replay'} · {MODE_DESCRIPTION[mode]}
+      </p>
     </div>
   );
 }

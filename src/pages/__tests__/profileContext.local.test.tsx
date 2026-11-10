@@ -11,7 +11,7 @@ import App from '../../App';
 import { saveSession } from '../../lib/sessionState';
 import { summarizeProfiles } from '../../lib/profiles/portfolio';
 import { answerQuestion, answerText } from '../../assistant/answerEngine';
-import { signInForTest } from './signedIn';
+import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
 import notFoundHtml from '../../../public/404.html?raw';
 
 vi.mock('../../components/map/OutbreakMap', () => ({
@@ -30,6 +30,8 @@ beforeEach(() => {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
   window.sessionStorage.clear();
+  // These tests cover Scenario Replay; Live Surveillance is the default.
+  chooseScenarioReplayForTest();
   window.localStorage.clear();
   signInForTest();
 });

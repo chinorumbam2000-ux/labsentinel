@@ -13,6 +13,7 @@ import { MemoryRouter } from 'react-router-dom';
 import App from '../../App';
 import { DEMO_SESSION_KEY } from '../../lib/demoSession';
 import { STORAGE_KEY as SIMULATION_KEY } from '../../lib/sessionState';
+import { chooseScenarioReplayForTest } from './signedIn';
 
 const PASSWORD = 'Zq7-unique-Pw-8812';
 const calls: string[] = [];
@@ -32,6 +33,8 @@ beforeEach(() => {
   } as unknown as typeof ResizeObserver;
   window.sessionStorage.clear();
   window.localStorage.clear();
+  // These tests cover Scenario Replay; Live Surveillance is the default.
+  chooseScenarioReplayForTest();
 });
 
 afterEach(() => {

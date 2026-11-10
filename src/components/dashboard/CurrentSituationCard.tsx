@@ -115,7 +115,7 @@ export default function CurrentSituationCard({
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hairline bg-canvas px-6 py-3">
         <p className="text-xs text-muted">
           <span className="font-medium text-ink">{periodLabel ?? `Replay Day ${day} of 5`}</span> · {stage} ·
-          surveillance date {formatSimulationDate(simulationDate)}
+          {periodLabel ? 'live surveillance date' : 'replay date'} {formatSimulationDate(simulationDate)}
         </p>
       </div>
     </section>

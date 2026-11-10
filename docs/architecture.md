@@ -61,15 +61,17 @@ one design, tested against each other — not two approximations.
 
 ## Modes in the portfolio
 
-- **Scenario Replay** — the frozen five-day Respiratory Viral Syndrome
-  scenario (0 / 24 / 50 / 74 / 87), stepped by day. Unchanged since the
-  original prototype; used for repeatable demonstrations.
-- **Live Surveillance** — seven days of synthetic history establish the
-  baseline, then ten live days stream through the three simulated sources.
-  Deterministic: the same results arrive in the same order every run. A
-  refresh starts it again. [live-surveillance.md](live-surveillance.md)
+- **Live Surveillance** (primary, the default) — seven days of synthetic
+  history establish the baseline, then ten live days stream through the three
+  simulated sources. Deterministic: the same results arrive in the same order
+  every run. A refresh starts it again. [live-surveillance.md](live-surveillance.md)
+- **Scenario Replay** (secondary, training) — the frozen five-day Respiratory
+  Viral Syndrome scenario (0 / 24 / 50 / 74 / 87), stepped by day. Unchanged
+  since the original prototype; used for training, walkthroughs and review.
 
-The mode is kept for the browser session (`labsentinel.surveillanceMode.v1`).
+The two are separate synthetic scenarios with independent dates. A fresh
+session opens in Live Surveillance; an explicit choice of Scenario Replay is
+kept for the browser session (`labsentinel.surveillanceMode.v1`).
 
 ## Surveillance profiles
 

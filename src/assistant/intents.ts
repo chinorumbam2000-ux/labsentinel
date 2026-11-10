@@ -10,6 +10,7 @@ import type { AssistantContext, AssistantRoute, ConversationState, IntentId } fr
 import type { ProfileId } from '../lib/profiles/registry';
 import { parseProfileIntent } from './profiles';
 import { parseLiveIntent } from './live';
+import { parseModeIntent } from './modes';
 
 export interface ParsedQuestion {
   intent: IntentId;
@@ -126,6 +127,10 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   if (!t) return result('greeting');
   if (MEDICAL.test(t)) return result('medical_advice');
   if (OFF_TOPIC.test(t) && !has(t, 'probesyq', 'roella', 'labsentinel', 'outbreak', 'surveillance')) return result('out_of_scope');
+
+  // The two modes: which is the main one, what Scenario Replay is, why their dates differ.
+  const modeIntent = parseModeIntent(t);
+  if (modeIntent) return result(modeIntent);
 
   // Live Surveillance (and "is this real-time?" in either mode).
   const liveIntent = parseLiveIntent(t, context);

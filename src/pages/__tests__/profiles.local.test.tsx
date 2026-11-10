@@ -10,7 +10,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import App from '../../App';
 import { saveSession } from '../../lib/sessionState';
 import { OBSERVATIONS_BY_PROFILE } from '../../lib/profiles/derive';
-import { signInForTest } from './signedIn';
+import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
 
 // Leaflet needs a real browser; the map itself is checked in the browser runs.
 vi.mock('../../components/map/OutbreakMap', () => ({
@@ -31,6 +31,8 @@ beforeEach(() => {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
   window.sessionStorage.clear();
+  // These tests cover Scenario Replay; Live Surveillance is the default.
+  chooseScenarioReplayForTest();
   window.localStorage.clear();
   signInForTest();
 });

@@ -85,7 +85,7 @@ export default function HospitalDashboard({
         : 'No signal through the current day',
     },
     {
-      label: 'Surveillance date',
+      label: surveillanceDate ? 'Live surveillance date' : 'Replay date',
       value: formatSimulationDate(surveillanceDate ?? getScenario(currentDay).simulationDate),
       note: surveillanceDate ? label(currentDay) : `Replay Day ${currentDay}`,
     },

@@ -10,7 +10,7 @@ import App from '../../App';
 import { answerQuestion, answerText } from '../../assistant/answerEngine';
 import { getScoreForDay } from '../../lib/selectors';
 import { STORAGE_KEY as REPLAY_STATE_KEY } from '../../lib/sessionState';
-import { signInForTest } from './signedIn';
+import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
 
 const calls: string[] = [];
 let lastPath = '';
@@ -35,6 +35,8 @@ beforeEach(() => {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
   window.sessionStorage.clear();
+  // These tests cover Scenario Replay; Live Surveillance is the default.
+  chooseScenarioReplayForTest();
   signInForTest();
 });
 
@@ -165,10 +167,10 @@ describe('analyst pages use product language', () => {
     expect(calls).toEqual([]);
   });
 
-  it('shows the surveillance date, not a session clock, in the page header', async () => {
+  it('shows the replay date, not a session clock, in the page header', async () => {
     renderAt('/signals');
     await screen.findByRole('heading', { level: 1 });
-    expect(screen.getAllByText('Surveillance date:').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Replay date:').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Replay Day 1 of 5/).length).toBeGreaterThan(0);
   });
 });

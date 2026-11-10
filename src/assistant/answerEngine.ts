@@ -32,6 +32,7 @@ import {
 import type { AnswerBlock, AssistantAnswer, AssistantContext, ConversationState, IntentId } from './types';
 import { answerProfileIntent, profileScoreExplanation } from './profiles';
 import { answerLiveIntent } from './live';
+import { answerModeIntent } from './modes';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 
 const SEVERITY_ORDER: Severity[] = ['Low', 'Watch', 'Moderate', 'High', 'Critical'];
@@ -73,6 +74,13 @@ const keyMetrics = (f: DayFacts): AnswerBlock =>
 /* ----------------------------------------------------------------------- */
 
 const greeting = (ctx: AssistantContext): AssistantAnswer => {
+  // Live Surveillance: the live clock, never the replay's day or score.
+  if (ctx.live) {
+    return answer('greeting', [
+      text(`I'm Roella, the ProbeSyQ intelligence assistant. I answer from the data on screen: right now that is Live Surveillance, at ${ctx.live.clock} on the simulated clock.`),
+      text('Ask what just changed, which profiles need attention, whether the sources are active, what is driving a signal, or how Signal by ProbeSyQ works.'),
+    ], LIVE_STARTERS);
+  }
   const f = factsFor(ctx.day, ctx);
   return answer('greeting', [
     text(`I'm Roella, the ProbeSyQ intelligence assistant. I answer from the data on screen: right now that is Day ${f.day}, with a Composite Outbreak Signal Score of ${f.score.composite} (${f.score.severity}).`),
@@ -514,7 +522,12 @@ const pageHelp = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => 
 const RENAMED = 'Simulation is now called Scenario Replay; the old /simulation address still opens it.';
 
 const simulationHelp = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =>
-  answer('simulation_help', [
+  ctx.live
+    ? answer('simulation_help', [
+        ...(/simulation/.test(p.normalized) ? [text(RENAMED)] : []),
+        text('Scenario Replay is the secondary, training mode: a controlled historical scenario that steps through a known five-day outbreak sequence. You are in Live Surveillance now, the primary mode; choose Scenario Replay in the sidebar to step through the replay, and Live Surveillance to come back.'),
+      ], ['What is the main mode?', 'Why are the dates different?'])
+    : answer('simulation_help', [
     ...(/simulation/.test(p.normalized) ? [text(RENAMED)] : []),
     text(`Scenario Replay plays a five-day simulated respiratory outbreak and is currently on Replay Day ${ctx.day} of 5. Use ‹ and › in the top bar to move between replay days, or Reset to return to Day 1; the Scenario Replay page can also play the days in sequence. Every analyst page follows the same replay day.`),
   ], ['What happens on Day 1?', 'What changed since the previous day?']);
@@ -562,6 +575,8 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
   const p = parseQuestion(question, ctx, state);
   const viewing = ctx.profileId && ctx.profileId !== RVS_PROFILE_ID ? ctx.profileId : null;
   const result = ((): AssistantAnswer => {
+    const forMode = answerModeIntent(p.intent, ctx, factsFor(ctx.day, ctx).scenario.simulationDate);
+    if (forMode) return forMode;
     const forLive = answerLiveIntent({ intent: p.intent, profiles: p.profiles ?? [], facility: p.facility }, ctx);
     if (forLive) return forLive;
     // Live Surveillance: figures come from the live state, never the replay's.
@@ -630,9 +645,9 @@ export const answerQuestion = (question: string, ctx: AssistantContext, state: C
       text(`This answer is about Respiratory Viral Syndrome, the narrated replay. You are viewing ${PROFILE_BY_ID[viewing].displayName}; ask "What is happening with ${PROFILE_BY_ID[viewing].displayName}?" for its figures.`),
     );
   }
-  // Never suggest the question that was just asked.
+  // Never suggest the question that was just asked; in Live Surveillance, never a replay day.
   const asked = normalize(question);
-  result.followUps = result.followUps.filter((q) => normalize(q) !== asked);
+  result.followUps = result.followUps.filter((q) => normalize(q) !== asked && !(ctx.live && REPLAY_DAY.test(q)));
   const topic = result.intent === 'facilities' || result.intent === 'facility_ranking' ? 'facilities'
     : result.intent === 'geography' || result.intent === 'area_ranking' ? 'areas'
     : state.lastTopic;
@@ -651,8 +666,24 @@ export const answerText = (a: AssistantAnswer): string =>
     .map((b) => (b.kind === 'text' ? b.text : b.kind === 'list' ? [b.title, ...b.items].filter(Boolean).join('\n') : b.items.map((m) => `${m.label}: ${m.value}`).join('\n')))
     .join('\n');
 
-/** Starter questions for a screen and day. */
+/** "Day 1" and the like belong to Scenario Replay's day-by-day sequence. */
+const REPLAY_DAY = /\bday [1-5]\b/i;
+
+/** Live Surveillance starters: about the live feed, never a replay day. */
+const LIVE_STARTERS = [
+  'What just changed?',
+  'Which profiles need attention?',
+  'Are all sources active?',
+  'What is driving the selected signal?',
+  'Why did the score change?',
+];
+
+/** Starter questions for a screen and day (Scenario Replay) or the live feed. */
 export const suggestedQuestions = (ctx: AssistantContext): string[] => {
+  if (ctx.live) {
+    const forPage = PAGE_QUESTIONS[ctx.route].filter((q) => !REPLAY_DAY.test(q));
+    return [...new Set([...LIVE_STARTERS, ...forPage])].slice(0, 6);
+  }
   const dayAware = ctx.day === 1
     ? ['What happens on Day 1?', 'Summarize the current outbreak situation.']
     : [`What changed from Day ${ctx.day - 1} to Day ${ctx.day}?`, 'Why is the score this high?'];

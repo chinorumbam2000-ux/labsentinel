@@ -218,7 +218,7 @@ export default function WhyThisSignalPanel({
           </p>
         </div>
         <div className="bg-white px-5 py-3">
-          <p className="ls-label">Surveillance date</p>
+          <p className="ls-label">Replay date</p>
           <p className="mt-1 text-sm font-semibold text-ink">
             {formatSimulationDate(scenario.simulationDate)}
           </p>

@@ -32,10 +32,13 @@ export default function LiveSurveillancePage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">Live Surveillance</h1>
+          <p className="mt-0.5 text-sm font-medium text-brand" data-testid="live-subtitle">
+            Current simulated feed
+          </p>
           <p className="mt-1 max-w-3xl text-sm text-muted">
             Synthetic laboratory observations arrive through three simulated source feeds and are validated,
-            normalized, routed to every applicable profile and scored as they arrive. Simulated clock:{' '}
-            <span className="font-semibold text-ink">{clock}</span>.
+            normalized, routed to every applicable profile and scored as they arrive. Live surveillance date:{' '}
+            <span className="font-semibold text-ink">{clock}</span> (simulated clock).
           </p>
         </div>
         <PageMeta />

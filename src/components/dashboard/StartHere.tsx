@@ -14,7 +14,9 @@ const readDismissed = () => {
 
 /**
  * One line for a first-time visitor: what the product does, and the two ways
- * to see it. Dismissible for the browser session; changes no data.
+ * to see it — Live Surveillance first and recommended, Scenario Replay as the
+ * secondary training walkthrough. Dismissible for the browser session;
+ * changes no data.
  */
 export default function StartHere() {
   const { mode, started, setMode, start } = useLiveSurveillance();
@@ -54,8 +56,12 @@ export default function StartHere() {
         <button type="button" className="ls-btn-primary px-3 py-1.5 text-xs" onClick={watchLive}>
           ▶ Watch Live Surveillance
         </button>
-        <Link to="/replay" className="ls-btn px-3 py-1.5 text-xs">
-          Step through Scenario Replay
+        <Link
+          to="/replay"
+          className="rounded-md px-2 py-1.5 text-xs font-medium text-brand underline-offset-2 hover:underline"
+          title="Historical training scenario — the controlled five-day outbreak sequence"
+        >
+          View Scenario Replay
         </Link>
         <button
           type="button"

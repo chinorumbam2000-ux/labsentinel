@@ -9,6 +9,7 @@ import { useSimulation } from '../../context/SimulationContext';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 import { ANALYST_SECTIONS, SYSTEM_HEADING, isSystemPath, systemItems, type NavItem } from '../../lib/navigation';
 import { SMART_BUILD_CONFIG } from '../../smart/config';
+import { formatSimulationDate } from '../../lib/format';
 
 const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled;
 
@@ -56,7 +57,16 @@ function NavItems({
                 <span aria-hidden="true" className="w-4 text-center text-xs opacity-80">
                   {item.icon}
                 </span>
-                <span className="flex-1 truncate">{item.label}</span>
+                {item.subtitle ? (
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{item.label}</span>
+                    <span aria-hidden="true" className="block truncate text-[10px] font-normal leading-tight text-white/70">
+                      {item.subtitle}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="flex-1 truncate">{item.label}</span>
+                )}
                 {item.to === '/signals' && unacknowledgedCount > 0 ? (
                   <span
                     className="rounded-full bg-severity-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
@@ -83,7 +93,7 @@ function NavItems({
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   // The badge is global: alerts awaiting acknowledgement across ALL profiles,
   // in whichever mode is active (Scenario Replay or Live Surveillance).
-  const { currentDay } = useSimulation();
+  const { currentDay, simulationDate } = useSimulation();
   const { alerts } = usePortfolio();
   const unacknowledgedCount = alerts.filter((alert) => alert.status !== 'Acknowledged').length;
   const live = useLiveSurveillance();
@@ -122,7 +132,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         {/* The calendar is shared by every profile; scores belong to profiles, so none is shown here. */}
         {live.mode === 'live' ? (
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">Simulated clock</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/60">Live surveillance date</p>
             <p className="mt-1 text-sm font-semibold leading-none">{liveClock}</p>
             <p className="mt-1 text-[11px] text-white/60">
               {live.simulator.finished ? 'Complete' : live.playing ? 'Feeds running' : live.started ? 'Paused' : 'Not started'}
@@ -134,6 +144,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <div className="mt-1">
               <span className="text-lg font-semibold leading-none">{currentDay} of 5</span>
             </div>
+            <p className="mt-1 text-[11px] text-white/60">Replay date · {formatSimulationDate(simulationDate)}</p>
           </div>
         )}
       </div>

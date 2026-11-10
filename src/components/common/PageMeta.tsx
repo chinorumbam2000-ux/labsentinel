@@ -30,7 +30,8 @@ export default function PageMeta() {
       <div className="text-left sm:ml-auto sm:text-right">
         <p className="ls-label">Live Surveillance · signals for {period.currentLabel} (latest closed day)</p>
         <p className="mt-0.5 text-xs text-muted">
-          <span className="font-medium text-ink">Simulated clock:</span> {liveDayLabel(now.dayIndex)} · {clock(now.minute)}
+          <span className="font-medium text-ink">Live surveillance date:</span> {liveDayLabel(now.dayIndex)} · {clock(now.minute)}{' '}
+          simulated time
         </p>
       </div>
     );
@@ -43,7 +44,7 @@ export default function PageMeta() {
         Replay Day {currentDay} of 5{showStage ? ` · ${currentScenario.stage}` : ''}
       </p>
       <p className="mt-0.5 text-xs text-muted">
-        <span className="font-medium text-ink">Surveillance date:</span>{' '}
+        <span className="font-medium text-ink">Replay date:</span>{' '}
         {formatSimulationDate(simulationDate)}
       </p>
     </div>

@@ -65,11 +65,12 @@ export default function AskRoella() {
     wasOpen.current = open;
   }, [open]);
 
+  // Live Surveillance: the live state at this moment (for answers and the starter questions).
+  const contextNow = (): AssistantContext =>
+    isLive && live ? { ...context, live: buildLiveAssistantContext(live.simulator, { started: live.started, playing: live.playing }) } : context;
+
   const ask = (question: string) => {
-    // Live Surveillance: the live state at the moment of asking.
-    const asked: AssistantContext =
-      isLive && live ? { ...context, live: buildLiveAssistantContext(live.simulator, { started: live.started, playing: live.playing }) } : context;
-    const turn = answerQuestion(question, asked, conversation);
+    const turn = answerQuestion(question, contextNow(), conversation);
     setConversation(turn.state);
     setMessages((current) => [
       ...current,
@@ -95,7 +96,7 @@ export default function AskRoella() {
         <AssistantPanel
           id={PANEL_ID}
           messages={messages}
-          suggestions={suggestedQuestions(context)}
+          suggestions={suggestedQuestions(contextNow())}
           contextLabel={`${isLive ? `Live · ${portfolio.period.currentLabel}` : `Day ${currentDay} of 5`}${pageName ? ` · ${pageName}` : ''}${profileName ? ` · ${profileName}` : ''}`}
           onAsk={ask}
           onClear={clear}

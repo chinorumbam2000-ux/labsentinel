@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../../App';
-import { signInForTest } from './signedIn';
+import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
 
 const calls: string[] = [];
 
@@ -27,6 +27,8 @@ beforeEach(() => {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
   window.sessionStorage.clear();
+  // These tests cover Scenario Replay; Live Surveillance is the default.
+  chooseScenarioReplayForTest();
   signInForTest();
   document.documentElement.classList.remove('ls-presentation');
 });
@@ -100,7 +102,7 @@ describe('Capstone Overview', () => {
     const explore = screen.getByRole('heading', { name: 'Explore' }).closest('section') as HTMLElement;
     const links = within(explore).getAllByRole('link');
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      '/dashboard', '/fhir-ingestion', '/dynamic-surveillance', '/smart-demo', '/evaluation', '/architecture',
+      '/live', '/replay', '/fhir-ingestion', '/dynamic-surveillance', '/smart-demo', '/evaluation', '/architecture',
     ]);
     expect(within(explore).getAllByText('Requires the full-stack build (this build shows a notice).')).toHaveLength(3);
     expect(within(explore).getByText('Not enabled in this build (VITE_SMART_ENABLED).')).toBeTruthy();

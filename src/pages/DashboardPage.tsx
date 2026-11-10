@@ -26,6 +26,7 @@ import ProfileAlertList from '../components/profiles/ProfileAlertList';
 import { Link, useLocation } from 'react-router-dom';
 import { LiveControls, SourceStatusPanel } from '../components/live/LiveParts';
 import StartHere from '../components/dashboard/StartHere';
+import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 
 /**
  * The Public Health Dashboard, organised as six numbered sections that read in
@@ -53,6 +54,7 @@ export default function DashboardPage() {
 
   const portfolio = usePortfolio();
   const location = useLocation();
+  const { started: liveStarted } = useLiveSurveillance();
   const { view, period } = portfolio;
   // The period on screen: the replay day, or Live Surveillance's latest closed day.
   const isLive = period.mode === 'live';
@@ -109,6 +111,16 @@ export default function DashboardPage() {
         <>
           {isLive ? (
             <section aria-label="Live feeds" className="space-y-2" data-testid="dashboard-live">
+              {liveStarted ? null : (
+                // Before Start the signals below are the live history's latest closed day — never the replay's.
+                <div className="ls-card px-4 py-3" data-testid="live-ready" role="status">
+                  <p className="text-sm font-semibold text-ink">Live Surveillance ready</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    Start Live Surveillance to begin receiving simulated source observations. Until then, the signals
+                    below are the latest closed day of the live feed’s synthetic history.
+                  </p>
+                </div>
+              )}
               <div className="ls-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                 <LiveControls compact />
                 <Link to={`/live${location.search}`} className="ls-btn px-3 py-1.5 text-xs">

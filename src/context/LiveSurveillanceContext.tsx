@@ -2,12 +2,15 @@
  * Live Surveillance: the mode switch and the in-browser source simulation.
  *
  * Two modes, kept apart:
- *  - Scenario Replay — the controlled five-day Respiratory Viral Syndrome
- *    scenario (SimulationContext), unchanged;
- *  - Live Surveillance — synthetic observations arriving through three
- *    simulated source feeds, processed and scored in the browser.
+ *  - Live Surveillance — the primary experience and the default: synthetic
+ *    observations arriving through three simulated source feeds, processed
+ *    and scored in the browser;
+ *  - Scenario Replay — the secondary training mode: the controlled five-day
+ *    Respiratory Viral Syndrome scenario (SimulationContext), unchanged.
  *
- * The mode is kept for the browser session (sessionStorage). The live
+ * A fresh session opens in Live Surveillance. An explicit choice of Scenario
+ * Replay is kept for the browser session (sessionStorage) until the analyst
+ * switches back or the session ends; a refresh keeps it. The live
  * simulation itself is NOT persisted: a refresh starts it again from the
  * beginning, so it is always deterministic and nothing is stored. There is
  * exactly one timer; it exists only while playing and is cleared on pause,
@@ -39,9 +42,9 @@ export type Speed = (typeof SPEEDS)[number];
 
 const readMode = (): SurveillanceMode => {
   try {
-    return window.sessionStorage.getItem(MODE_STORAGE_KEY) === 'live' ? 'live' : 'replay';
+    return window.sessionStorage.getItem(MODE_STORAGE_KEY) === 'replay' ? 'replay' : 'live';
   } catch {
-    return 'replay';
+    return 'live';
   }
 };
 

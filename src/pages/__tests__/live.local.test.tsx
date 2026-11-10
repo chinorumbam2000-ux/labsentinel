@@ -52,16 +52,20 @@ const play = (minutes: number, speed = 1) =>
 const button = (name: string | RegExp) => screen.getAllByRole('button', { name })[0];
 
 describe('Live Surveillance', () => {
-  it('opens in Scenario Replay by default, and the mode switch persists for the session', async () => {
+  it('opens in Live Surveillance by default, and the mode switch persists for the session', async () => {
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', {}, WAIT);
     const group = screen.getAllByRole('group', { name: 'Surveillance mode' })[0];
-    expect(within(group).getByRole('button', { name: 'Scenario Replay' }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(group).getByRole('button', { name: 'Live Surveillance' }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(group).getByRole('button', { name: 'Scenario Replay' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByTestId('dashboard-live')).toBeTruthy();
+    expect(document.querySelector('header')?.textContent).toContain('Live Surveillance · Simulated source feeds');
+    fireEvent.click(within(group).getByRole('button', { name: 'Scenario Replay' }));
+    expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('replay');
     expect(screen.queryByTestId('dashboard-live')).toBeNull();
     fireEvent.click(within(group).getByRole('button', { name: 'Live Surveillance' }));
     expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('live');
     expect(screen.getByTestId('dashboard-live')).toBeTruthy();
-    expect(document.querySelector('header')?.textContent).toContain('Live Surveillance · Simulated source feeds');
     // Never the old labels.
     expect(document.body.textContent).not.toMatch(/Demo Environment|Classroom Demo/);
   });
@@ -69,7 +73,7 @@ describe('Live Surveillance', () => {
   it('offers a first-time visitor the two experiences, and can be dismissed', async () => {
     const view = renderAt('/dashboard');
     const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    expect(within(strip).getByRole('link', { name: 'Step through Scenario Replay' }).getAttribute('href')).toBe('/replay');
+    expect(within(strip).getByRole('link', { name: 'View Scenario Replay' }).getAttribute('href')).toBe('/replay');
     fireEvent.click(within(strip).getByRole('button', { name: '▶ Watch Live Surveillance' }));
     await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
     // Started: the simulation is playing, and the strip has gone.

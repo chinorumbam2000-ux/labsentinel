@@ -23,17 +23,34 @@ engineering implementation and is unchanged.
 
 ## Two modes
 
-| | Scenario Replay | Live Surveillance |
-|---|---|---|
-| What | The controlled five-day Respiratory Viral Syndrome scenario | Synthetic observations arriving through three simulated feeds |
-| Scores | Day 1 baseline (frozen: 0 / 24 / 50 / 74 / 87) | The backend engine's rules: rolling 7-day baseline |
-| Profiles | All six | RVS, Influenza A, COVID-19, RSV (Cholera and Gastrointestinal are inactive here) |
-| Controls | Replay day | Start · Pause · Resume · Reset · 1× / 2× / 4× |
+Live Surveillance is the primary experience and the default. Scenario Replay
+is the secondary, training mode.
 
-The switch sits at the top of the sidebar. The mode is kept for the browser
-session (`sessionStorage`, key `labsentinel.surveillanceMode.v1`). Visiting
-Scenario Replay switches to replay; visiting Live Surveillance switches to
-live. Scenario Replay never reads live state.
+| | Live Surveillance (primary) | Scenario Replay (training) |
+|---|---|---|
+| What | Synthetic observations arriving through three simulated feeds — "Simulated source feeds" | The controlled five-day Respiratory Viral Syndrome scenario — "Historical training scenario" |
+| Used for | The normal analyst view | Training, walkthroughs and controlled review of a known progression |
+| Dates | "Live surveillance date": its own simulated feed timeline (seven history days, then ten live days) | "Replay date": the original five-day sequence |
+| Scores | The backend engine's rules: rolling 7-day baseline | Day 1 baseline (frozen: 0 / 24 / 50 / 74 / 87) |
+| Profiles | RVS, Influenza A, COVID-19, RSV (Cholera and Gastrointestinal are inactive here) | All six |
+| Controls | Start · Pause · Resume · Reset · 1× / 2× / 4× | Replay day |
+
+The two are separate synthetic scenarios, so their dates are intentionally
+independent; neither is out of step with the other.
+
+The switch sits at the top of the sidebar, Live Surveillance first.
+
+- **A fresh session opens in Live Surveillance** — the first page after
+  sign-in, and any session with no stored mode. Before Start, the Dashboard
+  says "Live Surveillance ready" and shows the live feed's latest closed
+  history day, never the replay's values.
+- **An explicit choice is kept for the browser session** (`sessionStorage`,
+  key `labsentinel.surveillanceMode.v1`, still named for compatibility):
+  choosing Scenario Replay keeps it — through page changes and refreshes —
+  until the analyst switches back or the browser session ends. Sign Out does
+  not change it.
+- Visiting Scenario Replay switches to replay; visiting Live Surveillance
+  switches to live. Scenario Replay never reads live state.
 
 ## Simulated sources
 
@@ -154,7 +171,9 @@ real hospital, vendor or patient connection.
 ## Refresh and performance
 
 The live simulation is not persisted: a refresh starts it again from the
-beginning (deterministic, nothing stored). There is one interval timer; it
+beginning (deterministic, nothing stored). The mode survives the refresh: a
+session that has not chosen Scenario Replay is back in Live Surveillance,
+ready to start; one that chose Scenario Replay stays there. There is one interval timer; it
 exists only while playing and is cleared on pause, reset, completion and
 unmount. The activity stream keeps the last 300 entries.
 

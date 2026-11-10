@@ -102,7 +102,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             </p>
             <p className="truncate text-sm font-semibold text-ink" data-testid="live-clock">
               {liveClock}
-              <span className="ml-2 font-normal text-muted">simulated clock</span>
+              <span className="ml-2 font-normal text-muted">live surveillance date · simulated clock</span>
             </p>
           </div>
           <PlayPauseButton />

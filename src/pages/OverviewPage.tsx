@@ -38,8 +38,9 @@ const ABOUT_SECTIONS: { heading: string; testId: string; items: string[] }[] = [
     heading: 'Two ways to watch',
     testId: 'about-modes',
     items: [
-      'Scenario Replay is a controlled, frozen five-day Respiratory Viral Syndrome scenario, stepped one day at a time.',
-      'Live Surveillance runs entirely in your browser: three simulated source feeds — a FHIR R4 source, an HL7 v2 source and a LIS/API-style source — deliver deterministic synthetic results for the three fictional facilities, and every score is recalculated as they arrive. Seven days of synthetic history establish the baseline; ten live days then stream, one day in about 12 seconds at 1×. A refresh starts it again; nothing is stored.',
+      'Live Surveillance is the primary experience, and where a new session opens. It runs entirely in your browser: three simulated source feeds — a FHIR R4 source, an HL7 v2 source and a LIS/API-style source — deliver deterministic synthetic results for the three fictional facilities, and every score is recalculated as they arrive. Seven days of synthetic history establish the baseline; ten live days then stream, one day in about 12 seconds at 1×. A refresh starts the feed again from the beginning; nothing is stored.',
+      'Scenario Replay is the secondary, training mode: a controlled, frozen five-day Respiratory Viral Syndrome scenario, stepped one day at a time, for walkthroughs and review of how a known outbreak signal developed. Choosing it keeps it for the browser session.',
+      'The two are separate synthetic scenarios, so their dates are intentionally independent: Live Surveillance has its own simulated feed timeline, and Scenario Replay keeps the original five-day historical sequence.',
       'The simulated feeds demonstrate the intended integration architecture. No real hospital, laboratory, EHR vendor or patient is connected, and no partnership with any vendor is implied.',
     ],
   },
@@ -89,7 +90,8 @@ interface Destination {
 }
 
 const DESTINATIONS: Destination[] = [
-  { to: '/dashboard', title: 'Scenario Replay', mode: 'classroom', detail: 'The frozen five-day outbreak story: Composite score 0 / 24 / 50 / 74 / 87, map, signals, vendor sidecar and reporting.' },
+  { to: '/live', title: 'Live Surveillance', mode: 'classroom', detail: 'The primary experience: three simulated source feeds deliver synthetic observations, and every profile is scored as they arrive.' },
+  { to: '/replay', title: 'Scenario Replay', mode: 'classroom', detail: 'The historical training scenario — the frozen five-day outbreak story: Composite score 0 / 24 / 50 / 74 / 87, map, signals, vendor sidecar and reporting.' },
   { to: '/fhir-ingestion', title: 'FHIR Ingestion', mode: 'api', detail: 'Send a synthetic FHIR Observation through validation and normalization into PostgreSQL.', requires: 'api' },
   { to: '/dynamic-surveillance', title: 'Dynamic Surveillance', mode: 'dynamic', detail: 'Signals recalculated from stored observations, with EWMA and CUSUM beside the composite.', requires: 'api' },
   { to: '/smart-demo', title: 'SMART Sandbox', mode: 'smart', detail: 'SMART App Launch against the public SMART Health IT sandbox; read-only, PKCE, synthetic patients.', requires: 'smart' },

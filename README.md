@@ -45,13 +45,15 @@ implementation behind it and runs locally.
   Syndrome, Influenza A, COVID-19, RSV, Cholera, Gastrointestinal Syndrome),
   ranked by severity, each with its own score, status and alerts. One selected
   profile drives every page (`?profile=`).
-- **Live Surveillance** — three simulated source feeds (FHIR R4, HL7 v2,
+- **Live Surveillance** — the primary experience, where a session opens.
+  Three simulated source feeds (FHIR R4, HL7 v2,
   LIS/API) deliver deterministic synthetic results in the browser; every score
   is recalculated as they arrive. Start / Pause / Resume / Reset, 1× / 2× / 4×,
   a source-status panel, a feed outage, and an audit trail that explains each
   score change by component. [docs/live-surveillance.md](docs/live-surveillance.md)
-- **Scenario Replay** — the controlled five-day scenario (Composite score
-  0 → 24 → 50 → 74 → 87), stepped one day at a time.
+- **Scenario Replay** — the secondary, training mode: a controlled historical
+  five-day scenario (Composite score 0 → 24 → 50 → 74 → 87), stepped one day
+  at a time. Its dates are its own, independent of Live Surveillance's.
 - **Explainability** — every score split into its five weighted components;
   Data Confidence (freshness, completeness, terminology mapping,
   participation, integrity) kept separate from the score.
@@ -374,7 +376,7 @@ FHIR and LOINC).
 
 ### Live Surveillance
 
-Beside Scenario Replay, **Live Surveillance** streams synthetic laboratory
+**Live Surveillance** — the primary experience and the default mode — streams synthetic laboratory
 observations through three simulated source feeds — a FHIR R4 source, an HL7
 v2 source and a LIS/API-style source for the three fictional facilities — and
 recalculates every profile's score from them as they arrive, in the browser.

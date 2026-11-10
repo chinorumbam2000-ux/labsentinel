@@ -67,8 +67,13 @@ export default function SimulationPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-ink">
             Scenario Replay
           </h1>
+          <p className="mt-0.5 text-sm font-medium text-brand" data-testid="replay-subtitle">
+            Historical training scenario
+          </p>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            A five-day simulated respiratory outbreak across three fictional facilities. Changing
+            A controlled, known five-day sequence for training, walkthroughs and review: how a simulated
+            respiratory outbreak signal developed across three fictional facilities. It is not the current
+            operational state — Live Surveillance is. Its replay dates are its own. Changing
             the replay day here updates every analyst page: the dashboard, map, laboratory data,
             signals, facilities and the clinician sidecar.
           </p>
