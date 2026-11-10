@@ -272,13 +272,23 @@ describe('Roella on the two modes', () => {
     const view = renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     fireEvent.click(screen.getByRole('button', { name: /Ask Roella/i }));
-    expect(chips()).toContain('What just changed?');
+    // Exactly the five live starters, in order — "Why did the score change?" included.
+    expect(chips()).toEqual([
+      'What just changed?',
+      'Which profiles need attention?',
+      'Are all sources active?',
+      'What is driving the selected signal?',
+      'Why did the score change?',
+    ]);
+    expect(screen.getByRole('button', { name: /Why did the score change\?/ })).toBeTruthy();
     expect(chips().join(' | ')).not.toMatch(/\bDay [1-5]\b/);
     view.unmount();
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'replay');
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     fireEvent.click(screen.getByRole('button', { name: /Ask Roella/i }));
+    // Scenario Replay unchanged: its first four day-aware starters (Day 1 here).
+    expect(chips()).toEqual(suggestedQuestions({ day: 1, route: 'dashboard' }).slice(0, 4));
     expect(chips()).toContain('What happens on Day 1?');
   });
 

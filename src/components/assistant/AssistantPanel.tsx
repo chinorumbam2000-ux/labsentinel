@@ -7,6 +7,8 @@ interface AssistantPanelProps {
   messages: ChatMessage[];
   /** Starter questions for the current day and page. */
   suggestions: string[];
+  /** How many starters to show: four by default (Scenario Replay); all five live starters in Live Surveillance. */
+  starterCount?: number;
   /** Shown under the heading so it is clear which day and page answers refer to. */
   contextLabel: string;
   onAsk: (question: string) => void;
@@ -29,6 +31,7 @@ export default function AssistantPanel({
   id,
   messages,
   suggestions,
+  starterCount = STARTER_COUNT,
   contextLabel,
   onAsk,
   onClear,
@@ -135,7 +138,7 @@ export default function AssistantPanel({
           <div>
             <p className="ls-label mb-2.5">Suggested questions</p>
             <ul className="space-y-2">
-              {suggestions.slice(0, STARTER_COUNT).map((question) => (
+              {suggestions.slice(0, starterCount).map((question) => (
                 <li key={question}>
                   <button
                     type="button"

@@ -669,8 +669,8 @@ export const answerText = (a: AssistantAnswer): string =>
 /** "Day 1" and the like belong to Scenario Replay's day-by-day sequence. */
 const REPLAY_DAY = /\bday [1-5]\b/i;
 
-/** Live Surveillance starters: about the live feed, never a replay day. */
-const LIVE_STARTERS = [
+/** Live Surveillance starters: about the live feed, never a replay day. The panel shows all of them. */
+export const LIVE_STARTERS = [
   'What just changed?',
   'Which profiles need attention?',
   'Are all sources active?',

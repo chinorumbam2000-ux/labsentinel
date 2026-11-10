@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { answerQuestion, suggestedQuestions } from '../../assistant/answerEngine';
+import { LIVE_STARTERS, answerQuestion, suggestedQuestions } from '../../assistant/answerEngine';
 import { routeFromPath } from '../../assistant/context';
 import { PAGES } from '../../assistant/knowledge';
 import type { AssistantContext, ConversationState } from '../../assistant/types';
@@ -97,6 +97,7 @@ export default function AskRoella() {
           id={PANEL_ID}
           messages={messages}
           suggestions={suggestedQuestions(contextNow())}
+          starterCount={isLive && live ? LIVE_STARTERS.length : undefined}
           contextLabel={`${isLive ? `Live · ${portfolio.period.currentLabel}` : `Day ${currentDay} of 5`}${pageName ? ` · ${pageName}` : ''}${profileName ? ` · ${profileName}` : ''}`}
           onAsk={ask}
           onClear={clear}
