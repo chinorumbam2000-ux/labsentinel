@@ -9,6 +9,7 @@
 import { PROFILE_BY_ID, RVS_PROFILE_ID, type ProfileId } from '../lib/profiles/registry';
 import { profilesNamed } from './profiles';
 import { getAllFeedHealth } from '../data/feedHealth';
+import { secondsPerDay } from '../lib/live/playback';
 import type { AnswerBlock, AssistantAnswer, AssistantContext, IntentId, LiveAssistantContext } from './types';
 
 const text = (value: string): AnswerBlock => ({ kind: 'text', text: value });
@@ -212,7 +213,7 @@ const realtimeAnswer = (ctx: AssistantContext): AssistantAnswer =>
         text(
           'Yes, in the sense that matters for this demonstration: synthetic observations are processed one by one, as they arrive, and every score is recalculated from them in your browser — the architecture a live deployment would use.',
         ),
-        text(`It is not real patient data. ${SIMULATED} Time is simulated: one surveillance day passes in about 12 seconds at 1×.`),
+        text(`It is not real patient data. ${SIMULATED} Time is simulated: one surveillance day passes in about ${secondsPerDay(1)} seconds at 1×.`),
       ], ['What just changed?', 'Are all sources active?'])
     : answer('realtime', [
         text(

@@ -29,16 +29,13 @@ import {
 import type { AcknowledgementRecord, HospitalId } from '../types';
 import { LiveSimulator } from '../lib/live/simulator';
 import type { LiveTestCode } from '../lib/live/dataset';
+import { MINUTES_PER_TICK, TICK_MS, type Speed } from '../lib/live/playback';
 
 export type SurveillanceMode = 'replay' | 'live';
 
 export const MODE_STORAGE_KEY = 'labsentinel.surveillanceMode.v1';
-/** Real milliseconds between simulation steps. */
-export const TICK_MS = 250;
-/** Simulated operating minutes per step at 1x: one surveillance day in about 12.5 seconds. */
-export const MINUTES_PER_TICK = 15;
-export const SPEEDS = [1, 2, 4] as const;
-export type Speed = (typeof SPEEDS)[number];
+// The playback pace (one 15-minute step every 500 ms at 1×: a surveillance day in 25 seconds).
+export { MINUTES_PER_TICK, SPEEDS, TICK_MS, type Speed } from '../lib/live/playback';
 
 const readMode = (): SurveillanceMode => {
   try {

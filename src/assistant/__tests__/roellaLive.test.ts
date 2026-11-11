@@ -99,6 +99,8 @@ describe('Roella — Live Surveillance', () => {
     expect(live.intent).toBe('realtime');
     expect(live.text).toContain('processed one by one, as they arrive');
     expect(live.text).toContain('It is not real patient data');
+    // The pace it states is the real playback pace, and is called simulated time.
+    expect(live.text).toContain('Time is simulated: one surveillance day passes in about 25 seconds at 1×.');
     const replay = ask('Is this real-time?', { day: 5, route: 'dashboard' });
     expect(replay.text).toContain('Scenario Replay steps through a fixed five-day synthetic scenario');
   });

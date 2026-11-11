@@ -80,7 +80,10 @@ nothing is being sent.
 day, written as literals. Seven days of history (Feb 1–7 2026) load at the
 start to establish the rolling baseline; ten live days (Feb 8–17) stream. The
 clock runs 07:00–19:30 each day and skips the night; one day takes about
-12.5 seconds at 1×. No random values, no clock input: the same results arrive
+25 seconds at 1× (one 15-minute step every 500 ms), 12.5 seconds at 2× and
+6.25 seconds at 4×; the full ten live days take about 4 minutes at 1×. The
+speed changes only how fast the simulated clock moves in real time, never the
+results. No random values, no clock input: the same results arrive
 in the same order every time. Nothing in the dataset is a score.
 
 What the engine then calculates (closed days, Feb 8–17):
